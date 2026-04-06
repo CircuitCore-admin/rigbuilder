@@ -88,8 +88,8 @@ function getSpecValue(product: TableProduct, key: string, fallback = '—'): str
 function StarRating({ rating, count }: { rating: number; count: number }) {
   const filled = Math.round(rating);
   return (
-    <span className={styles.starRating}>
-      <span className={styles.stars}>
+    <span className={styles.starRating} role="img" aria-label={`${rating.toFixed(1)} out of 5 stars, ${count} reviews`}>
+      <span className={styles.stars} aria-hidden="true">
         {[1, 2, 3, 4, 5].map((i) => (
           <span key={i} className={i <= filled ? styles.starFilled : styles.starEmpty}>★</span>
         ))}
