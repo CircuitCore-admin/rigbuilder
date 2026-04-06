@@ -1,0 +1,99 @@
+@use '../../styles/variables';
+
+// ============================================================================
+// CompatibilityFeed — compact sidebar compatibility status
+// ============================================================================
+
+.feed {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-lg);
+  letter-spacing: 0.02em;
+}
+
+.badgeOK {
+  color: var(--color-success);
+  background: rgba(0, 255, 163, 0.1);
+  border: 1px solid rgba(0, 255, 163, 0.25);
+}
+
+.badgeWARNING {
+  color: var(--color-warning);
+  background: rgba(255, 176, 32, 0.1);
+  border: 1px solid rgba(255, 176, 32, 0.25);
+}
+
+.badgeERROR {
+  color: var(--color-error);
+  background: rgba(255, 68, 85, 0.1);
+  border: 1px solid rgba(255, 68, 85, 0.25);
+}
+
+.body {
+  padding: 12px 18px;
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+}
+
+.entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 4px 0;
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 14px;
+  font-size: 11px;
+  text-align: center;
+  margin-top: 1px;
+}
+
+.message {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-body);
+  word-break: break-word;
+}
+
+.entryOK .icon { color: var(--color-success); }
+.entryWARNING .icon { color: var(--color-warning); }
+.entryWARNING .message { color: var(--color-warning); }
+.entryERROR .icon { color: var(--color-error); }
+.entryERROR .message { color: var(--color-error); }

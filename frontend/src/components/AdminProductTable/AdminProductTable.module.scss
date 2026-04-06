@@ -1,0 +1,240 @@
+@use '../../styles/variables';
+
+.container {
+  width: 100%;
+}
+
+// ---------------------------------------------------------------------------
+// Toolbar
+// ---------------------------------------------------------------------------
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+
+  &::placeholder { color: var(--text-muted); }
+  &:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+  }
+}
+
+.filterSelect {
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+
+  option { background-color: var(--bg-elevated); }
+}
+
+.addButton {
+  padding: 10px 20px;
+  background-color: var(--accent-primary);
+  color: var(--bg-void);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  white-space: nowrap;
+
+  &:hover { opacity: 0.9; }
+  &:active { transform: scale(0.97); }
+}
+
+// ---------------------------------------------------------------------------
+// Table
+// ---------------------------------------------------------------------------
+
+.tableWrap {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.thead {
+  background-color: var(--bg-surface);
+}
+
+.th {
+  padding: 12px 16px;
+  font-family: 'General Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  text-align: left;
+  border-bottom: 2px solid rgba(110, 86, 255, 0.3);
+  user-select: none;
+
+  &.alignRight { text-align: right; }
+  &.alignCenter { text-align: center; }
+}
+
+.tr {
+  border-bottom: 1px solid var(--border-default);
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-fast);
+
+  &:nth-child(even) { background-color: var(--bg-surface); }
+  &:hover { background-color: var(--bg-elevated); }
+}
+
+.td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text-body);
+  vertical-align: middle;
+
+  &.alignRight { text-align: right; }
+  &.alignCenter { text-align: center; }
+}
+
+.productName {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.manufacturer {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.categoryBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-lg);
+  background-color: rgba(110, 86, 255, 0.15);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(110, 86, 255, 0.3);
+}
+
+.price {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.editBtn,
+.deleteBtn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.editBtn {
+  background: transparent;
+  color: var(--accent-secondary);
+  border-color: var(--accent-secondary);
+
+  &:hover {
+    background-color: rgba(110, 86, 255, 0.1);
+  }
+}
+
+.deleteBtn {
+  background: transparent;
+  color: var(--color-error);
+  border-color: var(--color-error);
+
+  &:hover {
+    background-color: rgba(255, 68, 85, 0.1);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pagination
+// ---------------------------------------------------------------------------
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pageInfo {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+}
+
+.pageButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.pageBtn {
+  padding: 6px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-body);
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+
+.empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
