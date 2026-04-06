@@ -40,6 +40,7 @@ export interface SelectionProduct {
   keySpec: string;
   price: number;
   rating?: number;
+  reviewCount?: number;
   weight?: number;
   platforms?: Platform[];
   /** Full product input for compatibility checks. */
@@ -90,6 +91,7 @@ function toTableProduct(p: SelectionProduct): TableProduct {
     keySpec: p.keySpec,
     price: p.price,
     rating: p.rating,
+    reviewCount: p.reviewCount,
     weight: p.weight,
     specs,
   };
