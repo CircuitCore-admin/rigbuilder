@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import styles from './CompatibilityFeed.module.scss';
 import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
@@ -79,7 +79,7 @@ export function CompatibilityFeed({ parts: propParts }: CompatibilityFeedProps) 
   const report = useBuildStore((s) => s.compatibilityReport);
   const parts = propParts ?? storeParts;
 
-  const entries = buildFeedEntries(parts, report);
+  const entries = useMemo(() => buildFeedEntries(parts, report), [parts, report]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const overall = entries[entries.length - 1];
