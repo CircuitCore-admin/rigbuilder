@@ -1,0 +1,355 @@
+// ============================================================================
+// RigBuilder — Prisma Schema
+// Spec-driven sim racing configurator platform
+// ============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum ProductCategory {
+  COCKPIT
+  WHEELBASE
+  WHEEL_RIM
+  PEDALS
+  SHIFTER
+  DISPLAY
+  SEAT
+  EXTRAS
+}
+
+enum ProductSubcategory {
+  // Wheelbase
+  DIRECT_DRIVE
+  BELT_DRIVE
+  GEAR_DRIVE
+  // Pedals
+  POTENTIOMETER
+  LOAD_CELL
+  HYDRAULIC
+  // Shifter
+  SEQUENTIAL
+  H_PATTERN
+  DUAL_MODE
+  // Display
+  MONITOR
+  VR_HEADSET
+  // Seat
+  BUCKET
+  GT_STYLE
+  OEM
+  // Extras
+  BASS_SHAKER
+  BUTTON_BOX
+  HANDBRAKE
+  KEYBOARD_TRAY
+  CABLE_MANAGEMENT
+}
+
+enum Platform {
+  PC
+  PLAYSTATION
+  XBOX
+}
+
+enum SpaceType {
+  DESK
+  DEDICATED_ROOM
+  SHARED_ROOM
+  COCKPIT_ONLY
+}
+
+enum Discipline {
+  FORMULA
+  GT
+  RALLY
+  DRIFT
+  OVAL
+  TRUCK
+  MULTI
+}
+
+enum CompatibilityStatus {
+  CONFIRMED
+  REPORTED_ISSUE
+  INCOMPATIBLE
+}
+
+enum CompatibilitySeverity {
+  OK
+  WARNING
+  ERROR
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+  MANUFACTURER
+}
+
+// ---------------------------------------------------------------------------
+// Users
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  bio          String?
+  location     String?
+  role         UserRole @default(USER)
+  isPro        Boolean  @default(false) @map("is_pro")
+  reputation   Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  sessions           Session[]
+  builds             Build[]
+  reviews            Review[]
+  comments           Comment[]
+  upvotes            Upvote[]
+  compatibilityLinks CompatibilityLink[]
+  wishlistItems      WishlistItem[]
+
+  @@index([username])
+  @@index([email])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ---------------------------------------------------------------------------
+// Products
+// ---------------------------------------------------------------------------
+
+model Product {
+  id              String             @id @default(cuid())
+  name            String
+  slug            String             @unique
+  manufacturer    String
+  category        ProductCategory
+  subcategory     ProductSubcategory?
+  specs           Json               // JSONB — category-specific spec object
+  releaseYear     Int?               @map("release_year")
+  weight          Float?             // kg
+  dimensions      Json?              // { length, width, height } in mm
+  platforms       Platform[]         @default([])
+  affiliateLinks  Json?              @map("affiliate_links") // [{retailer, url, price, lastChecked}]
+  images          String[]           @default([])
+  avgRating       Float?             @map("avg_rating")
+  reviewCount     Int                @default(0) @map("review_count")
+  buildCount      Int                @default(0) @map("build_count")
+  isVerified      Boolean            @default(false) @map("is_verified")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  buildParts          BuildPart[]
+  reviews             Review[]
+  compatibilityLinksA CompatibilityLink[] @relation("ProductA")
+  compatibilityLinksB CompatibilityLink[] @relation("ProductB")
+  upgradesFrom        UpgradePath[]       @relation("UpgradeFrom")
+  upgradesTo          UpgradePath[]       @relation("UpgradeTo")
+  wishlistItems       WishlistItem[]
+  reviewsUpgradedFrom Review[]            @relation("UpgradedFrom")
+
+  @@index([slug])
+  @@index([category])
+  @@index([manufacturer])
+  @@index([category, manufacturer])
+  @@index([avgRating(sort: Desc)])
+  @@map("products")
+}
+
+// ---------------------------------------------------------------------------
+// Builds
+// ---------------------------------------------------------------------------
+
+model Build {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  name        String
+  slug        String       @unique
+  description String?      // build story — sanitised HTML
+  spaceType   SpaceType?   @map("space_type")
+  disciplines Discipline[] @default([])
+  platforms   Platform[]   @default([])
+  totalCost   Float        @default(0) @map("total_cost")
+  ratings     Json?        // {satisfaction, comfort, immersion, difficulty, noise}
+  images      String[]     @default([])
+  upvoteCount Int          @default(0) @map("upvote_count")
+  viewCount   Int          @default(0) @map("view_count")
+  isPublic    Boolean      @default(true) @map("is_public")
+  isFeatured  Boolean      @default(false) @map("is_featured")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parts    BuildPart[]
+  comments Comment[]
+  upvotes  Upvote[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([isPublic, upvoteCount(sort: Desc)])
+  @@index([isPublic, createdAt(sort: Desc)])
+  @@map("builds")
+}
+
+model BuildPart {
+  id           String          @id @default(cuid())
+  buildId      String          @map("build_id")
+  productId    String          @map("product_id")
+  categorySlot ProductCategory @map("category_slot")
+  pricePaid    Float?          @map("price_paid")
+  notes        String?
+
+  build   Build   @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([buildId, categorySlot])
+  @@index([buildId])
+  @@index([productId])
+  @@map("build_parts")
+}
+
+// ---------------------------------------------------------------------------
+// Reviews
+// ---------------------------------------------------------------------------
+
+model Review {
+  id                    String   @id @default(cuid())
+  userId                String   @map("user_id")
+  productId             String   @map("product_id")
+  ratingOverall         Float    @map("rating_overall") // 1-10
+  subRatings            Json?    @map("sub_ratings") // {buildQuality, performance, value, noise, reliability}
+  ownershipDuration     String?  @map("ownership_duration")
+  upgradedFromProductId String?  @map("upgraded_from_product_id")
+  pros                  String   // sanitised
+  cons                  String   // sanitised
+  wouldBuyAgain         Boolean  @map("would_buy_again")
+  images                String[] @default([])
+  isVerified            Boolean  @default(false) @map("is_verified")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  upgradedFrom Product? @relation("UpgradedFrom", fields: [upgradedFromProductId], references: [id])
+
+  @@unique([userId, productId])
+  @@index([productId, ratingOverall(sort: Desc)])
+  @@index([userId])
+  @@map("reviews")
+}
+
+// ---------------------------------------------------------------------------
+// Compatibility & Upgrades
+// ---------------------------------------------------------------------------
+
+model CompatibilityLink {
+  id              String              @id @default(cuid())
+  productAId      String              @map("product_a_id")
+  productBId      String              @map("product_b_id")
+  status          CompatibilityStatus
+  severity        CompatibilitySeverity @default(OK)
+  reason          String?
+  confirmedByUserId String?           @map("confirmed_by_user_id")
+  createdAt       DateTime            @default(now()) @map("created_at")
+
+  productA    Product @relation("ProductA", fields: [productAId], references: [id], onDelete: Cascade)
+  productB    Product @relation("ProductB", fields: [productBId], references: [id], onDelete: Cascade)
+  confirmedBy User?   @relation(fields: [confirmedByUserId], references: [id])
+
+  @@unique([productAId, productBId])
+  @@index([productAId])
+  @@index([productBId])
+  @@map("compatibility_links")
+}
+
+model UpgradePath {
+  id                   String @id @default(cuid())
+  fromProductId        String @map("from_product_id")
+  toProductId          String @map("to_product_id")
+  count                Int    @default(0)
+  avgSatisfactionDelta Float  @default(0) @map("avg_satisfaction_delta")
+
+  fromProduct Product @relation("UpgradeFrom", fields: [fromProductId], references: [id], onDelete: Cascade)
+  toProduct   Product @relation("UpgradeTo", fields: [toProductId], references: [id], onDelete: Cascade)
+
+  @@unique([fromProductId, toProductId])
+  @@map("upgrade_paths")
+}
+
+// ---------------------------------------------------------------------------
+// Social: Comments, Upvotes, Wishlist
+// ---------------------------------------------------------------------------
+
+model Comment {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  commentableType String   @map("commentable_type") // 'build' | 'product'
+  commentableId   String   @map("commentable_id")
+  body            String   // sanitised
+  parentId        String?  @map("parent_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  build  Build?   @relation(fields: [commentableId], references: [id], onDelete: Cascade)
+  parent Comment? @relation("Replies", fields: [parentId], references: [id])
+  replies Comment[] @relation("Replies")
+
+  @@index([commentableType, commentableId])
+  @@index([userId])
+  @@map("comments")
+}
+
+model Upvote {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  upvoteableType String   @map("upvoteable_type") // 'build' | 'review'
+  upvoteableId   String   @map("upvoteable_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  build Build? @relation(fields: [upvoteableId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, upvoteableType, upvoteableId])
+  @@index([upvoteableType, upvoteableId])
+  @@map("upvotes")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+}

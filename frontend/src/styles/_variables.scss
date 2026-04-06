@@ -1,0 +1,53 @@
+// ============================================================================
+// RigBuilder — Global CSS Custom Properties & SCSS Tokens
+// ============================================================================
+
+:root {
+  // Backgrounds
+  --bg-void: #05050A;
+  --bg-primary: #0C0C14;
+  --bg-surface: #14141E;
+  --bg-elevated: #1E1E2A;
+  --bg-glass: rgba(20, 20, 30, 0.85);
+
+  // Borders
+  --border-subtle: #1E1E2A;
+  --border-default: #2A2A3A;
+  --border-strong: #3A3A4E;
+
+  // Text
+  --text-primary: #F0F0F5;
+  --text-body: #C8C8D8;
+  --text-secondary: #7878A0;
+  --text-muted: #4A4A6A;
+
+  // Accents
+  --accent-primary: #00FFA3;
+  --accent-glow: rgba(0, 255, 163, 0.12);
+  --accent-secondary: #6E56FF;
+  --accent-hot: #FF3366;
+
+  // Semantic
+  --color-warning: #FFB020;
+  --color-error: #FF4455;
+  --color-success: #00FFA3;
+
+  // Gradient
+  --gradient-hero: linear-gradient(135deg, #6E56FF 0%, #00FFA3 100%);
+
+  // Radii
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  // Transitions
+  --transition-fast: 120ms ease;
+  --transition-default: 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// SCSS-only breakpoint tokens
+$bp-mobile: 768px;
+$bp-tablet: 1024px;
+$bp-desktop: 1280px;
+$bp-wide: 1440px;
