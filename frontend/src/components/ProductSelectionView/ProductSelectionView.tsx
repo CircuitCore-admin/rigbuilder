@@ -1,14 +1,14 @@
 // ============================================================================
 // ProductSelectionView — Full-screen product browsing interface.
 // Replaces the modal ProductPicker with a dedicated viewport takeover.
-// Features: left sidebar filters, product grid, compatibility integration,
-// and URL-based state (/build?select=pedals).
+// Features: left sidebar filters, dynamic sortable list view, compatibility
+// integration, humanized conflict messages, and URL-based state.
 // ============================================================================
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import styles from './ProductSelectionView.module.scss';
-import { EnhancedProductCard } from '../EnhancedProductCard/EnhancedProductCard';
-import type { ProductCardData, CompatStatus } from '../EnhancedProductCard/EnhancedProductCard';
+import { DynamicSortableTable, getColumnsForCategory } from '../DynamicSortableTable/DynamicSortableTable';
+import type { SortState, TableProduct, CompatInfo } from '../DynamicSortableTable/DynamicSortableTable';
 import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { CompatibilityEngine } from '../../utils/compatibilityEngine';
@@ -16,7 +16,6 @@ import type { ProductInput, ProductCategory, Platform } from '../../types/produc
 import type { CompatibilityResult } from '../../types/compatibility';
 import {
   applyFilters,
-  createDefaultFilterState,
   deriveManufacturers,
   derivePriceRange,
   getFiltersForCategory,
@@ -67,6 +66,29 @@ function toFilterable(p: SelectionProduct): FilterableProduct {
   };
 }
 
+function toTableProduct(p: SelectionProduct): TableProduct {
+  // Extract specs from productInput for column rendering
+  const specs: Record<string, unknown> = {};
+  if (p.productInput?.specs) {
+    Object.assign(specs, p.productInput.specs);
+  }
+  if (p.filterSpecs) {
+    Object.assign(specs, p.filterSpecs);
+  }
+
+  return {
+    id: p.id,
+    name: p.name,
+    manufacturer: p.manufacturer,
+    thumbnail: p.thumbnail,
+    keySpec: p.keySpec,
+    price: p.price,
+    rating: p.rating,
+    weight: p.weight,
+    specs,
+  };
+}
+
 // Debounce hook
 function useDebouncedValue<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -78,6 +100,9 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 
   return debounced;
 }
+
+// Default sort = "Most Popular" (rating DESC)
+const DEFAULT_SORT: SortState = { column: 'rating', direction: 'DESC' };
 
 // ---------------------------------------------------------------------------
 // Component
@@ -105,13 +130,17 @@ export function ProductSelectionView({
   const [specFilters, setSpecFilters] = useState<Map<string, Set<string>>>(new Map());
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // Sort state
+  const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
+
   // Derive filter options
   const manufacturers = useMemo(() => deriveManufacturers(products.map(toFilterable)), [products]);
   const fullPriceRange = useMemo(() => derivePriceRange(products.map(toFilterable)), [products]);
   const categoryFilters = useMemo(() => getFiltersForCategory(slot), [slot]);
+  const columns = useMemo(() => getColumnsForCategory(slot), [slot]);
 
   // -------------------------------------------------------------------------
-  // Compatibility pre-computation
+  // Compatibility pre-computation (with conflict details)
   // -------------------------------------------------------------------------
   const buildProducts = useMemo(() => {
     const result: ProductInput[] = [];
@@ -132,10 +161,10 @@ export function ProductSelectionView({
   }, [selectedParts, slot]);
 
   const compatMap = useMemo(() => {
-    const map = new Map<string, CompatStatus>();
+    const map = new Map<string, CompatInfo>();
     for (const product of products) {
       if (!product.productInput || buildProducts.length === 0) {
-        map.set(product.id, { severity: 'OK', reasons: [] });
+        map.set(product.id, { severity: 'OK', reasons: [], conflicts: [] });
         continue;
       }
       const result: CompatibilityResult = CompatibilityEngine.checkCandidate(
@@ -145,6 +174,11 @@ export function ProductSelectionView({
       map.set(product.id, {
         severity: result.overallSeverity,
         reasons: result.conflicts.map((c) => c.message),
+        conflicts: result.conflicts.map((c) => ({
+          code: c.code,
+          message: c.message,
+          severity: c.severity,
+        })),
       });
     }
     return map;
@@ -166,24 +200,70 @@ export function ProductSelectionView({
     [products, filterState],
   );
 
-  // Map back to full product objects and sort by compatibility
+  // Map to full products, then sort
   const sortedProducts = useMemo(() => {
     const filteredIds = new Set(filteredProducts.map((p) => p.id));
     const filtered = products.filter((p) => filteredIds.has(p.id));
-    const severityOrder = { OK: 0, WARNING: 1, ERROR: 2 };
-    return [...filtered].sort((a, b) => {
+
+    // Sort by selected column
+    const sorted = [...filtered].sort((a, b) => {
+      const colDef = columns.find((c) => c.key === sort.column);
+
+      // Primary sort: compatibility (OK first, then WARNING, then ERROR)
+      const severityOrder = { OK: 0, WARNING: 1, ERROR: 2 };
       const aSev = compatMap.get(a.id)?.severity ?? 'OK';
       const bSev = compatMap.get(b.id)?.severity ?? 'OK';
-      return severityOrder[aSev] - severityOrder[bSev];
+      if (aSev !== bSev) return severityOrder[aSev] - severityOrder[bSev];
+
+      // Secondary sort: by column
+      if (!colDef) {
+        // Default: rating DESC
+        const aRating = a.rating ?? 0;
+        const bRating = b.rating ?? 0;
+        return sort.direction === 'ASC' ? aRating - bRating : bRating - aRating;
+      }
+
+      const aTable = toTableProduct(a);
+      const bTable = toTableProduct(b);
+      const aVal = colDef.getValue(aTable);
+      const bVal = colDef.getValue(bTable);
+
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sort.direction === 'ASC' ? aVal - bVal : bVal - aVal;
+      }
+
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      const cmp = aStr.localeCompare(bStr);
+      return sort.direction === 'ASC' ? cmp : -cmp;
     });
-  }, [products, filteredProducts, compatMap]);
+
+    return sorted;
+  }, [products, filteredProducts, compatMap, sort, columns]);
+
+  // -------------------------------------------------------------------------
+  // Active filter count (includes non-default sort)
+  // -------------------------------------------------------------------------
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedManufacturers.size > 0) count++;
+    if (selectedPlatforms.size > 0) count++;
+    if (priceRange[0] > fullPriceRange[0] || priceRange[1] < fullPriceRange[1]) count++;
+    for (const [, vals] of specFilters) {
+      if (vals.size > 0) count++;
+    }
+    return count;
+  }, [selectedManufacturers, selectedPlatforms, priceRange, fullPriceRange, specFilters]);
+
+  const isSortNonDefault = sort.column !== DEFAULT_SORT.column || sort.direction !== DEFAULT_SORT.direction;
+  const hasActiveFiltersOrSort = activeFilterCount > 0 || isSortNonDefault;
 
   // -------------------------------------------------------------------------
   // Handlers
   // -------------------------------------------------------------------------
   const handleSelect = useCallback(
-    (cardData: ProductCardData) => {
-      const product = products.find((p) => p.id === cardData.id);
+    (tableProduct: TableProduct) => {
+      const product = products.find((p) => p.id === tableProduct.id);
       if (!product) return;
       const part: SelectedPart = {
         id: product.id,
@@ -229,24 +309,14 @@ export function ProductSelectionView({
     });
   }, []);
 
-  const clearAllFilters = useCallback(() => {
+  const clearAllFiltersAndSort = useCallback(() => {
     setRawSearch('');
     setSelectedManufacturers(new Set());
     setPriceRange(fullPriceRange);
     setSelectedPlatforms(new Set());
     setSpecFilters(new Map());
+    setSort(DEFAULT_SORT);
   }, [fullPriceRange]);
-
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (selectedManufacturers.size > 0) count++;
-    if (selectedPlatforms.size > 0) count++;
-    if (priceRange[0] > fullPriceRange[0] || priceRange[1] < fullPriceRange[1]) count++;
-    for (const [, vals] of specFilters) {
-      if (vals.size > 0) count++;
-    }
-    return count;
-  }, [selectedManufacturers, selectedPlatforms, priceRange, fullPriceRange, specFilters]);
 
   // Auto-focus search on mount
   useEffect(() => {
@@ -262,6 +332,12 @@ export function ProductSelectionView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onBack]);
 
+  // Convert to table products
+  const tableProducts = useMemo(
+    () => sortedProducts.map(toTableProduct),
+    [sortedProducts],
+  );
+
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
@@ -269,208 +345,230 @@ export function ProductSelectionView({
     <div className={styles.view}>
       {/* Sticky header */}
       <header className={styles.header}>
-        <button type="button" className={styles.backBtn} onClick={onBack}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Back to Build
-        </button>
+        <div className={styles.headerInner}>
+          <button type="button" className={styles.backBtn} onClick={onBack}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back to Build
+          </button>
 
-        <div className={styles.headerCenter}>
-          <span className={styles.selectingLabel}>Selecting:</span>
-          <span className={styles.categoryLabel}>{slotLabel}</span>
+          <div className={styles.headerCenter}>
+            <span className={styles.selectingLabel}>Selecting:</span>
+            <span className={styles.categoryLabel}>{slotLabel}</span>
+          </div>
+
+          <div className={styles.headerSearch}>
+            <svg className={styles.searchIcon} width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className={styles.searchInput}
+              placeholder={`Search ${slotLabel.toLowerCase()}…`}
+              value={rawSearch}
+              onChange={(e) => setRawSearch(e.target.value)}
+            />
+            {rawSearch && (
+              <button
+                type="button"
+                className={styles.searchClear}
+                onClick={() => setRawSearch('')}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {/* Mobile sidebar toggle */}
+          <button
+            type="button"
+            className={styles.filterToggle}
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label="Toggle filters"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            {activeFilterCount > 0 && (
+              <span className={styles.filterBadge}>{activeFilterCount}</span>
+            )}
+          </button>
         </div>
-
-        <div className={styles.headerSearch}>
-          <svg className={styles.searchIcon} width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2" />
-            <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-          </svg>
-          <input
-            ref={searchInputRef}
-            type="text"
-            className={styles.searchInput}
-            placeholder={`Search ${slotLabel.toLowerCase()}…`}
-            value={rawSearch}
-            onChange={(e) => setRawSearch(e.target.value)}
-          />
-          {rawSearch && (
-            <button
-              type="button"
-              className={styles.searchClear}
-              onClick={() => setRawSearch('')}
-              aria-label="Clear search"
-            >
-              ×
-            </button>
-          )}
-        </div>
-
-        {/* Mobile sidebar toggle */}
-        <button
-          type="button"
-          className={styles.filterToggle}
-          onClick={() => setSidebarOpen((v) => !v)}
-          aria-label="Toggle filters"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          {activeFilterCount > 0 && (
-            <span className={styles.filterBadge}>{activeFilterCount}</span>
-          )}
-        </button>
       </header>
 
-      {/* Main content: sidebar + grid */}
-      <div className={styles.content}>
-        {/* Left sidebar */}
-        <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
-          <div className={styles.sidebarInner}>
-            {/* Filter header */}
-            <div className={styles.filterHeader}>
-              <span className={styles.filterTitle}>Filters</span>
-              {activeFilterCount > 0 && (
-                <button type="button" className={styles.clearBtn} onClick={clearAllFilters}>
-                  Clear All
-                </button>
-              )}
-            </div>
+      {/* Main content wrapper: 1600px centered */}
+      <div className={styles.contentWrapper}>
+        <div className={styles.content}>
+          {/* Left sidebar */}
+          <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+            <div className={styles.sidebarInner}>
+              {/* Clear Filters & Sort — prominent top button */}
+              <button
+                type="button"
+                className={`${styles.clearAllBtn} ${hasActiveFiltersOrSort ? styles.clearAllActive : ''}`}
+                onClick={clearAllFiltersAndSort}
+                disabled={!hasActiveFiltersOrSort}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                Clear Filters & Sort
+                {hasActiveFiltersOrSort && (
+                  <span className={styles.clearBadge}>
+                    {activeFilterCount + (isSortNonDefault ? 1 : 0)}
+                  </span>
+                )}
+              </button>
 
-            {/* Manufacturer checkboxes */}
-            <div className={styles.filterSection}>
-              <h5 className={styles.filterSectionTitle}>Manufacturer</h5>
-              <div className={styles.checkboxGroup}>
-                {manufacturers.map((mfr) => (
-                  <label key={mfr} className={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      className={styles.checkbox}
-                      checked={selectedManufacturers.has(mfr)}
-                      onChange={() => toggleManufacturer(mfr)}
-                    />
-                    <span className={styles.checkboxText}>{mfr}</span>
-                  </label>
-                ))}
+              {/* Filter header */}
+              <div className={styles.filterHeader}>
+                <span className={styles.filterTitle}>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className={styles.filterCount}>{activeFilterCount} active</span>
+                )}
               </div>
-            </div>
 
-            {/* Price range */}
-            <div className={styles.filterSection}>
-              <h5 className={styles.filterSectionTitle}>Price Range</h5>
-              <div className={styles.priceInputs}>
-                <div className={styles.priceField}>
-                  <span className={styles.priceLabel}>Min</span>
-                  <input
-                    type="number"
-                    className={styles.priceInput}
-                    value={priceRange[0]}
-                    min={fullPriceRange[0]}
-                    max={priceRange[1]}
-                    onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                  />
-                </div>
-                <span className={styles.priceDash}>—</span>
-                <div className={styles.priceField}>
-                  <span className={styles.priceLabel}>Max</span>
-                  <input
-                    type="number"
-                    className={styles.priceInput}
-                    value={priceRange[1]}
-                    min={priceRange[0]}
-                    max={fullPriceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                  />
-                </div>
-              </div>
-              <input
-                type="range"
-                className={styles.rangeSlider}
-                min={fullPriceRange[0]}
-                max={fullPriceRange[1]}
-                value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-              />
-            </div>
-
-            {/* Platform toggles */}
-            <div className={styles.filterSection}>
-              <h5 className={styles.filterSectionTitle}>Platform</h5>
-              <div className={styles.platformToggles}>
-                {(['PC', 'PLAYSTATION', 'XBOX'] as Platform[]).map((plat) => (
-                  <button
-                    key={plat}
-                    type="button"
-                    className={`${styles.platformBtn} ${selectedPlatforms.has(plat) ? styles.platformActive : ''}`}
-                    onClick={() => togglePlatform(plat)}
-                  >
-                    {plat === 'PC' ? '🖥 PC' : plat === 'PLAYSTATION' ? '🎮 PS' : '🎮 Xbox'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Category-specific spec filters */}
-            {categoryFilters.map((filter: SpecFilterDefinition) => (
-              <div key={filter.key} className={styles.filterSection}>
-                <h5 className={styles.filterSectionTitle}>{filter.label}</h5>
+              {/* Manufacturer checkboxes */}
+              <div className={styles.filterSection}>
+                <h5 className={styles.filterSectionTitle}>Manufacturer</h5>
                 <div className={styles.checkboxGroup}>
-                  {filter.options?.map((opt) => (
-                    <label key={opt} className={styles.checkboxLabel}>
+                  {manufacturers.map((mfr) => (
+                    <label key={mfr} className={styles.checkboxLabel}>
                       <input
                         type="checkbox"
                         className={styles.checkbox}
-                        checked={specFilters.get(filter.key)?.has(opt) ?? false}
-                        onChange={() => toggleSpecFilter(filter.key, opt)}
+                        checked={selectedManufacturers.has(mfr)}
+                        onChange={() => toggleManufacturer(mfr)}
                       />
-                      <span className={styles.checkboxText}>
-                        {opt.replace(/_/g, ' ')}
-                      </span>
+                      <span className={styles.checkboxText}>{mfr}</span>
                     </label>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </aside>
 
-        {/* Product grid */}
-        <main className={styles.grid}>
-          {/* Results count */}
-          <div className={styles.resultsBar}>
-            <span className={styles.resultsCount}>
-              {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''}
-            </span>
-            {activeFilterCount > 0 && (
-              <span className={styles.filtersActive}>
-                {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active
+              {/* Price range */}
+              <div className={styles.filterSection}>
+                <h5 className={styles.filterSectionTitle}>Price Range</h5>
+                <div className={styles.priceInputs}>
+                  <div className={styles.priceField}>
+                    <span className={styles.priceLabel}>Min</span>
+                    <input
+                      type="number"
+                      className={styles.priceInput}
+                      value={priceRange[0]}
+                      min={fullPriceRange[0]}
+                      max={priceRange[1]}
+                      onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                    />
+                  </div>
+                  <span className={styles.priceDash}>—</span>
+                  <div className={styles.priceField}>
+                    <span className={styles.priceLabel}>Max</span>
+                    <input
+                      type="number"
+                      className={styles.priceInput}
+                      value={priceRange[1]}
+                      min={priceRange[0]}
+                      max={fullPriceRange[1]}
+                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                    />
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  className={styles.rangeSlider}
+                  min={fullPriceRange[0]}
+                  max={fullPriceRange[1]}
+                  value={priceRange[1]}
+                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                />
+              </div>
+
+              {/* Platform toggles */}
+              <div className={styles.filterSection}>
+                <h5 className={styles.filterSectionTitle}>Platform</h5>
+                <div className={styles.platformToggles}>
+                  {(['PC', 'PLAYSTATION', 'XBOX'] as Platform[]).map((plat) => (
+                    <button
+                      key={plat}
+                      type="button"
+                      className={`${styles.platformBtn} ${selectedPlatforms.has(plat) ? styles.platformActive : ''}`}
+                      onClick={() => togglePlatform(plat)}
+                    >
+                      {plat === 'PC' ? '🖥 PC' : plat === 'PLAYSTATION' ? '🎮 PS' : '🎮 Xbox'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Category-specific spec filters */}
+              {categoryFilters.map((filter: SpecFilterDefinition) => (
+                <div key={filter.key} className={styles.filterSection}>
+                  <h5 className={styles.filterSectionTitle}>{filter.label}</h5>
+                  <div className={styles.checkboxGroup}>
+                    {filter.options?.map((opt) => (
+                      <label key={opt} className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkbox}
+                          checked={specFilters.get(filter.key)?.has(opt) ?? false}
+                          onChange={() => toggleSpecFilter(filter.key, opt)}
+                        />
+                        <span className={styles.checkboxText}>
+                          {opt.replace(/_/g, ' ')}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          {/* Product list (sortable table) */}
+          <main className={styles.mainArea}>
+            {/* Results bar */}
+            <div className={styles.resultsBar}>
+              <span className={styles.resultsCount}>
+                {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''}
               </span>
-            )}
-          </div>
+              {activeFilterCount > 0 && (
+                <span className={styles.filtersActive}>
+                  {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active
+                </span>
+              )}
+              {isSortNonDefault && (
+                <span className={styles.sortActive}>
+                  Sorted by {columns.find((c) => c.key === sort.column)?.label ?? sort.column} {sort.direction}
+                </span>
+              )}
+            </div>
 
-          {sortedProducts.length === 0 ? (
-            <div className={styles.emptyState}>
-              <p>No products match your filters.</p>
-              <button type="button" className={styles.clearFiltersBtn} onClick={clearAllFilters}>
-                Clear All Filters
-              </button>
-            </div>
-          ) : (
-            <div className={styles.productGrid}>
-              {sortedProducts.map((product) => {
-                const compat = compatMap.get(product.id) ?? { severity: 'OK' as const, reasons: [] };
-                return (
-                  <EnhancedProductCard
-                    key={product.id}
-                    product={product}
-                    compat={compat}
-                    onSelect={handleSelect}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </main>
+            {/* Dynamic sortable table */}
+            <DynamicSortableTable
+              products={tableProducts}
+              columns={columns}
+              compatMap={compatMap}
+              sort={sort}
+              onSortChange={setSort}
+              onSelect={handleSelect}
+            />
+
+            {/* Empty state fallback */}
+            {sortedProducts.length === 0 && (
+              <div className={styles.emptyState}>
+                <p>No products match your filters.</p>
+                <button type="button" className={styles.clearFiltersBtn} onClick={clearAllFiltersAndSort}>
+                  Clear All Filters & Sort
+                </button>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );
