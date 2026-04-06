@@ -129,7 +129,7 @@ function ProductHit({ product, onSelect }: { product: SearchProduct; onSelect: (
           {product.isBundle && <span className={styles.bundleBadge}>Bundle</span>}
         </span>
         <span className={styles.hitMeta}>
-          {product.manufacturer} · {product.category.replace('_', ' ')}
+          {product.manufacturer} · {product.category.replaceAll('_', ' ')}
           {product.avgRating != null && ` · ★ ${product.avgRating.toFixed(1)}`}
         </span>
       </div>
@@ -158,7 +158,7 @@ function ThreadHit({ thread, onSelect }: { thread: SearchThread; onSelect: () =>
       <div className={styles.hitInfo}>
         <span className={styles.hitName}>{thread.title}</span>
         <span className={styles.hitMeta}>
-          {thread.category.replace('_', ' ')} · by {thread.userName} · {thread.replyCount} replies
+          {thread.category.replaceAll('_', ' ')} · by {thread.userName} · {thread.replyCount} replies
         </span>
       </div>
     </a>
