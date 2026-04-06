@@ -238,10 +238,16 @@ export function ProductSelectionView({
       const aVal = colDef.getValue(aTable);
       const bVal = colDef.getValue(bTable);
 
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sort.direction === 'ASC' ? aVal - bVal : bVal - aVal;
+      // Numeric sort: handles raw numbers AND strings with units ("17 Nm", "90 kg")
+      if (colDef.numeric || (typeof aVal === 'number' && typeof bVal === 'number')) {
+        const aNum = typeof aVal === 'number' ? aVal : parseFloat(String(aVal).replace(/[^0-9.\-]/g, ''));
+        const bNum = typeof bVal === 'number' ? bVal : parseFloat(String(bVal).replace(/[^0-9.\-]/g, ''));
+        const aN = isNaN(aNum) ? -Infinity : aNum;
+        const bN = isNaN(bNum) ? -Infinity : bNum;
+        return sort.direction === 'ASC' ? aN - bN : bN - aN;
       }
 
+      // String sort: locale-aware comparison
       const aStr = String(aVal).toLowerCase();
       const bStr = String(bVal).toLowerCase();
       const cmp = aStr.localeCompare(bStr);

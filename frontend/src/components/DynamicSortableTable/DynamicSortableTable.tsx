@@ -29,6 +29,10 @@ export interface ColumnDef {
   getValue: (product: TableProduct) => string | number;
   /** Whether this column can be sorted. Default true. */
   sortable?: boolean;
+  /** If true, sort numerically (strips units like "Nm", "kg", "mm" before comparing). */
+  numeric?: boolean;
+  /** If true, right-align cell content (used for numeric data columns). */
+  alignRight?: boolean;
 }
 
 export interface TableProduct {
@@ -74,37 +78,37 @@ export const CATEGORY_COLUMNS: Record<string, ColumnDef[]> = {
   WHEELBASE: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
     { key: 'driveType', label: 'Drive Type', width: '140px', getValue: (p) => getSpecValue(p, 'driveType') },
-    { key: 'peakTorque', label: 'Peak Torque', width: '120px', getValue: (p) => getSpecValue(p, 'peakTorque') },
+    { key: 'peakTorque', label: 'Peak Torque', width: '120px', getValue: (p) => getSpecValue(p, 'peakTorque'), numeric: true, alignRight: true },
     { key: 'qrType', label: 'QR Type', width: '140px', getValue: (p) => getSpecValue(p, 'qrType') },
-    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
+    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price, numeric: true, alignRight: true },
   ],
   PEDALS: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
     { key: 'brakeType', label: 'Brake Tech', width: '130px', getValue: (p) => getSpecValue(p, 'brakeType') },
-    { key: 'pedalCount', label: 'Pedal Count', width: '110px', getValue: (p) => getSpecValue(p, 'pedalCount') },
-    { key: 'maxBrakeForce', label: 'Max Force', width: '110px', getValue: (p) => getSpecValue(p, 'maxBrakeForce') },
-    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
+    { key: 'pedalCount', label: 'Pedal Count', width: '110px', getValue: (p) => getSpecValue(p, 'pedalCount'), numeric: true, alignRight: true },
+    { key: 'maxBrakeForce', label: 'Max Force', width: '110px', getValue: (p) => getSpecValue(p, 'maxBrakeForce'), numeric: true, alignRight: true },
+    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price, numeric: true, alignRight: true },
   ],
   COCKPIT: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
     { key: 'material', label: 'Material', width: '130px', getValue: (p) => getSpecValue(p, 'material') },
-    { key: 'weightCapacity', label: 'Weight Cap', width: '120px', getValue: (p) => getSpecValue(p, 'weightCapacity') },
-    { key: 'frameWidth', label: 'Frame Width', width: '120px', getValue: (p) => getSpecValue(p, 'frameWidth') },
-    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
+    { key: 'weightCapacity', label: 'Weight Cap', width: '120px', getValue: (p) => getSpecValue(p, 'weightCapacity'), numeric: true, alignRight: true },
+    { key: 'frameWidth', label: 'Frame Width', width: '120px', getValue: (p) => getSpecValue(p, 'frameWidth'), numeric: true, alignRight: true },
+    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price, numeric: true, alignRight: true },
   ],
   WHEEL_RIM: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
     { key: 'material', label: 'Material', width: '140px', getValue: (p) => getSpecValue(p, 'material') },
-    { key: 'diameter', label: 'Diameter', width: '100px', getValue: (p) => getSpecValue(p, 'diameter') },
-    { key: 'buttonCount', label: 'Buttons', width: '90px', getValue: (p) => getSpecValue(p, 'buttonCount') },
-    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
+    { key: 'diameter', label: 'Diameter', width: '100px', getValue: (p) => getSpecValue(p, 'diameter'), numeric: true, alignRight: true },
+    { key: 'buttonCount', label: 'Buttons', width: '90px', getValue: (p) => getSpecValue(p, 'buttonCount'), numeric: true, alignRight: true },
+    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price, numeric: true, alignRight: true },
   ],
   // Fallback for other categories
   DEFAULT: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
     { key: 'keySpec', label: 'Key Spec', width: '200px', getValue: (p) => p.keySpec },
-    { key: 'rating', label: 'Rating', width: '90px', getValue: (p) => p.rating ?? 0 },
-    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
+    { key: 'rating', label: 'Rating', width: '90px', getValue: (p) => p.rating ?? 0, numeric: true, alignRight: true },
+    { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price, numeric: true, alignRight: true },
   ],
 };
 
@@ -217,7 +221,7 @@ export function DynamicSortableTable({
                 return (
                   <span
                     key={col.key}
-                    className={`${styles.cell} ${isName ? styles.cellName : ''} ${isPrice ? styles.cellPrice : ''}`}
+                    className={`${styles.cell} ${isName ? styles.cellName : ''} ${isPrice ? styles.cellPrice : ''} ${col.alignRight ? styles.cellRight : ''}`}
                   >
                     {isName && product.thumbnail && (
                       <img
