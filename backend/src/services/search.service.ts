@@ -67,23 +67,26 @@ export class SearchService {
   /** Sync all products to Meilisearch. */
   static async syncProducts(): Promise<void> {
     const products = await prisma.product.findMany();
-    const docs = products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      slug: p.slug,
-      manufacturer: p.manufacturer,
-      category: p.category,
-      subcategory: p.subcategory,
-      platforms: p.platforms,
-      avgRating: p.avgRating,
-      reviewCount: p.reviewCount,
-      buildCount: p.buildCount,
-      images: p.images,
-      affiliateLinks: p.affiliateLinks,
-      isBundle: p.name.toLowerCase().includes('bundle') || p.name.toLowerCase().includes('kit'),
-      bundleCategories: extractBundleCategories(p.name, p.category),
-      createdAt: p.createdAt.toISOString(),
-    }));
+    const docs = products.map((p) => {
+      const nameLower = p.name.toLowerCase();
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        manufacturer: p.manufacturer,
+        category: p.category,
+        subcategory: p.subcategory,
+        platforms: p.platforms,
+        avgRating: p.avgRating,
+        reviewCount: p.reviewCount,
+        buildCount: p.buildCount,
+        images: p.images,
+        affiliateLinks: p.affiliateLinks,
+        isBundle: nameLower.includes('bundle') || nameLower.includes('kit'),
+        bundleCategories: extractBundleCategories(p.name, p.category),
+        createdAt: p.createdAt.toISOString(),
+      };
+    });
     try {
       await meili.index(INDEXES.PRODUCTS).addDocuments(docs);
     } catch (err) {
@@ -96,12 +99,13 @@ export class SearchService {
     const p = await prisma.product.findUnique({ where: { id: productId } });
     if (!p) return;
     try {
+      const nameLower = p.name.toLowerCase();
       await meili.index(INDEXES.PRODUCTS).addDocuments([{
         id: p.id, name: p.name, slug: p.slug, manufacturer: p.manufacturer,
         category: p.category, subcategory: p.subcategory, platforms: p.platforms,
         avgRating: p.avgRating, reviewCount: p.reviewCount, buildCount: p.buildCount,
         images: p.images, affiliateLinks: p.affiliateLinks,
-        isBundle: p.name.toLowerCase().includes('bundle') || p.name.toLowerCase().includes('kit'),
+        isBundle: nameLower.includes('bundle') || nameLower.includes('kit'),
         bundleCategories: extractBundleCategories(p.name, p.category),
         createdAt: p.createdAt.toISOString(),
       }]);

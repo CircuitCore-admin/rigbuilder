@@ -73,7 +73,8 @@ export function GuideTemplate({ slug }: GuideTemplateProps) {
 
   const readingTime = useMemo(() => {
     if (!guide) return 0;
-    const words = guide.body.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const plainText = DOMPurify.sanitize(guide.body, { ALLOWED_TAGS: [] });
+    const words = plainText.split(/\s+/).length;
     return Math.max(1, Math.ceil(words / 200));
   }, [guide]);
 
