@@ -61,6 +61,26 @@ export class CommentController {
         return res.status(400).json({ error: 'Invalid commentable type' });
       }
 
+      // Verify the target entity exists
+      if (type === 'build') {
+        const build = await prisma.build.findUnique({ where: { id }, select: { id: true } });
+        if (!build) return res.status(404).json({ error: 'Build not found' });
+      } else {
+        const product = await prisma.product.findUnique({ where: { id }, select: { id: true } });
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+      }
+
+      // Validate parentId belongs to the same commentable entity
+      if (data.parentId) {
+        const parent = await prisma.comment.findUnique({
+          where: { id: data.parentId },
+          select: { commentableId: true, commentableType: true },
+        });
+        if (!parent || parent.commentableId !== id || parent.commentableType !== type) {
+          return res.status(400).json({ error: 'Invalid parent comment' });
+        }
+      }
+
       const comment = await prisma.comment.create({
         data: {
           user: { connect: { id: userId } },

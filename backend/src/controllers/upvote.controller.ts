@@ -11,6 +11,15 @@ export class UpvoteController {
       return res.status(400).json({ error: 'Invalid upvoteable type' });
     }
 
+    // Verify the target entity exists
+    if (type === 'build') {
+      const build = await prisma.build.findUnique({ where: { id }, select: { id: true } });
+      if (!build) return res.status(404).json({ error: 'Build not found' });
+    } else {
+      const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
+      if (!review) return res.status(404).json({ error: 'Review not found' });
+    }
+
     const existing = await prisma.upvote.findUnique({
       where: {
         userId_upvoteableType_upvoteableId: {
