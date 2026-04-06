@@ -205,10 +205,11 @@ export function ProductSelectionView({
     const filteredIds = new Set(filteredProducts.map((p) => p.id));
     const filtered = products.filter((p) => filteredIds.has(p.id));
 
+    // Pre-resolve the active column definition once (avoid repeated find() in sort comparator)
+    const colDef = columns.find((c) => c.key === sort.column);
+
     // Sort by selected column
     const sorted = [...filtered].sort((a, b) => {
-      const colDef = columns.find((c) => c.key === sort.column);
-
       // Primary sort: compatibility (OK first, then WARNING, then ERROR)
       const severityOrder = { OK: 0, WARNING: 1, ERROR: 2 };
       const aSev = compatMap.get(a.id)?.severity ?? 'OK';
@@ -257,6 +258,7 @@ export function ProductSelectionView({
 
   const isSortNonDefault = sort.column !== DEFAULT_SORT.column || sort.direction !== DEFAULT_SORT.direction;
   const hasActiveFiltersOrSort = activeFilterCount > 0 || isSortNonDefault;
+  const totalActiveCount = activeFilterCount + (isSortNonDefault ? 1 : 0);
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -419,7 +421,7 @@ export function ProductSelectionView({
                 Clear Filters & Sort
                 {hasActiveFiltersOrSort && (
                   <span className={styles.clearBadge}>
-                    {activeFilterCount + (isSortNonDefault ? 1 : 0)}
+                    {totalActiveCount}
                   </span>
                 )}
               </button>

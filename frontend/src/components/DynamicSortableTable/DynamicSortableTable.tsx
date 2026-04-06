@@ -64,7 +64,7 @@ export interface DynamicSortableTableProps {
 // Category column definitions
 // ---------------------------------------------------------------------------
 
-function specVal(product: TableProduct, key: string, fallback = '—'): string {
+function getSpecValue(product: TableProduct, key: string, fallback = '—'): string {
   const v = product.specs?.[key];
   if (v === undefined || v === null) return fallback;
   return String(v).replace(/_/g, ' ');
@@ -73,30 +73,30 @@ function specVal(product: TableProduct, key: string, fallback = '—'): string {
 export const CATEGORY_COLUMNS: Record<string, ColumnDef[]> = {
   WHEELBASE: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
-    { key: 'driveType', label: 'Drive Type', width: '140px', getValue: (p) => specVal(p, 'driveType') },
-    { key: 'peakTorque', label: 'Peak Torque', width: '120px', getValue: (p) => specVal(p, 'peakTorque') },
-    { key: 'qrType', label: 'QR Type', width: '140px', getValue: (p) => specVal(p, 'qrType') },
+    { key: 'driveType', label: 'Drive Type', width: '140px', getValue: (p) => getSpecValue(p, 'driveType') },
+    { key: 'peakTorque', label: 'Peak Torque', width: '120px', getValue: (p) => getSpecValue(p, 'peakTorque') },
+    { key: 'qrType', label: 'QR Type', width: '140px', getValue: (p) => getSpecValue(p, 'qrType') },
     { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
   ],
   PEDALS: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
-    { key: 'brakeType', label: 'Brake Tech', width: '130px', getValue: (p) => specVal(p, 'brakeType') },
-    { key: 'pedalCount', label: 'Pedal Count', width: '110px', getValue: (p) => specVal(p, 'pedalCount') },
-    { key: 'maxBrakeForce', label: 'Max Force', width: '110px', getValue: (p) => specVal(p, 'maxBrakeForce') },
+    { key: 'brakeType', label: 'Brake Tech', width: '130px', getValue: (p) => getSpecValue(p, 'brakeType') },
+    { key: 'pedalCount', label: 'Pedal Count', width: '110px', getValue: (p) => getSpecValue(p, 'pedalCount') },
+    { key: 'maxBrakeForce', label: 'Max Force', width: '110px', getValue: (p) => getSpecValue(p, 'maxBrakeForce') },
     { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
   ],
   COCKPIT: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
-    { key: 'material', label: 'Material', width: '130px', getValue: (p) => specVal(p, 'material') },
-    { key: 'weightCapacity', label: 'Weight Cap', width: '120px', getValue: (p) => specVal(p, 'weightCapacity') },
-    { key: 'frameWidth', label: 'Frame Width', width: '120px', getValue: (p) => specVal(p, 'frameWidth') },
+    { key: 'material', label: 'Material', width: '130px', getValue: (p) => getSpecValue(p, 'material') },
+    { key: 'weightCapacity', label: 'Weight Cap', width: '120px', getValue: (p) => getSpecValue(p, 'weightCapacity') },
+    { key: 'frameWidth', label: 'Frame Width', width: '120px', getValue: (p) => getSpecValue(p, 'frameWidth') },
     { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
   ],
   WHEEL_RIM: [
     { key: 'name', label: 'Name', width: '1fr', getValue: (p) => p.name },
-    { key: 'material', label: 'Material', width: '140px', getValue: (p) => specVal(p, 'material') },
-    { key: 'diameter', label: 'Diameter', width: '100px', getValue: (p) => specVal(p, 'diameter') },
-    { key: 'buttonCount', label: 'Buttons', width: '90px', getValue: (p) => specVal(p, 'buttonCount') },
+    { key: 'material', label: 'Material', width: '140px', getValue: (p) => getSpecValue(p, 'material') },
+    { key: 'diameter', label: 'Diameter', width: '100px', getValue: (p) => getSpecValue(p, 'diameter') },
+    { key: 'buttonCount', label: 'Buttons', width: '90px', getValue: (p) => getSpecValue(p, 'buttonCount') },
     { key: 'price', label: 'Price', width: '120px', getValue: (p) => p.price },
   ],
   // Fallback for other categories
