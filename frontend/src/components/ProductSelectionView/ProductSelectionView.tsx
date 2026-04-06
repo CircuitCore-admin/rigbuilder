@@ -268,6 +268,7 @@ export function ProductSelectionView({
   const isSortNonDefault = sort.column !== DEFAULT_SORT.column || sort.direction !== DEFAULT_SORT.direction;
   const hasActiveFiltersOrSort = activeFilterCount > 0 || isSortNonDefault;
   const totalActiveCount = activeFilterCount + (isSortNonDefault ? 1 : 0);
+  const sortColumnLabel = columns.find((c) => c.key === sort.column)?.label ?? sort.column;
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -562,7 +563,7 @@ export function ProductSelectionView({
               )}
               {isSortNonDefault && (
                 <span className={styles.sortActive}>
-                  Sorted by {columns.find((c) => c.key === sort.column)?.label ?? sort.column} {sort.direction}
+                  Sorted by {sortColumnLabel} {sort.direction}
                 </span>
               )}
             </div>
