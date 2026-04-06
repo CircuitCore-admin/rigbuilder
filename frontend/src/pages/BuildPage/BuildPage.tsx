@@ -265,7 +265,7 @@ export function BuildPage() {
             {build.parts.map((bp) => (
               <div key={bp.id} className={styles.partRow}>
                 <span className={styles.partCategory}>
-                  {bp.categorySlot.replace('_', ' ')}
+                  {bp.categorySlot.replaceAll('_', ' ')}
                 </span>
                 <div className={styles.partInfo}>
                   <span className={styles.partName}>{bp.product.name}</span>
