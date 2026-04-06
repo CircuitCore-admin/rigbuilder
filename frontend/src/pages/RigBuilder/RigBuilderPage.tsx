@@ -1,45 +1,115 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import styles from './RigBuilderPage.module.scss';
 import { Configurator } from '../../components/Configurator/Configurator';
-import { CompatibilityFeed } from '../../components/CompatibilityFeed/CompatibilityFeed';
-import type { CategorySlot, SelectedPart } from '../../components/BuildTable/BuildTable';
+import { CompatibilityPanel } from '../../components/CompatibilityPanel/CompatibilityPanel';
+import { ProductPicker } from '../../components/ProductPicker/ProductPicker';
+import type { PickerProduct } from '../../components/ProductPicker/ProductPicker';
+import { useBuildStore } from '../../stores/buildStore';
+import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
+import type { ProductCategory } from '../../types/productSpecs';
 
 // ---------------------------------------------------------------------------
-// Demo data (replace with API calls)
+// Demo catalog (replace with API calls)
 // ---------------------------------------------------------------------------
 
-const DEMO_PARTS: Partial<Record<CategorySlot, SelectedPart>> = {
-  COCKPIT: { id: '1', name: 'Trak Racer TR160S MK5', keySpec: 'Aluminium Profile', price: 899, rating: 4.6 },
-  WHEELBASE: { id: '2', name: 'Fanatec CSL DD (8 Nm)', keySpec: '8Nm Direct Drive', price: 349.95, rating: 4.4 },
-  PEDALS: { id: '3', name: 'Heusinkveld Sprint Pedals', keySpec: 'Load Cell', price: 599, rating: 4.8 },
-  DISPLAY: { id: '4', name: 'Samsung Odyssey G9 (2025)', keySpec: '49" DQHD 240Hz', price: 999.99, rating: 4.5 },
+const DEMO_CATALOG: Record<string, PickerProduct[]> = {
+  COCKPIT: [
+    { id: 'c1', name: 'Trak Racer TR160S MK5', manufacturer: 'Trak Racer', keySpec: 'Aluminium Profile', price: 899, rating: 4.6, weight: 28, productInput: { id: 'c1', category: 'COCKPIT' as ProductCategory, specs: { material: 'aluminium', profileSize: '40x80', maxWheelbaseWeight: 25, wheelbaseMounting: ['4_bolt_66mm' as const, 'front_clamp' as const, 'universal_slotted' as const], pedalMounting: ['hard_mount' as const, 'bolt_through' as const, 'universal_slotted' as const], pedalTrayDepth: 350, frameWidth: 520, seatCompatibility: ['side_mount'], isFolding: false, seatIncluded: false, weightCapacity: 150 }, platforms: [] } },
+    { id: 'c2', name: 'Next Level Racing F-GT Elite', manufacturer: 'Next Level Racing', keySpec: 'Aluminium Profile', price: 749, rating: 4.3, weight: 32, productInput: { id: 'c2', category: 'COCKPIT' as ProductCategory, specs: { material: 'aluminium', profileSize: '40x40', maxWheelbaseWeight: 20, wheelbaseMounting: ['front_clamp' as const, 'universal_slotted' as const], pedalMounting: ['bolt_through' as const, 'universal_slotted' as const], pedalTrayDepth: 300, frameWidth: 480, seatCompatibility: ['side_mount'], isFolding: false, seatIncluded: false, weightCapacity: 130 }, platforms: [] } },
+    { id: 'c3', name: 'SimLab GT1 Evo', manufacturer: 'SimLab', keySpec: 'Aluminium Profile', price: 549, rating: 4.7, weight: 22, productInput: { id: 'c3', category: 'COCKPIT' as ProductCategory, specs: { material: 'aluminium', profileSize: '40x80', maxWheelbaseWeight: 30, wheelbaseMounting: ['4_bolt_66mm' as const, '4_bolt_100mm' as const, 'front_clamp' as const, 'universal_slotted' as const], pedalMounting: ['hard_mount' as const, 'bolt_through' as const, 'universal_slotted' as const], pedalTrayDepth: 380, frameWidth: 540, seatCompatibility: ['side_mount', 'bottom_mount'], isFolding: false, seatIncluded: false, weightCapacity: 160 }, platforms: [] } },
+  ],
+  WHEELBASE: [
+    { id: 'w1', name: 'Fanatec CSL DD (8 Nm)', manufacturer: 'Fanatec', keySpec: '8Nm Direct Drive', price: 349.95, rating: 4.4, weight: 2.7, productInput: { id: 'w1', category: 'WHEELBASE' as ProductCategory, specs: { driveType: 'direct_drive' as const, peakTorque: 8, rotationRange: 1080, qrType: 'fanatec_qr1' as const, connectivity: ['usb' as const], psuIncluded: true, mountingPattern: 'front_clamp' as const }, platforms: ['PC' as const, 'PLAYSTATION' as const, 'XBOX' as const] } },
+    { id: 'w2', name: 'SimuCube 2 Sport', manufacturer: 'SimuCube', keySpec: '17Nm Direct Drive', price: 1299, rating: 4.9, weight: 3.8, productInput: { id: 'w2', category: 'WHEELBASE' as ProductCategory, specs: { driveType: 'direct_drive' as const, peakTorque: 17, rotationRange: 1080, qrType: 'simucube_2' as const, connectivity: ['usb' as const], psuIncluded: true, mountingPattern: '4_bolt_100mm' as const }, platforms: ['PC' as const] } },
+    { id: 'w3', name: 'Moza R12', manufacturer: 'Moza', keySpec: '12Nm Direct Drive', price: 599, rating: 4.5, weight: 3.2, productInput: { id: 'w3', category: 'WHEELBASE' as ProductCategory, specs: { driveType: 'direct_drive' as const, peakTorque: 12, rotationRange: 1080, qrType: 'moza' as const, connectivity: ['usb' as const], psuIncluded: true, mountingPattern: 'front_clamp' as const }, platforms: ['PC' as const, 'PLAYSTATION' as const, 'XBOX' as const] } },
+    { id: 'w4', name: 'Thrustmaster T818', manufacturer: 'Thrustmaster', keySpec: '11Nm Direct Drive', price: 549.99, rating: 4.2, weight: 4.1, productInput: { id: 'w4', category: 'WHEELBASE' as ProductCategory, specs: { driveType: 'direct_drive' as const, peakTorque: 11, rotationRange: 1080, qrType: 'thrustmaster' as const, connectivity: ['usb' as const], psuIncluded: true, mountingPattern: 'front_clamp' as const }, platforms: ['PC' as const, 'PLAYSTATION' as const] } },
+  ],
+  WHEEL_RIM: [
+    { id: 'r1', name: 'Fanatec McLaren GT3 V2', manufacturer: 'Fanatec', keySpec: '300mm / Forged Carbon', price: 229.95, rating: 4.5, weight: 0.95, productInput: { id: 'r1', category: 'WHEEL_RIM' as ProductCategory, specs: { diameter: 300, buttonCount: 12, paddleType: 'magnetic' as const, hasDisplay: false, qrCompatibility: ['fanatec_qr1' as const, 'fanatec_qr2' as const], weight: 0.95, material: 'forged carbon' }, platforms: ['PC' as const, 'PLAYSTATION' as const, 'XBOX' as const] } },
+    { id: 'r2', name: 'Cube Controls Formula CSX 2', manufacturer: 'Cube Controls', keySpec: '280mm / Carbon Fiber', price: 1450, rating: 4.9, weight: 1.1, productInput: { id: 'r2', category: 'WHEEL_RIM' as ProductCategory, specs: { diameter: 280, buttonCount: 24, paddleType: 'magnetic' as const, hasDisplay: true, displayResolution: '800x480', qrCompatibility: ['simucube_2' as const, 'universal_70mm' as const], weight: 1.1, material: 'carbon fiber' }, platforms: ['PC' as const] } },
+    { id: 'r3', name: 'Moza RS V2', manufacturer: 'Moza', keySpec: '300mm / Leather', price: 239, rating: 4.3, weight: 0.85, productInput: { id: 'r3', category: 'WHEEL_RIM' as ProductCategory, specs: { diameter: 300, buttonCount: 10, paddleType: 'magnetic' as const, hasDisplay: false, qrCompatibility: ['moza' as const], weight: 0.85, material: 'leather' }, platforms: ['PC' as const, 'PLAYSTATION' as const, 'XBOX' as const] } },
+    { id: 'r4', name: 'Ascher Racing B24L-SC', manufacturer: 'Ascher Racing', keySpec: '270mm / Aluminium CNC', price: 890, rating: 4.8, weight: 1.3, productInput: { id: 'r4', category: 'WHEEL_RIM' as ProductCategory, specs: { diameter: 270, buttonCount: 24, paddleType: 'magnetic' as const, hasDisplay: false, qrCompatibility: ['simucube_2' as const, 'universal_70mm' as const], weight: 1.3, material: 'aluminium CNC' }, platforms: ['PC' as const] } },
+  ],
+  PEDALS: [
+    { id: 'p1', name: 'Heusinkveld Sprint Pedals', manufacturer: 'Heusinkveld', keySpec: 'Load Cell / 90kg', price: 599, rating: 4.8, weight: 4.5, productInput: { id: 'p1', category: 'PEDALS' as ProductCategory, specs: { pedalCount: 3 as const, brakeType: 'load_cell' as const, maxBrakeForce: 90, throttleType: 'hall sensor', clutchType: 'hall sensor', mountingPattern: 'hard_mount' as const, connectivity: ['usb' as const], pedalPlateDepth: 280 }, platforms: ['PC' as const] } },
+    { id: 'p2', name: 'Fanatec CSL Pedals LC', manufacturer: 'Fanatec', keySpec: 'Load Cell / 90kg', price: 199.95, rating: 4.2, weight: 3.1, productInput: { id: 'p2', category: 'PEDALS' as ProductCategory, specs: { pedalCount: 3 as const, brakeType: 'load_cell' as const, maxBrakeForce: 90, throttleType: 'potentiometer', clutchType: 'potentiometer', mountingPattern: 'bolt_through' as const, connectivity: ['usb' as const, 'rj12' as const], pedalPlateDepth: 260 }, platforms: ['PC' as const, 'PLAYSTATION' as const, 'XBOX' as const] } },
+    { id: 'p3', name: 'Simtag Hydraulic Pedals', manufacturer: 'Simtag', keySpec: 'Hydraulic / 136kg', price: 1899, rating: 4.9, weight: 8.2, productInput: { id: 'p3', category: 'PEDALS' as ProductCategory, specs: { pedalCount: 3 as const, brakeType: 'hydraulic' as const, maxBrakeForce: 136, throttleType: 'hall sensor', clutchType: 'hydraulic', mountingPattern: 'hard_mount' as const, connectivity: ['usb' as const], pedalPlateDepth: 340 }, platforms: ['PC' as const] } },
+  ],
+  SHIFTER: [
+    { id: 's1', name: 'Fanatec ClubSport Shifter SQ V1.5', manufacturer: 'Fanatec', keySpec: 'H-Pattern + Sequential', price: 259.95, rating: 4.3, weight: 1.5 },
+    { id: 's2', name: 'Heusinkveld Sim Shifter Sequential', manufacturer: 'Heusinkveld', keySpec: 'Sequential', price: 225, rating: 4.6, weight: 1.8 },
+  ],
+  DISPLAY: [
+    { id: 'd1', name: 'Samsung Odyssey G9 (2025)', manufacturer: 'Samsung', keySpec: '49" DQHD 240Hz', price: 999.99, rating: 4.5, weight: 13.5 },
+    { id: 'd2', name: 'LG 27GP850-B', manufacturer: 'LG', keySpec: '27" QHD 165Hz', price: 349.99, rating: 4.3, weight: 6.2 },
+    { id: 'd3', name: 'Meta Quest 3', manufacturer: 'Meta', keySpec: 'VR 2064×2208', price: 499.99, rating: 4.4, weight: 0.515 },
+  ],
+  SEAT: [
+    { id: 'st1', name: 'Sparco Grid Q', manufacturer: 'Sparco', keySpec: 'Fibreglass Bucket', price: 399, rating: 4.4, weight: 7.5 },
+    { id: 'st2', name: 'NRG FRP-301', manufacturer: 'NRG', keySpec: 'Fibreglass Bucket', price: 199, rating: 4.1, weight: 6.8 },
+  ],
+  EXTRAS: [
+    { id: 'e1', name: 'Buttkicker Gamer 2', manufacturer: 'Buttkicker', keySpec: 'Haptic Transducer', price: 149, rating: 4.2, weight: 1.2 },
+    { id: 'e2', name: 'SRS ShakeKit', manufacturer: 'SRS', keySpec: '4-Motor Haptics', price: 499, rating: 4.6, weight: 2.4 },
+  ],
 };
+
+// ---------------------------------------------------------------------------
+// Slot metadata
+// ---------------------------------------------------------------------------
+
+interface SlotMeta {
+  slot: CategorySlot;
+  label: string;
+}
+
+const SLOT_META: SlotMeta[] = [
+  { slot: 'COCKPIT', label: 'Cockpit / Frame' },
+  { slot: 'WHEELBASE', label: 'Wheelbase' },
+  { slot: 'WHEEL_RIM', label: 'Wheel Rim' },
+  { slot: 'PEDALS', label: 'Pedals' },
+  { slot: 'SHIFTER', label: 'Shifter' },
+  { slot: 'DISPLAY', label: 'Display' },
+  { slot: 'SEAT', label: 'Seat' },
+  { slot: 'EXTRAS', label: 'Extras' },
+];
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export function RigBuilderPage() {
-  const [parts, setParts] = useState<Partial<Record<CategorySlot, SelectedPart>>>(DEMO_PARTS);
+  const [pickerSlot, setPickerSlot] = useState<CategorySlot | null>(null);
+  const selectedParts = useBuildStore((s) => s.selectedParts);
+  const totalPrice = useBuildStore((s) => s.totalPrice);
+  const totalWeight = useBuildStore((s) => s.totalWeight);
+  const addPart = useBuildStore((s) => s.addPart);
+  const clearBuild = useBuildStore((s) => s.clearBuild);
 
-  const totalPrice = useMemo(
-    () => Object.values(parts).reduce((sum, p) => sum + (p?.price ?? 0), 0),
-    [parts],
-  );
-
-  const filledCount = Object.keys(parts).length;
+  const filledCount = Object.keys(selectedParts).length;
 
   const handleSelectCategory = useCallback((slot: CategorySlot) => {
-    console.log('Browse:', slot);
+    setPickerSlot(slot);
   }, []);
 
-  const handleRemovePart = useCallback((slot: CategorySlot) => {
-    setParts((prev) => {
-      const next = { ...prev };
-      delete next[slot];
-      return next;
-    });
+  const handleRemovePart = useBuildStore((s) => s.removePart);
+
+  const handlePickerSelect = useCallback(
+    (slot: CategorySlot, part: SelectedPart) => {
+      addPart(slot, part);
+      setPickerSlot(null);
+    },
+    [addPart],
+  );
+
+  const handlePickerClose = useCallback(() => {
+    setPickerSlot(null);
   }, []);
+
+  const pickerLabel = useMemo(() => {
+    if (!pickerSlot) return '';
+    return SLOT_META.find((m) => m.slot === pickerSlot)?.label ?? pickerSlot;
+  }, [pickerSlot]);
 
   return (
     <div className={styles.page}>
@@ -63,7 +133,7 @@ export function RigBuilderPage() {
           </p>
         </div>
         <div className={styles.headerActions}>
-          <button type="button" className={styles.btnGhost}>
+          <button type="button" className={styles.btnGhost} onClick={clearBuild}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
@@ -76,7 +146,6 @@ export function RigBuilderPage() {
       <div className={styles.layout}>
         <main className={styles.main}>
           <Configurator
-            parts={parts}
             onSelectCategory={handleSelectCategory}
             onRemovePart={handleRemovePart}
           />
@@ -95,11 +164,13 @@ export function RigBuilderPage() {
               </div>
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>Est. Weight</span>
-                <span className={styles.summaryValue}>{(filledCount * 8.5).toFixed(1)} kg</span>
+                <span className={styles.summaryValue}>
+                  {totalWeight > 0 ? `${totalWeight.toFixed(1)} kg` : '—'}
+                </span>
               </div>
 
               <div className={styles.priceBreakdown}>
-                {(Object.entries(parts) as [CategorySlot, SelectedPart][]).map(([slot, part]) => (
+                {(Object.entries(selectedParts) as [CategorySlot, SelectedPart][]).map(([slot, part]) => (
                   <div key={slot} className={styles.priceRow}>
                     <span className={styles.priceRowLabel}>{slot.replace('_', ' ')}</span>
                     <span className={styles.priceRowValue}>
@@ -123,9 +194,20 @@ export function RigBuilderPage() {
             </div>
           </div>
 
-          <CompatibilityFeed parts={parts} />
+          <CompatibilityPanel />
         </aside>
       </div>
+
+      {/* Product picker modal */}
+      {pickerSlot && (
+        <ProductPicker
+          slot={pickerSlot}
+          slotLabel={pickerLabel}
+          products={DEMO_CATALOG[pickerSlot] ?? []}
+          onSelect={handlePickerSelect}
+          onClose={handlePickerClose}
+        />
+      )}
     </div>
   );
 }

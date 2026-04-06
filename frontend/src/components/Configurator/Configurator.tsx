@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import styles from './Configurator.module.scss';
-import type { CategorySlot, SelectedPart } from '../BuildTable/BuildTable';
+import { useBuildStore } from '../../stores/buildStore';
+import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 
 // ---------------------------------------------------------------------------
 // Slot metadata
@@ -29,7 +30,6 @@ const SLOTS: SlotMeta[] = [
 // ---------------------------------------------------------------------------
 
 export interface ConfiguratorProps {
-  parts: Partial<Record<CategorySlot, SelectedPart>>;
   onSelectCategory: (slot: CategorySlot) => void;
   onRemovePart: (slot: CategorySlot) => void;
 }
@@ -38,7 +38,8 @@ export interface ConfiguratorProps {
 // Component
 // ---------------------------------------------------------------------------
 
-export function Configurator({ parts, onSelectCategory, onRemovePart }: ConfiguratorProps) {
+export function Configurator({ onSelectCategory, onRemovePart }: ConfiguratorProps) {
+  const parts = useBuildStore((s) => s.selectedParts);
   const [hoveredSlot, setHoveredSlot] = useState<CategorySlot | null>(null);
 
   const totalPrice = useMemo(

@@ -1,51 +1,56 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import styles from './CompatibilityFeed.module.scss';
-import type { CategorySlot, SelectedPart } from '../BuildTable/BuildTable';
+import { useBuildStore } from '../../stores/buildStore';
+import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
+import type { CompatibilitySeverity } from '../../types/compatibility';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type Severity = 'OK' | 'WARNING' | 'ERROR';
-
 interface FeedEntry {
   id: string;
-  severity: Severity;
+  severity: CompatibilitySeverity;
   message: string;
 }
 
 // ---------------------------------------------------------------------------
-// Client-side compat check (mirrors engine logic)
+// Build feed entries from store state
 // ---------------------------------------------------------------------------
 
-function runCheck(parts: Partial<Record<CategorySlot, SelectedPart>>): FeedEntry[] {
+function buildFeedEntries(
+  parts: Partial<Record<CategorySlot, SelectedPart>>,
+  report: { overallSeverity: CompatibilitySeverity; conflicts: { severity: CompatibilitySeverity; message: string }[] },
+): FeedEntry[] {
   const entries: FeedEntry[] = [];
   let id = 0;
   const mkId = () => `f-${++id}`;
 
   const filled = Object.entries(parts) as [CategorySlot, SelectedPart][];
-  if (filled.length === 0) return [{ id: mkId(), severity: 'OK', message: 'Add components to begin compatibility checks.' }];
+  if (filled.length === 0) {
+    return [{ id: mkId(), severity: 'OK', message: 'Add components to begin compatibility checks.' }];
+  }
 
   for (const [slot, part] of filled) {
     entries.push({ id: mkId(), severity: 'OK', message: `${slot} → ${part.name} loaded` });
   }
 
-  if (parts.COCKPIT && parts.WHEELBASE) {
-    entries.push({ id: mkId(), severity: 'OK', message: 'Bolt pattern: COCKPIT ↔ WHEELBASE — validated' });
-  }
-  if (parts.COCKPIT && parts.PEDALS) {
-    entries.push({ id: mkId(), severity: 'OK', message: 'Mount check: COCKPIT ↔ PEDALS — clearance OK' });
-  }
-  if (parts.WHEELBASE && parts.WHEEL_RIM) {
-    entries.push({ id: mkId(), severity: 'OK', message: 'QR check: WHEELBASE ↔ WHEEL_RIM — compatible' });
+  // Add conflict entries from the real engine
+  for (const conflict of report.conflicts) {
+    entries.push({
+      id: mkId(),
+      severity: conflict.severity,
+      message: conflict.message,
+    });
   }
 
-  const hasError = entries.some((e) => e.severity === 'ERROR');
-  const hasWarning = entries.some((e) => e.severity === 'WARNING');
+  // Summary
+  const hasError = report.overallSeverity === 'ERROR';
+  const hasWarning = report.overallSeverity === 'WARNING';
 
   entries.push({
     id: mkId(),
-    severity: hasError ? 'ERROR' : hasWarning ? 'WARNING' : 'OK',
+    severity: report.overallSeverity,
     message: hasError
       ? 'Incompatible components detected'
       : hasWarning
@@ -61,15 +66,20 @@ function runCheck(parts: Partial<Record<CategorySlot, SelectedPart>>): FeedEntry
 // ---------------------------------------------------------------------------
 
 export interface CompatibilityFeedProps {
-  parts: Partial<Record<CategorySlot, SelectedPart>>;
+  /** Optional override; if omitted, reads from useBuildStore. */
+  parts?: Partial<Record<CategorySlot, SelectedPart>>;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function CompatibilityFeed({ parts }: CompatibilityFeedProps) {
-  const entries = useMemo(() => runCheck(parts), [parts]);
+export function CompatibilityFeed({ parts: propParts }: CompatibilityFeedProps) {
+  const storeParts = useBuildStore((s) => s.selectedParts);
+  const report = useBuildStore((s) => s.compatibilityReport);
+  const parts = propParts ?? storeParts;
+
+  const entries = buildFeedEntries(parts, report);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const overall = entries[entries.length - 1];
