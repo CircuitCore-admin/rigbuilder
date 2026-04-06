@@ -239,12 +239,16 @@ export function ProductSelectionView({
       const bVal = colDef.getValue(bTable);
 
       // Numeric sort: handles raw numbers AND strings with units ("17 Nm", "90 kg")
+      // parseFloat naturally stops at the first non-numeric character, so "17 Nm" → 17
       if (colDef.numeric || (typeof aVal === 'number' && typeof bVal === 'number')) {
-        const aNum = typeof aVal === 'number' ? aVal : parseFloat(String(aVal).replace(/[^0-9.\-]/g, ''));
-        const bNum = typeof bVal === 'number' ? bVal : parseFloat(String(bVal).replace(/[^0-9.\-]/g, ''));
-        const aN = isNaN(aNum) ? -Infinity : aNum;
-        const bN = isNaN(bNum) ? -Infinity : bNum;
-        return sort.direction === 'ASC' ? aN - bN : bN - aN;
+        const aNum = typeof aVal === 'number' ? aVal : parseFloat(String(aVal));
+        const bNum = typeof bVal === 'number' ? bVal : parseFloat(String(bVal));
+        // Non-parseable values (e.g. "—") sort to the bottom regardless of direction
+        const aValid = !isNaN(aNum);
+        const bValid = !isNaN(bNum);
+        if (aValid !== bValid) return aValid ? -1 : 1;
+        if (!aValid) return 0;
+        return sort.direction === 'ASC' ? aNum - bNum : bNum - aNum;
       }
 
       // String sort: locale-aware comparison
