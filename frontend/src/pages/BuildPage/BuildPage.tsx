@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import styles from './BuildPage.module.scss';
 import { api } from '../../utils/api';
 import { useBuildStore } from '../../stores/buildStore';
@@ -322,7 +323,7 @@ export function BuildPage() {
             <h2 className={styles.sectionTitle}>The Build Story</h2>
             <div
               className={styles.storyContent}
-              dangerouslySetInnerHTML={{ __html: build.description }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(build.description) }}
             />
           </section>
         )}
