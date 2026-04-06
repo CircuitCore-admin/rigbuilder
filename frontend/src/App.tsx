@@ -3,6 +3,8 @@ import { LoginPage } from './pages/Login/LoginPage';
 import { RegisterPage } from './pages/Register/RegisterPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
+import { BuildGalleryPage } from './pages/BuildGallery/BuildGalleryPage';
+import { BuildPage } from './pages/BuildPage/BuildPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 
 /**
@@ -15,6 +17,10 @@ export function App() {
       {/* Public routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
+      {/* Build Gallery & Detail */}
+      <Route path="/builds" element={<BuildGalleryPage />} />
+      <Route path="/builds/:id" element={<BuildPage />} />
 
       {/* Admin routes */}
       <Route
