@@ -51,7 +51,7 @@ export function FeaturedPostCard({ post, variant = 'guide' }: FeaturedPostCardPr
             {Array.from({ length: 5 }, (_, i) => (
               <span
                 key={i}
-                className={i < post.rating! ? styles.starFilled : styles.starEmpty}
+                className={i < (post.rating ?? 0) ? styles.starFilled : styles.starEmpty}
               >
                 ★
               </span>
