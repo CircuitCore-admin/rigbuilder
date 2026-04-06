@@ -1,0 +1,312 @@
+@use '../../styles/variables';
+
+// ============================================================================
+// HomePage — Landing page with discovery sections
+// ============================================================================
+
+.page {
+  min-height: 100vh;
+  background-color: var(--bg-void);
+  padding-bottom: 80px;
+
+  @media (max-width: variables.$bp-mobile) {
+    padding-bottom: 100px; // room for mobile tab bar
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared section styles
+// ---------------------------------------------------------------------------
+
+.section {
+  padding: 56px 24px;
+
+  @media (max-width: variables.$bp-mobile) {
+    padding: 40px 20px;
+  }
+
+  // Scroll-reveal animation
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  &[data-reveal='true'] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sectionInner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+
+  .sectionHeader & {
+    margin-bottom: 0;
+  }
+}
+
+.sectionSubtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.viewAll {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-primary);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Build of the Week
+// ---------------------------------------------------------------------------
+
+.featuredBuild {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+
+  @media (max-width: variables.$bp-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.featuredImage {
+  aspect-ratio: 16 / 10;
+  background: var(--bg-surface);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.featuredPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+.featuredBody {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+
+  @media (max-width: variables.$bp-mobile) {
+    padding: 24px 20px;
+  }
+}
+
+.featuredTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.featuredAuthor {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.featuredQuote {
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--accent-primary);
+  padding-left: 16px;
+  margin: 12px 0;
+}
+
+.featuredLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Quick Start Quiz
+// ---------------------------------------------------------------------------
+
+.quizGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: variables.$bp-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quizCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  text-decoration: none;
+  transition:
+    border-color var(--transition-default),
+    transform var(--transition-default),
+    box-shadow var(--transition-default);
+
+  &:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.quizEmoji {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.quizLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quizDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+// ---------------------------------------------------------------------------
+// Build Grid (6-card)
+// ---------------------------------------------------------------------------
+
+.buildGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  @media (max-width: variables.$bp-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: variables.$bp-mobile) {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding-bottom: 8px;
+
+    // Horizontal scroll strip on mobile
+    > * {
+      min-width: 260px;
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Guides Grid (3-card)
+// ---------------------------------------------------------------------------
+
+.guidesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  @media (max-width: variables.$bp-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: variables.$bp-mobile) {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding-bottom: 8px;
+
+    > * {
+      min-width: 280px;
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reviews Grid (4-card)
+// ---------------------------------------------------------------------------
+
+.reviewsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+
+  @media (max-width: variables.$bp-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: variables.$bp-mobile) {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding-bottom: 8px;
+
+    > * {
+      min-width: 240px;
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
+  }
+}

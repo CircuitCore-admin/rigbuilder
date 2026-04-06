@@ -1,0 +1,158 @@
+@use '../../styles/variables';
+
+// ============================================================================
+// HomeHero — Full-width hero section
+// ============================================================================
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 520px;
+  padding: 80px 24px 64px;
+  overflow: hidden;
+
+  @media (max-width: variables.$bp-mobile) {
+    min-height: 440px;
+    padding: 56px 20px 48px;
+  }
+}
+
+// Animated gradient backdrop
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(110, 86, 255, 0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 60% 70%, rgba(0, 255, 163, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 720px;
+  gap: 24px;
+}
+
+// ---------------------------------------------------------------------------
+// Typography
+// ---------------------------------------------------------------------------
+
+.headline {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+
+  @media (max-width: variables.$bp-mobile) {
+    font-size: 32px;
+  }
+}
+
+.headlineAccent {
+  background: var(--gradient-hero);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtext {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 520px;
+
+  @media (max-width: variables.$bp-mobile) {
+    font-size: 14px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// CTA button
+// ---------------------------------------------------------------------------
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: var(--accent-primary);
+  color: var(--bg-void);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-default);
+  box-shadow: 0 0 24px var(--accent-glow);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 40px var(--accent-glow);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.ctaArrow {
+  transition: transform var(--transition-fast);
+
+  .cta:hover & {
+    transform: translateX(3px);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Quick search
+// ---------------------------------------------------------------------------
+
+.searchWrap {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin-top: 8px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 15px;
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+}

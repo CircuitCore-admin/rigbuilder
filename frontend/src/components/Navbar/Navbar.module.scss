@@ -1,0 +1,276 @@
+@use '../../styles/variables';
+
+// ============================================================================
+// Navbar — Frosted glass top bar (desktop) + bottom tab bar (mobile)
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// Desktop top bar
+// ---------------------------------------------------------------------------
+
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--border-subtle);
+
+  @media (max-width: variables.$bp-mobile) {
+    display: none;
+  }
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+}
+
+// ---------------------------------------------------------------------------
+// Logo
+// ---------------------------------------------------------------------------
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  span {
+    color: var(--accent-primary);
+  }
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Primary nav links
+// ---------------------------------------------------------------------------
+
+.primaryNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+  position: relative;
+
+  &:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  // Active indicator line
+  &.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 14px;
+    right: 14px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--accent-primary);
+  }
+}
+
+.navIcon {
+  flex-shrink: 0;
+}
+
+// "Build" link — accent-primary (green) = designing / configurator
+.buildLink {
+  &:hover,
+  &.active {
+    color: var(--accent-primary);
+  }
+
+  &.active::after {
+    background: var(--accent-primary);
+  }
+}
+
+// "Marketplace" link — accent-secondary (purple) = shopping
+.marketplaceLink {
+  &:hover,
+  &.active {
+    color: var(--accent-secondary);
+  }
+
+  &.active::after {
+    background: var(--accent-secondary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Secondary nav (right side)
+// ---------------------------------------------------------------------------
+
+.secondaryNav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.searchBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+.userGroup,
+.authGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-body);
+  letter-spacing: 0.02em;
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+.btnJoin {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  background: var(--accent-primary);
+  color: var(--bg-void);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mobile bottom tab bar
+// ---------------------------------------------------------------------------
+
+.mobileBar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-top: 1px solid var(--border-subtle);
+  padding: 6px 0 env(safe-area-inset-bottom, 6px);
+
+  @media (max-width: variables.$bp-mobile) {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &.tabActive {
+    color: var(--accent-primary);
+  }
+}
+
+// Differentiated accent for Build vs Marketplace on mobile too
+.tabBuild.tabActive {
+  color: var(--accent-primary);
+}
+
+.tabMarketplace.tabActive {
+  color: var(--accent-secondary);
+}
+
+.tabCommunity.tabActive {
+  color: var(--accent-primary);
+}

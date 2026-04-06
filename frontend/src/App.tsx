@@ -3,10 +3,12 @@ import { LoginPage } from './pages/Login/LoginPage';
 import { RegisterPage } from './pages/Register/RegisterPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
+import { HomePage } from './pages/Home/HomePage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
+import { Navbar } from './components/Navbar/Navbar';
 
 /**
  * Root application shell.
@@ -15,6 +17,7 @@ import { CommandPalette } from './components/CommandPalette/CommandPalette';
 export function App() {
   return (
     <>
+      <Navbar />
       <CommandPalette />
       <Routes>
         {/* Public routes */}
@@ -39,8 +42,11 @@ export function App() {
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:slug" element={<CommunityPage />} />
 
-        {/* Configurator home */}
-        <Route path="/" element={<RigBuilderPage />} />
+        {/* Configurator (moved from / to /build) */}
+        <Route path="/build" element={<RigBuilderPage />} />
+
+        {/* Landing page */}
+        <Route path="/" element={<HomePage />} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
