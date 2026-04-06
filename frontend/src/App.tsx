@@ -3,7 +3,10 @@ import { LoginPage } from './pages/Login/LoginPage';
 import { RegisterPage } from './pages/Register/RegisterPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
+import { GuidesPage } from './pages/Guides/GuidesPage';
+import { CommunityPage } from './pages/Community/CommunityPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
+import { CommandPalette } from './components/CommandPalette/CommandPalette';
 
 /**
  * Root application shell.
@@ -11,27 +14,38 @@ import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
  */
 export function App() {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+    <>
+      <CommandPalette />
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-      {/* Admin routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute requiredRole="ADMIN">
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Configurator home */}
-      <Route path="/" element={<RigBuilderPage />} />
+        {/* Guides */}
+        <Route path="/guides" element={<GuidesPage />} />
+        <Route path="/guides/:slug" element={<GuidesPage />} />
 
-      {/* Catch-all */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* Community Forum */}
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/community/:slug" element={<CommunityPage />} />
+
+        {/* Configurator home */}
+        <Route path="/" element={<RigBuilderPage />} />
+
+        {/* Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }
 

@@ -8,6 +8,7 @@ import { csrf } from './middleware/csrf';
 import { sanitize } from './middleware/sanitize';
 import { errorHandler } from './middleware/error-handler';
 import routes from './routes';
+import { SearchService } from './services/search.service';
 
 const app = express();
 
@@ -43,6 +44,8 @@ app.use(errorHandler);
 // ---------------------------------------------------------------------------
 app.listen(env.PORT, () => {
   console.log(`🏁 RigBuilder API running on port ${env.PORT} [${env.NODE_ENV}]`);
+  // Initialize Meilisearch indexes (non-blocking)
+  SearchService.initializeIndexes().catch(() => {});
 });
 
 export default app;
