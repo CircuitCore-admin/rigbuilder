@@ -6,17 +6,13 @@ export interface BuildListParams {
   limit: number;
   userId?: string;
   search?: string;
-  minBudget?: number;
-  maxBudget?: number;
-  disciplines?: string[];
-  platforms?: string[];
   sortBy?: 'createdAt' | 'upvoteCount' | 'totalCost';
   sortDir?: 'asc' | 'desc';
 }
 
 export class BuildRepository {
   static async findMany(params: BuildListParams) {
-    const { page, limit, userId, search, minBudget, maxBudget, disciplines, platforms, sortBy = 'createdAt', sortDir = 'desc' } = params;
+    const { page, limit, userId, search, sortBy = 'createdAt', sortDir = 'desc' } = params;
 
     const where: Prisma.BuildWhereInput = {
       isPublic: userId ? undefined : true,
@@ -26,18 +22,6 @@ export class BuildRepository {
           { name: { contains: search, mode: 'insensitive' } },
           { description: { contains: search, mode: 'insensitive' } },
         ],
-      }),
-      ...((minBudget != null || maxBudget != null) && {
-        totalCost: {
-          ...(minBudget != null && { gte: minBudget }),
-          ...(maxBudget != null && { lte: maxBudget }),
-        },
-      }),
-      ...(disciplines && disciplines.length > 0 && {
-        disciplines: { hasSome: disciplines as any },
-      }),
-      ...(platforms && platforms.length > 0 && {
-        platforms: { hasSome: platforms as any },
       }),
     };
 

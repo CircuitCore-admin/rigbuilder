@@ -6,20 +6,10 @@ export class BuildController {
   static async list(req: Request, res: Response) {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
-
-    const minBudget = req.query.minBudget ? parseFloat(req.query.minBudget as string) : undefined;
-    const maxBudget = req.query.maxBudget ? parseFloat(req.query.maxBudget as string) : undefined;
-    const disciplines = req.query.disciplines ? (req.query.disciplines as string).split(',').filter(Boolean) : undefined;
-    const platforms = req.query.platforms ? (req.query.platforms as string).split(',').filter(Boolean) : undefined;
-
     const { items, total } = await BuildService.list({
       page,
       limit,
       search: req.query.search as string | undefined,
-      minBudget: minBudget != null && !isNaN(minBudget) ? minBudget : undefined,
-      maxBudget: maxBudget != null && !isNaN(maxBudget) ? maxBudget : undefined,
-      disciplines,
-      platforms,
       sortBy: (req.query.sortBy as any) || 'createdAt',
       sortDir: (req.query.sortDir as any) || 'desc',
     });

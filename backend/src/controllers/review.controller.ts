@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import { ReviewService } from '../services/review.service';
-import { ReviewScoreService } from '../services/review-score.service';
 import { ZodError } from 'zod';
 
 export class ReviewController {
@@ -59,15 +58,6 @@ export class ReviewController {
       if (msg === 'Review not found') return res.status(404).json({ error: msg });
       if (msg === 'Forbidden') return res.status(403).json({ error: msg });
       res.status(400).json({ error: msg });
-    }
-  }
-
-  static async getProductScore(req: Request, res: Response) {
-    try {
-      const score = await ReviewScoreService.getAggregatedScore(req.params.productId);
-      res.json(score);
-    } catch {
-      res.status(400).json({ error: 'Failed to calculate score' });
     }
   }
 }

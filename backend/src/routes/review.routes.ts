@@ -7,7 +7,6 @@ import { writeLimiter, searchLimiter } from '../config/rate-limit';
 const router = Router();
 
 router.get('/', searchLimiter, ReviewController.list);
-router.get('/score/:productId', ReviewController.getProductScore);
 router.get('/:id', ReviewController.getById);
 router.post('/', authenticate, writeLimiter, sanitize, ReviewController.create);
 router.put('/:id', authenticate, writeLimiter, sanitize, ReviewController.update);
