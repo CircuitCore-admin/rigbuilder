@@ -1,14 +1,20 @@
 // ============================================================================
 // ProductSelectionView — Full-screen product browsing interface.
 // Replaces the modal ProductPicker with a dedicated viewport takeover.
-// Features: left sidebar filters, dynamic sortable list view, compatibility
-// integration, humanized conflict messages, and URL-based state.
+// Features: left sidebar filters, multi-mode view (list / compact / standard),
+// dynamic sortable list, compatibility integration, humanized conflict
+// messages, and URL-based state.
 // ============================================================================
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import styles from './ProductSelectionView.module.scss';
 import { DynamicSortableTable, getColumnsForCategory } from '../DynamicSortableTable/DynamicSortableTable';
 import type { SortState, TableProduct, CompatInfo } from '../DynamicSortableTable/DynamicSortableTable';
+import { ViewSwitcher } from '../ViewSwitcher/ViewSwitcher';
+import type { ViewMode } from '../ViewSwitcher/ViewSwitcher';
+import { ProductCardCompact } from '../ProductCardCompact/ProductCardCompact';
+import { ProductCardStandard } from '../ProductCardStandard/ProductCardStandard';
+import { Navbar } from '../Navbar/Navbar';
 import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { CompatibilityEngine } from '../../utils/compatibilityEngine';
@@ -132,6 +138,9 @@ export function ProductSelectionView({
 
   // Sort state
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
+
+  // View mode state
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   // Derive filter options
   const manufacturers = useMemo(() => deriveManufacturers(products.map(toFilterable)), [products]);
@@ -345,7 +354,12 @@ export function ProductSelectionView({
   // -------------------------------------------------------------------------
   return (
     <div className={styles.view}>
-      {/* Sticky header */}
+      {/* Global site header — frosted glass, z-100 */}
+      <div className={styles.globalHeader}>
+        <Navbar />
+      </div>
+
+      {/* Sub-header with back, category, search, view switcher */}
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <button type="button" className={styles.backBtn} onClick={onBack}>
@@ -359,6 +373,9 @@ export function ProductSelectionView({
             <span className={styles.selectingLabel}>Selecting:</span>
             <span className={styles.categoryLabel}>{slotLabel}</span>
           </div>
+
+          {/* View mode switcher */}
+          <ViewSwitcher active={viewMode} onChange={setViewMode} />
 
           <div className={styles.headerSearch}>
             <svg className={styles.searchIcon} width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -531,7 +548,7 @@ export function ProductSelectionView({
             </div>
           </aside>
 
-          {/* Product list (sortable table) */}
+          {/* Product area — multi-mode */}
           <main className={styles.mainArea}>
             {/* Results bar */}
             <div className={styles.resultsBar}>
@@ -550,15 +567,46 @@ export function ProductSelectionView({
               )}
             </div>
 
-            {/* Dynamic sortable table */}
-            <DynamicSortableTable
-              products={tableProducts}
-              columns={columns}
-              compatMap={compatMap}
-              sort={sort}
-              onSortChange={setSort}
-              onSelect={handleSelect}
-            />
+            {/* View: List */}
+            {viewMode === 'list' && (
+              <DynamicSortableTable
+                products={tableProducts}
+                columns={columns}
+                compatMap={compatMap}
+                sort={sort}
+                onSortChange={setSort}
+                onSelect={handleSelect}
+              />
+            )}
+
+            {/* View: Compact Cards (4-column grid) */}
+            {viewMode === 'compact' && (
+              <div className={styles.gridCompact}>
+                {tableProducts.map((product) => (
+                  <ProductCardCompact
+                    key={product.id}
+                    product={product}
+                    compat={compatMap.get(product.id) ?? { severity: 'OK', reasons: [], conflicts: [] }}
+                    onSelect={handleSelect}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* View: Standard Cards (2-column grid) */}
+            {viewMode === 'standard' && (
+              <div className={styles.gridStandard}>
+                {tableProducts.map((product) => (
+                  <ProductCardStandard
+                    key={product.id}
+                    product={product}
+                    compat={compatMap.get(product.id) ?? { severity: 'OK', reasons: [], conflicts: [] }}
+                    columns={columns}
+                    onSelect={handleSelect}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Empty state fallback */}
             {sortedProducts.length === 0 && (

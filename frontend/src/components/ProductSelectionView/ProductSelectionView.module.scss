@@ -27,7 +27,24 @@
 }
 
 // ---------------------------------------------------------------------------
-// Sticky header
+// Global header wrapper — frosted glass site header at the very top
+// ---------------------------------------------------------------------------
+
+.globalHeader {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+
+  // Override the Navbar's own sticky to make it sit in flow here
+  :global(.topBar) {
+    position: relative;
+    top: auto;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sub-header (back, category, view switcher, search)
 // ---------------------------------------------------------------------------
 
 .header {
@@ -563,5 +580,43 @@
   &:hover {
     border-color: var(--accent-primary);
     color: var(--accent-primary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Card grid modes
+// ---------------------------------------------------------------------------
+
+// Compact Cards — 4-column grid
+.gridCompact {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: $bp-wide) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: $bp-desktop) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $bp-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Standard Cards — 2-column grid
+.gridStandard {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+
+  @media (max-width: $bp-desktop) {
+    grid-template-columns: 1fr;
   }
 }
