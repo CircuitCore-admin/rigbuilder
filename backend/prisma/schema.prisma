@@ -123,6 +123,10 @@ model User {
   upvotes            Upvote[]
   compatibilityLinks CompatibilityLink[]
   wishlistItems      WishlistItem[]
+  forumThreads       ForumThread[]
+  forumReplies       ForumReply[]
+  guides             Guide[]
+  badges             UserBadge[]
 
   @@index([username])
   @@index([email])
@@ -145,25 +149,25 @@ model Session {
 // ---------------------------------------------------------------------------
 
 model Product {
-  id              String             @id @default(cuid())
-  name            String
-  slug            String             @unique
-  manufacturer    String
-  category        ProductCategory
-  subcategory     ProductSubcategory?
-  specs           Json               // JSONB — category-specific spec object
-  releaseYear     Int?               @map("release_year")
-  weight          Float?             // kg
-  dimensions      Json?              // { length, width, height } in mm
-  platforms       Platform[]         @default([])
-  affiliateLinks  Json?              @map("affiliate_links") // [{retailer, url, price, lastChecked}]
-  images          String[]           @default([])
-  avgRating       Float?             @map("avg_rating")
-  reviewCount     Int                @default(0) @map("review_count")
-  buildCount      Int                @default(0) @map("build_count")
-  isVerified      Boolean            @default(false) @map("is_verified")
-  createdAt       DateTime           @default(now()) @map("created_at")
-  updatedAt       DateTime           @updatedAt @map("updated_at")
+  id             String              @id @default(cuid())
+  name           String
+  slug           String              @unique
+  manufacturer   String
+  category       ProductCategory
+  subcategory    ProductSubcategory?
+  specs          Json // JSONB — category-specific spec object
+  releaseYear    Int?                @map("release_year")
+  weight         Float? // kg
+  dimensions     Json? // { length, width, height } in mm
+  platforms      Platform[]          @default([])
+  affiliateLinks Json?               @map("affiliate_links") // [{retailer, url, price, lastChecked}]
+  images         String[]            @default([])
+  avgRating      Float?              @map("avg_rating")
+  reviewCount    Int                 @default(0) @map("review_count")
+  buildCount     Int                 @default(0) @map("build_count")
+  isVerified     Boolean             @default(false) @map("is_verified")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
 
   buildParts          BuildPart[]
   reviews             Review[]
@@ -173,6 +177,8 @@ model Product {
   upgradesTo          UpgradePath[]       @relation("UpgradeTo")
   wishlistItems       WishlistItem[]
   reviewsUpgradedFrom Review[]            @relation("UpgradedFrom")
+  priceHistory        PriceHistory[]
+  forumThreads        ForumThread[]
 
   @@index([slug])
   @@index([category])
@@ -191,12 +197,12 @@ model Build {
   userId      String       @map("user_id")
   name        String
   slug        String       @unique
-  description String?      // build story — sanitised HTML
+  description String? // build story — sanitised HTML
   spaceType   SpaceType?   @map("space_type")
   disciplines Discipline[] @default([])
   platforms   Platform[]   @default([])
   totalCost   Float        @default(0) @map("total_cost")
-  ratings     Json?        // {satisfaction, comfort, immersion, difficulty, noise}
+  ratings     Json? // {satisfaction, comfort, immersion, difficulty, noise}
   images      String[]     @default([])
   upvoteCount Int          @default(0) @map("upvote_count")
   viewCount   Int          @default(0) @map("view_count")
@@ -246,16 +252,16 @@ model Review {
   subRatings            Json?    @map("sub_ratings") // {buildQuality, performance, value, noise, reliability}
   ownershipDuration     String?  @map("ownership_duration")
   upgradedFromProductId String?  @map("upgraded_from_product_id")
-  pros                  String   // sanitised
-  cons                  String   // sanitised
+  pros                  String // sanitised
+  cons                  String // sanitised
   wouldBuyAgain         Boolean  @map("would_buy_again")
   images                String[] @default([])
   isVerified            Boolean  @default(false) @map("is_verified")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   upgradedFrom Product? @relation("UpgradedFrom", fields: [upgradedFromProductId], references: [id])
 
   @@unique([userId, productId])
@@ -269,14 +275,14 @@ model Review {
 // ---------------------------------------------------------------------------
 
 model CompatibilityLink {
-  id              String              @id @default(cuid())
-  productAId      String              @map("product_a_id")
-  productBId      String              @map("product_b_id")
-  status          CompatibilityStatus
-  severity        CompatibilitySeverity @default(OK)
-  reason          String?
-  confirmedByUserId String?           @map("confirmed_by_user_id")
-  createdAt       DateTime            @default(now()) @map("created_at")
+  id                String                @id @default(cuid())
+  productAId        String                @map("product_a_id")
+  productBId        String                @map("product_b_id")
+  status            CompatibilityStatus
+  severity          CompatibilitySeverity @default(OK)
+  reason            String?
+  confirmedByUserId String?               @map("confirmed_by_user_id")
+  createdAt         DateTime              @default(now()) @map("created_at")
 
   productA    Product @relation("ProductA", fields: [productAId], references: [id], onDelete: Cascade)
   productB    Product @relation("ProductB", fields: [productBId], references: [id], onDelete: Cascade)
@@ -311,14 +317,14 @@ model Comment {
   userId          String   @map("user_id")
   commentableType String   @map("commentable_type") // 'build' | 'product'
   commentableId   String   @map("commentable_id")
-  body            String   // sanitised
+  body            String // sanitised
   parentId        String?  @map("parent_id")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  build  Build?   @relation(fields: [commentableId], references: [id], onDelete: Cascade)
-  parent Comment? @relation("Replies", fields: [parentId], references: [id])
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  build   Build?    @relation(fields: [commentableId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("Replies", fields: [parentId], references: [id])
   replies Comment[] @relation("Replies")
 
   @@index([commentableType, commentableId])
@@ -352,4 +358,144 @@ model WishlistItem {
 
   @@unique([userId, productId])
   @@map("wishlist_items")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6 Enums
+// ---------------------------------------------------------------------------
+
+enum ForumCategory {
+  TROUBLESHOOTING
+  BUILD_ADVICE
+  DEALS
+  GENERAL
+}
+
+enum GuideCategory {
+  BEGINNER
+  BUYING
+  MAINTENANCE
+}
+
+enum BadgeType {
+  HELPFUL
+  EXPERT
+  VERIFIED_OWNER
+  TOP_CONTRIBUTOR
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: Price History
+// ---------------------------------------------------------------------------
+
+model PriceHistory {
+  id         String   @id @default(cuid())
+  productId  String   @map("product_id")
+  retailer   String
+  price      Float
+  currency   String   @default("USD")
+  recordedAt DateTime @default(now()) @map("recorded_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, recordedAt(sort: Desc)])
+  @@index([productId, currency])
+  @@map("price_history")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: Forum / Community Discussions
+// ---------------------------------------------------------------------------
+
+model ForumThread {
+  id         String        @id @default(cuid())
+  title      String
+  slug       String        @unique
+  body       String // sanitised markdown
+  category   ForumCategory
+  userId     String        @map("user_id")
+  productId  String?       @map("product_id") // optional link to a product
+  isPinned   Boolean       @default(false) @map("is_pinned")
+  isLocked   Boolean       @default(false) @map("is_locked")
+  viewCount  Int           @default(0) @map("view_count")
+  replyCount Int           @default(0) @map("reply_count")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  replies ForumReply[]
+
+  @@index([category, createdAt(sort: Desc)])
+  @@index([productId])
+  @@index([userId])
+  @@index([slug])
+  @@map("forum_threads")
+}
+
+model ForumReply {
+  id        String   @id @default(cuid())
+  threadId  String   @map("thread_id")
+  userId    String   @map("user_id")
+  body      String // sanitised markdown
+  parentId  String?  @map("parent_id")
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  thread   ForumThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   ForumReply?  @relation("NestedReplies", fields: [parentId], references: [id])
+  children ForumReply[] @relation("NestedReplies")
+
+  @@index([threadId, createdAt])
+  @@index([userId])
+  @@map("forum_replies")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: Guides (CMS Content)
+// ---------------------------------------------------------------------------
+
+model Guide {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  excerpt         String?
+  body            String // rich content from CMS
+  category        GuideCategory
+  coverImage      String?       @map("cover_image")
+  authorId        String        @map("author_id")
+  tags            String[]      @default([])
+  productMentions String[]      @default([]) @map("product_mentions") // product IDs mentioned
+  seoTitle        String?       @map("seo_title")
+  seoDescription  String?       @map("seo_description")
+  isPublished     Boolean       @default(false) @map("is_published")
+  publishedAt     DateTime?     @map("published_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([slug])
+  @@index([category, isPublished])
+  @@index([authorId])
+  @@map("guides")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6: User Badges (Reputation)
+// ---------------------------------------------------------------------------
+
+model UserBadge {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  badge     BadgeType
+  awardedAt DateTime  @default(now()) @map("awarded_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badge])
+  @@index([userId])
+  @@map("user_badges")
 }
