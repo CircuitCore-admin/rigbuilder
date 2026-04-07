@@ -8,6 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useBuildStore } from '../../stores/buildStore';
 import { api } from '../../utils/api';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
+import { RigBuilderPage } from '../RigBuilder/RigBuilderPage';
 import styles from './SharedBuildPage.module.scss';
 
 // ---------------------------------------------------------------------------
@@ -105,6 +106,7 @@ export function SharedBuildPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!buildId) {
@@ -123,8 +125,8 @@ export function SharedBuildPage() {
         const parts = toBuildParts(data.parts);
         loadBuild(parts, data.slug, data.userId);
 
-        // Redirect to the main configurator with the build loaded
-        navigate('/build', { replace: true });
+        // Show the configurator inline — keep the user on /list/:buildId
+        setReady(true);
       } catch (err) {
         if (cancelled) return;
         setError(
@@ -137,7 +139,7 @@ export function SharedBuildPage() {
 
     fetchBuild();
     return () => { cancelled = true; };
-  }, [buildId, loadBuild, navigate]);
+  }, [buildId, loadBuild]);
 
   if (loading) {
     return (
@@ -162,6 +164,10 @@ export function SharedBuildPage() {
         </button>
       </div>
     );
+  }
+
+  if (ready) {
+    return <RigBuilderPage />;
   }
 
   return null;

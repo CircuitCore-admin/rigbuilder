@@ -48,7 +48,7 @@ export function App() {
         {/* Configurator (moved from / to /build) */}
         <Route path="/build" element={<RigBuilderPage />} />
 
-        {/* Shared build permalink — fetches from API and redirects to /build */}
+        {/* Shared build permalink — fetches from API and renders configurator inline */}
         <Route path="/list/:buildId" element={<SharedBuildPage />} />
 
         {/* Product detail */}
