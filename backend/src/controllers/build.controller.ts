@@ -20,7 +20,14 @@ export class BuildController {
     try {
       const build = await BuildService.getByShortId(req.params.id);
       res.json(build);
-    } catch { res.status(404).json({ error: 'Build not found' }); }
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg === 'Build not found') {
+        return res.status(404).json({ error: msg });
+      }
+      console.error('❌ getById error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 
   static async create(req: Request, res: Response) {

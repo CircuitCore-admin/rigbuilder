@@ -15,7 +15,6 @@ import { ViewSwitcher } from '../ViewSwitcher/ViewSwitcher';
 import type { ViewMode } from '../ViewSwitcher/ViewSwitcher';
 import { ProductCardCompact } from '../ProductCardCompact/ProductCardCompact';
 import { ProductCardStandard } from '../ProductCardStandard/ProductCardStandard';
-import { Navbar } from '../Navbar/Navbar';
 import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { CompatibilityEngine } from '../../utils/compatibilityEngine';
@@ -382,11 +381,6 @@ export function ProductSelectionView({
   // -------------------------------------------------------------------------
   return (
     <div className={styles.view}>
-      {/* Global site header — frosted glass, z-100 */}
-      <div className={styles.globalHeader}>
-        <Navbar />
-      </div>
-
       {/* Sub-header with back, category, search, view switcher */}
       <header className={styles.header}>
         <div className={styles.headerInner}>

@@ -43,22 +43,28 @@ export class BuildRepository {
   }
 
   static async findById(id: string) {
-  return prisma.build.findFirst({
-    where: {
-      OR: [
-        { id: id },
-        { slug: id } // Matches your schema
-      ]
-    },
-    include: {
-      parts: {
-        include: {
-          product: true // ESSENTIAL: This brings in the actual gear details
-        }
-      }
+    const build = await prisma.build.findFirst({
+      where: {
+        OR: [
+          { id },
+          { slug: { equals: id, mode: 'insensitive' } },
+        ],
+      },
+      include: {
+        parts: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DB Result:', JSON.stringify(build, null, 2));
     }
-  });
-}
+
+    return build;
+  }
 
   static async create(userId: string, data: any, parts: any[]) {
   const productIds = parts.map(p => p.productId);

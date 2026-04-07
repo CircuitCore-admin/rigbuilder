@@ -52,6 +52,8 @@ export interface BuildState {
   savedBuildId: string | null;
   /** Owner user ID of the loaded build (null for unsaved / own builds). */
   savedBuildOwnerId: string | null;
+  /** Transient flag: true after loadBuild — prevents persist rehydration from overwriting. */
+  _hydratedFromShare: boolean;
 
   // Actions
   addPart: (slot: CategorySlot, part: SelectedPart) => void;
@@ -133,6 +135,7 @@ export const useBuildStore = create<BuildState>()(
       },
       savedBuildId: null,
       savedBuildOwnerId: null,
+      _hydratedFromShare: false,
 
       addPart: (slot: CategorySlot, part: SelectedPart) => {
         const next = { ...get().selectedParts, [slot]: part };
@@ -173,6 +176,7 @@ export const useBuildStore = create<BuildState>()(
           },
           savedBuildId: null,
           savedBuildOwnerId: null,
+          _hydratedFromShare: false,
         });
       },
 
@@ -192,6 +196,7 @@ export const useBuildStore = create<BuildState>()(
           compatibilityReport,
           savedBuildId: buildId,
           savedBuildOwnerId: ownerId ?? null,
+          _hydratedFromShare: true,
         });
       },
 
@@ -210,6 +215,19 @@ export const useBuildStore = create<BuildState>()(
         selectedParts: state.selectedParts,
         savedBuildId: state.savedBuildId,
       }),
+      // Merge strategy: if a shared build was loaded via API, keep it and don't
+      // let stale localStorage data overwrite it.
+      merge: (persisted, current) => {
+        if (current._hydratedFromShare) {
+          return current;
+        }
+        const p = (persisted ?? {}) as Partial<BuildState>;
+        return {
+          ...current,
+          selectedParts: p.selectedParts ?? current.selectedParts,
+          savedBuildId: p.savedBuildId ?? current.savedBuildId,
+        };
+      },
       // Rehydrate derived fields after loading from localStorage
       onRehydrateStorage: () => (state) => {
         if (state) {

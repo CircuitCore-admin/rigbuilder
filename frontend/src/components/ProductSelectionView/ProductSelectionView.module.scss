@@ -27,23 +27,6 @@
 }
 
 // ---------------------------------------------------------------------------
-// Global header wrapper — frosted glass site header at the very top
-// ---------------------------------------------------------------------------
-
-.globalHeader {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  flex-shrink: 0;
-
-  // Override the Navbar's own sticky to make it sit in flow here
-  :global(.topBar) {
-    position: relative;
-    top: auto;
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Sub-header (back, category, view switcher, search)
 // ---------------------------------------------------------------------------
 
