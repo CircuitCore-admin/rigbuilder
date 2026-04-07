@@ -4,6 +4,7 @@ import { RegisterPage } from './pages/Register/RegisterPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
 import { HomePage } from './pages/Home/HomePage';
+import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
@@ -44,6 +45,9 @@ export function App() {
 
         {/* Configurator (moved from / to /build) */}
         <Route path="/build" element={<RigBuilderPage />} />
+
+        {/* Product detail */}
+        <Route path="/products/:slug" element={<ProductDetailPage />} />
 
         {/* Landing page */}
         <Route path="/" element={<HomePage />} />
