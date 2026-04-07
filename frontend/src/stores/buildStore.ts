@@ -48,11 +48,22 @@ export interface BuildState {
   totalWeight: number;
   compatibilityReport: CompatibilityReport;
 
+  /** Persisted build ID (set after save or when loading a shared build). */
+  savedBuildId: string | null;
+  /** Owner user ID of the loaded build (null for unsaved / own builds). */
+  savedBuildOwnerId: string | null;
+
   // Actions
   addPart: (slot: CategorySlot, part: SelectedPart) => void;
   removePart: (slot: CategorySlot) => void;
   clearBuild: () => void;
   calculateTotals: () => void;
+  /** Replace the entire build state from an external source (API / shared link). */
+  loadBuild: (parts: Partial<Record<CategorySlot, SelectedPart>>, buildId: string, ownerId?: string | null) => void;
+  /** Mark the build as saved with the given permalink ID. */
+  setSavedBuildId: (id: string) => void;
+  /** Reset saved-build metadata without clearing parts. */
+  resetSavedMeta: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -120,6 +131,8 @@ export const useBuildStore = create<BuildState>()(
         isCompatible: true,
         conflicts: [],
       },
+      savedBuildId: null,
+      savedBuildOwnerId: null,
 
       addPart: (slot: CategorySlot, part: SelectedPart) => {
         const next = { ...get().selectedParts, [slot]: part };
@@ -158,6 +171,8 @@ export const useBuildStore = create<BuildState>()(
             isCompatible: true,
             conflicts: [],
           },
+          savedBuildId: null,
+          savedBuildOwnerId: null,
         });
       },
 
@@ -166,12 +181,34 @@ export const useBuildStore = create<BuildState>()(
         const compatibilityReport = computeCompatibility(get().selectedParts);
         set({ totalPrice, totalWeight, compatibilityReport });
       },
+
+      loadBuild: (parts, buildId, ownerId = null) => {
+        const { totalPrice, totalWeight } = computeTotals(parts);
+        const compatibilityReport = computeCompatibility(parts);
+        set({
+          selectedParts: parts,
+          totalPrice,
+          totalWeight,
+          compatibilityReport,
+          savedBuildId: buildId,
+          savedBuildOwnerId: ownerId ?? null,
+        });
+      },
+
+      setSavedBuildId: (id: string) => {
+        set({ savedBuildId: id });
+      },
+
+      resetSavedMeta: () => {
+        set({ savedBuildId: null, savedBuildOwnerId: null });
+      },
     }),
     {
       name: 'rigbuilder-build',
-      // Only persist selectedParts; totals and compatibility are derived
+      // Only persist selectedParts and savedBuildId; totals and compatibility are derived
       partialize: (state) => ({
         selectedParts: state.selectedParts,
+        savedBuildId: state.savedBuildId,
       }),
       // Rehydrate derived fields after loading from localStorage
       onRehydrateStorage: () => (state) => {

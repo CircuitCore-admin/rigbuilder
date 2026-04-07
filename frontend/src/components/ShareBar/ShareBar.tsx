@@ -6,7 +6,9 @@
 import { useState, useCallback, useMemo } from 'react';
 import styles from './ShareBar.module.scss';
 import { useBuildStore } from '../../stores/buildStore';
+import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { generateBuildId, buildPermalink } from '../../utils/buildShortener';
+import { api } from '../../utils/api';
 import { MarkupModal } from './MarkupModal';
 
 // ---------------------------------------------------------------------------
@@ -17,21 +19,55 @@ export function ShareBar() {
   const selectedParts = useBuildStore((s) => s.selectedParts);
   const totalPrice = useBuildStore((s) => s.totalPrice);
   const clearBuild = useBuildStore((s) => s.clearBuild);
+  const savedBuildId = useBuildStore((s) => s.savedBuildId);
+  const setSavedBuildId = useBuildStore((s) => s.setSavedBuildId);
+  const resetSavedMeta = useBuildStore((s) => s.resetSavedMeta);
 
-  const [savedId, setSavedId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [modalFormat, setModalFormat] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const hasParts = Object.keys(selectedParts).length > 0;
-  const permalink = useMemo(() => savedId ? buildPermalink(savedId) : '', [savedId]);
+  const permalink = useMemo(
+    () => (savedBuildId ? buildPermalink(savedBuildId) : ''),
+    [savedBuildId],
+  );
 
-  // Save / generate permalink
-  const handleSave = useCallback(() => {
-    const id = generateBuildId();
-    setSavedId(id);
-    setCopied(false);
-    // TODO: persist to backend when API is ready
-  }, []);
+  // Save build to backend and generate permalink
+  const handleSave = useCallback(async () => {
+    if (saving) return;
+    setSaving(true);
+
+    try {
+      // Build the parts array for the API
+      const parts = (Object.entries(selectedParts) as [CategorySlot, SelectedPart][]).map(
+        ([slot, part]) => ({
+          productId: part.id,
+          categorySlot: slot,
+          pricePaid: part.price,
+        }),
+      );
+
+      const response = await api<{ id: string; slug: string }>('/builds', {
+        method: 'POST',
+        body: {
+          name: 'My RigBuilder Build',
+          parts,
+          isPublic: true,
+        },
+      });
+
+      setSavedBuildId(response.id);
+      setCopied(false);
+    } catch {
+      // If the backend is not available, fall back to local-only ID generation
+      const id = generateBuildId();
+      setSavedBuildId(id);
+      setCopied(false);
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedParts, saving, setSavedBuildId]);
 
   // Copy permalink
   const handleCopy = useCallback(async () => {
@@ -52,10 +88,16 @@ export function ShareBar() {
     }
   }, [permalink]);
 
+  // Save As New — clone with a fresh ID
+  const handleSaveAsNew = useCallback(async () => {
+    resetSavedMeta();
+    // Slight delay so UI updates before triggering save
+    setTimeout(() => handleSave(), 50);
+  }, [resetSavedMeta, handleSave]);
+
   // New build
   const handleNew = useCallback(() => {
     clearBuild();
-    setSavedId(null);
     setCopied(false);
   }, [clearBuild]);
 
@@ -64,7 +106,7 @@ export function ShareBar() {
       <div className={styles.bar}>
         {/* Permalink section */}
         <div className={styles.linkSection}>
-          {savedId ? (
+          {savedBuildId ? (
             <div className={styles.linkGroup}>
               <input
                 className={styles.linkInput}
@@ -142,10 +184,10 @@ export function ShareBar() {
           <button
             type="button"
             className={styles.actionBtn}
-            onClick={handleSave}
-            disabled={!hasParts}
+            onClick={savedBuildId ? handleSaveAsNew : handleSave}
+            disabled={!hasParts || saving}
           >
-            {savedId ? 'Save As' : 'Save'}
+            {saving ? 'Saving…' : savedBuildId ? 'Save As' : 'Save'}
           </button>
           <button
             type="button"

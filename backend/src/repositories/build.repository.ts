@@ -43,8 +43,18 @@ export class BuildRepository {
   }
 
   static async findById(id: string) {
-    return prisma.build.findUnique({
+    // Try by primary key first, then fall back to slug (short permalink ID)
+    const build = await prisma.build.findUnique({
       where: { id },
+      include: {
+        user: { select: { id: true, username: true, avatarUrl: true } },
+        parts: { include: { product: true } },
+      },
+    });
+    if (build) return build;
+
+    return prisma.build.findUnique({
+      where: { slug: id },
       include: {
         user: { select: { id: true, username: true, avatarUrl: true } },
         parts: { include: { product: true } },

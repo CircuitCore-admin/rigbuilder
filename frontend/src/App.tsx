@@ -3,6 +3,7 @@ import { LoginPage } from './pages/Login/LoginPage';
 import { RegisterPage } from './pages/Register/RegisterPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
+import { SharedBuildPage } from './pages/SharedBuild/SharedBuildPage';
 import { HomePage } from './pages/Home/HomePage';
 import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
@@ -45,6 +46,9 @@ export function App() {
 
         {/* Configurator (moved from / to /build) */}
         <Route path="/build" element={<RigBuilderPage />} />
+
+        {/* Shared build permalink — fetches from API and redirects to /build */}
+        <Route path="/list/:buildId" element={<SharedBuildPage />} />
 
         {/* Product detail */}
         <Route path="/products/:slug" element={<ProductDetailPage />} />
