@@ -276,10 +276,11 @@ const VALID_SLOTS = new Set<string>([
 // ---------------------------------------------------------------------------
 
 function renderStars(rating: number): string {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.25 && rating - full < 0.75 ? 1 : 0;
-  const fullChar = full + (rating - full >= 0.75 ? 1 : 0);
-  return '★'.repeat(fullChar) + (half ? '½' : '') + '☆'.repeat(5 - fullChar - half);
+  const fractional = rating - Math.floor(rating);
+  const hasHalfStar = fractional >= 0.25 && fractional < 0.75;
+  const filledStars = Math.floor(rating) + (fractional >= 0.75 ? 1 : 0);
+  const emptyStars = 5 - filledStars - (hasHalfStar ? 1 : 0);
+  return '★'.repeat(filledStars) + (hasHalfStar ? '½' : '') + '☆'.repeat(emptyStars);
 }
 
 function formatSpecValue(value: string | number | boolean): string {
