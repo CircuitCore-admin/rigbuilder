@@ -1,6 +1,7 @@
 // ============================================================================
 // SharedBuildPage — Loads a persisted build from a permalink (/list/:buildId)
-// Fetches data from the API, populates useBuildStore, then redirects to /build.
+// Fetches data from the API, populates useBuildStore, then renders the
+// configurator inline so the user stays on their build-specific URL.
 // ============================================================================
 
 import { useEffect, useState } from 'react';
