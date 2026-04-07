@@ -26,6 +26,7 @@ export function ShareBar() {
   const [copied, setCopied] = useState(false);
   const [modalFormat, setModalFormat] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [localOnly, setLocalOnly] = useState(false);
 
   const hasParts = Object.keys(selectedParts).length > 0;
   const permalink = useMemo(
@@ -58,11 +59,13 @@ export function ShareBar() {
       });
 
       setSavedBuildId(response.id);
+      setLocalOnly(false);
       setCopied(false);
     } catch {
-      // If the backend is not available, fall back to local-only ID generation
+      // Backend unavailable — fall back to local-only ID (link won't resolve for others)
       const id = generateBuildId();
       setSavedBuildId(id);
+      setLocalOnly(true);
       setCopied(false);
     } finally {
       setSaving(false);
@@ -133,6 +136,11 @@ export function ShareBar() {
                   </svg>
                 )}
               </button>
+              {localOnly && (
+                <span className={styles.localHint} title="Saved locally only — link won't work for others until the server is connected">
+                  Local only
+                </span>
+              )}
             </div>
           ) : (
             <span className={styles.placeholder}>Save your build to get a shareable link</span>

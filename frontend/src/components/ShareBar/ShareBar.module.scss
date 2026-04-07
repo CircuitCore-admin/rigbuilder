@@ -85,6 +85,15 @@
   letter-spacing: 0.02em;
 }
 
+.localHint {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--color-warning);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 // ---------------------------------------------------------------------------
 // Markup format toggles
 // ---------------------------------------------------------------------------
