@@ -1,4 +1,4 @@
-import { prisma } from '../prisma';
+import { prisma } from '../prisma.js';
 import type { Prisma, Build } from '@prisma/client';
 
 export interface BuildListParams {
@@ -43,24 +43,22 @@ export class BuildRepository {
   }
 
   static async findById(id: string) {
-    // Try by primary key first, then fall back to slug (short permalink ID)
-    const build = await prisma.build.findUnique({
-      where: { id },
-      include: {
-        user: { select: { id: true, username: true, avatarUrl: true } },
-        parts: { include: { product: true } },
-      },
-    });
-    if (build) return build;
-
-    return prisma.build.findUnique({
-      where: { slug: id },
-      include: {
-        user: { select: { id: true, username: true, avatarUrl: true } },
-        parts: { include: { product: true } },
-      },
-    });
-  }
+  return prisma.build.findFirst({
+    where: {
+      OR: [
+        { id: id },
+        { slug: id } // Matches your schema
+      ]
+    },
+    include: {
+      parts: {
+        include: {
+          product: true // ESSENTIAL: This brings in the actual gear details
+        }
+      }
+    }
+  });
+}
 
   static async create(userId: string, data: Prisma.BuildCreateInput, parts: { productId: string; categorySlot: any; pricePaid?: number; notes?: string }[]) {
     return prisma.build.create({
