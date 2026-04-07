@@ -9,7 +9,7 @@ import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { PriceHistoryChart } from '../../components/PriceHistoryChart/PriceHistoryChart';
 import type { ProductInput } from '../../types/productSpecs';
-import type { Platform } from '../../types/product';
+import { api } from '../../utils/api';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,10 +19,25 @@ interface AffiliateEntry {
   retailer: string;
   url: string;
   price: number;
-  inStock: boolean;
+  inStock?: boolean;
 }
 
-interface DemoProduct {
+interface ApiProduct {
+  id: string;
+  name: string;
+  slug: string;
+  manufacturer: string;
+  category: string;
+  specs: Record<string, unknown>;
+  weight?: number | null;
+  platforms: string[];
+  affiliateLinks?: AffiliateEntry[] | null;
+  images: string[];
+  avgRating?: number | null;
+  reviewCount?: number;
+}
+
+interface DisplayProduct {
   id: string;
   name: string;
   slug: string;
@@ -34,213 +49,97 @@ interface DemoProduct {
   avgRating: number;
   reviewCount: number;
   weight: number;
-  platforms: Platform[];
+  platforms: string[];
   keySpec: string;
   productInput?: ProductInput;
 }
 
 // ---------------------------------------------------------------------------
-// Demo data (replace with API when available)
+// API response → display product mapper
 // ---------------------------------------------------------------------------
 
-const DEMO_PRODUCTS: Record<string, DemoProduct> = {
-  'fanatec-csl-dd-8nm': {
-    id: 'w1',
-    name: 'Fanatec CSL DD (8 Nm)',
-    slug: 'fanatec-csl-dd-8nm',
-    manufacturer: 'Fanatec',
-    category: 'WHEELBASE',
-    keySpec: '8Nm Direct Drive',
-    avgRating: 4.4,
-    reviewCount: 342,
-    weight: 2.7,
-    platforms: ['PC', 'PLAYSTATION', 'XBOX'],
-    images: [
-      '/images/products/fanatec-csl-dd-1.webp',
-      '/images/products/fanatec-csl-dd-2.webp',
-      '/images/products/fanatec-csl-dd-3.webp',
-    ],
-    specs: {
-      'Drive Type': 'Direct Drive',
-      'Peak Torque': '8 Nm',
-      'Rotation Range': '1080°',
-      'Quick Release': 'Fanatec QR1 / QR2',
-      Connectivity: 'USB',
-      'PSU Included': true,
-      'Mounting Pattern': 'Front Clamp',
-      Weight: '2.7 kg',
-      'Max Rotation Speed': '180°/s',
-      'Encoder Resolution': '16-bit',
-      Platform: 'PC / PS / Xbox',
-    },
-    affiliateLinks: [
-      { retailer: 'Fanatec Direct', url: 'https://fanatec.com/csl-dd', price: 349.95, inStock: true },
-      { retailer: 'Amazon', url: 'https://amazon.com/dp/B09EXAMPLE', price: 379.99, inStock: true },
-      { retailer: 'SimRacingBay', url: 'https://simracingbay.com/csl-dd', price: 359.00, inStock: false },
-    ],
+/** Convert camelCase/snake_case to Title Case display label. */
+function toDisplayLabel(key: string): string {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+/** Format spec values for human-readable display. */
+function formatSpecForDisplay(value: unknown): string | number | boolean {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value;
+  if (Array.isArray(value)) return value.map((v) => toDisplayLabel(String(v))).join(' / ');
+  return toDisplayLabel(String(value));
+}
+
+/** Derive a human-readable key spec string from category-specific specs. */
+function deriveKeySpec(category: string, specs: Record<string, unknown>): string {
+  switch (category) {
+    case 'WHEELBASE': {
+      const torque = specs.peakTorque ?? '';
+      const drive = String(specs.driveType ?? '').replace(/_/g, ' ');
+      return `${torque}Nm ${drive.charAt(0).toUpperCase() + drive.slice(1)}`.trim();
+    }
+    case 'WHEEL_RIM': {
+      const dia = specs.diameter ?? '';
+      const mat = specs.material ?? '';
+      return `${dia}mm / ${mat}`.trim();
+    }
+    case 'PEDALS': {
+      const brake = String(specs.brakeType ?? '').replace(/_/g, ' ');
+      const force = specs.maxBrakeForce ? ` / ${specs.maxBrakeForce}kg` : '';
+      return `${brake.charAt(0).toUpperCase() + brake.slice(1)}${force}`.trim();
+    }
+    case 'COCKPIT': {
+      const mat = String(specs.material ?? '');
+      return mat.charAt(0).toUpperCase() + mat.slice(1);
+    }
+    case 'DISPLAY': {
+      const size = specs.screenSize ? `${specs.screenSize}"` : '';
+      const res = specs.resolution ?? '';
+      const hz = specs.refreshRate ? `${specs.refreshRate}Hz` : '';
+      return [size, res, hz].filter(Boolean).join(' ');
+    }
+    default:
+      return String(specs.type ?? specs.subCategory ?? '');
+  }
+}
+
+/** Convert API product to display format. */
+function toDisplayProduct(p: ApiProduct): DisplayProduct {
+  const displaySpecs: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(p.specs)) {
+    displaySpecs[toDisplayLabel(key)] = formatSpecForDisplay(value);
+  }
+
+  return {
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    manufacturer: p.manufacturer,
+    category: p.category,
+    specs: displaySpecs,
+    images: p.images,
+    affiliateLinks: (p.affiliateLinks ?? []).map((l) => ({
+      ...l,
+      inStock: l.inStock ?? true,
+    })),
+    avgRating: p.avgRating ?? 0,
+    reviewCount: p.reviewCount ?? 0,
+    weight: p.weight ?? 0,
+    platforms: p.platforms,
+    keySpec: deriveKeySpec(p.category, p.specs),
     productInput: {
-      id: 'w1',
-      category: 'WHEELBASE',
-      specs: {
-        driveType: 'direct_drive',
-        peakTorque: 8,
-        rotationRange: 1080,
-        qrType: 'fanatec_qr1',
-        connectivity: ['usb'],
-        psuIncluded: true,
-        mountingPattern: 'front_clamp',
-      } as ProductInput['specs'],
-      platforms: ['PC', 'PLAYSTATION', 'XBOX'],
+      id: p.id,
+      category: p.category as ProductInput['category'],
+      specs: p.specs as ProductInput['specs'],
+      platforms: p.platforms as ProductInput['platforms'],
     },
-  },
-  'heusinkveld-sprint-pedals': {
-    id: 'p1',
-    name: 'Heusinkveld Sprint Pedals',
-    slug: 'heusinkveld-sprint-pedals',
-    manufacturer: 'Heusinkveld',
-    category: 'PEDALS',
-    keySpec: 'Load Cell / 90kg',
-    avgRating: 4.8,
-    reviewCount: 218,
-    weight: 4.5,
-    platforms: ['PC'],
-    images: [
-      '/images/products/heusinkveld-sprint-1.webp',
-      '/images/products/heusinkveld-sprint-2.webp',
-    ],
-    specs: {
-      'Pedal Count': 3,
-      'Brake Type': 'Load Cell',
-      'Max Brake Force': '90 kg',
-      'Throttle Type': 'Hall Sensor',
-      'Clutch Type': 'Hall Sensor',
-      Connectivity: 'USB',
-      'Mounting Pattern': 'Hard Mount',
-      'Pedal Plate Depth': '280 mm',
-      Material: 'Steel / Aluminium',
-      Weight: '4.5 kg',
-    },
-    affiliateLinks: [
-      { retailer: 'Heusinkveld', url: 'https://heusinkveld.com/sprint', price: 599, inStock: true },
-      { retailer: 'Digital-Motorsports', url: 'https://digital-motorsports.com/heu-sprint', price: 619, inStock: true },
-      { retailer: 'SimRacingBay', url: 'https://simracingbay.com/sprint', price: 599, inStock: true },
-    ],
-    productInput: {
-      id: 'p1',
-      category: 'PEDALS',
-      specs: {
-        pedalCount: 3,
-        brakeType: 'load_cell',
-        maxBrakeForce: 90,
-        throttleType: 'hall sensor',
-        clutchType: 'hall sensor',
-        mountingPattern: 'hard_mount',
-        connectivity: ['usb'],
-        pedalPlateDepth: 280,
-      } as ProductInput['specs'],
-      platforms: ['PC'],
-    },
-  },
-  'simlab-gt1-evo': {
-    id: 'c3',
-    name: 'SimLab GT1 Evo',
-    slug: 'simlab-gt1-evo',
-    manufacturer: 'SimLab',
-    category: 'COCKPIT',
-    keySpec: 'Aluminium Profile',
-    avgRating: 4.7,
-    reviewCount: 189,
-    weight: 22,
-    platforms: [],
-    images: [
-      '/images/products/simlab-gt1-1.webp',
-      '/images/products/simlab-gt1-2.webp',
-    ],
-    specs: {
-      Material: 'Aluminium',
-      'Profile Size': '40×80 mm',
-      'Max Wheelbase Weight': '30 kg',
-      'Wheelbase Mounting': '4-bolt 66mm / 100mm / Front Clamp / Universal',
-      'Pedal Mounting': 'Hard Mount / Bolt-Through / Universal',
-      'Pedal Tray Depth': '380 mm',
-      'Frame Width': '540 mm',
-      'Seat Compatibility': 'Side Mount / Bottom Mount',
-      'Weight Capacity': '160 kg',
-      'Is Folding': false,
-      'Seat Included': false,
-      Weight: '22 kg',
-    },
-    affiliateLinks: [
-      { retailer: 'Sim-Lab', url: 'https://sim-lab.eu/gt1-evo', price: 549, inStock: true },
-      { retailer: 'Digital-Motorsports', url: 'https://digital-motorsports.com/gt1-evo', price: 579, inStock: false },
-    ],
-    productInput: {
-      id: 'c3',
-      category: 'COCKPIT',
-      specs: {
-        material: 'aluminium',
-        profileSize: '40x80',
-        maxWheelbaseWeight: 30,
-        wheelbaseMounting: ['4_bolt_66mm', '4_bolt_100mm', 'front_clamp', 'universal_slotted'],
-        pedalMounting: ['hard_mount', 'bolt_through', 'universal_slotted'],
-        pedalTrayDepth: 380,
-        frameWidth: 540,
-        seatCompatibility: ['side_mount', 'bottom_mount'],
-        isFolding: false,
-        seatIncluded: false,
-        weightCapacity: 160,
-      } as ProductInput['specs'],
-      platforms: [],
-    },
-  },
-  'fanatec-mclaren-gt3-v2': {
-    id: 'r1',
-    name: 'Fanatec McLaren GT3 V2',
-    slug: 'fanatec-mclaren-gt3-v2',
-    manufacturer: 'Fanatec',
-    category: 'WHEEL_RIM',
-    keySpec: '300mm / Forged Carbon',
-    avgRating: 4.5,
-    reviewCount: 412,
-    weight: 0.95,
-    platforms: ['PC', 'PLAYSTATION', 'XBOX'],
-    images: [
-      '/images/products/fanatec-mclaren-1.webp',
-      '/images/products/fanatec-mclaren-2.webp',
-      '/images/products/fanatec-mclaren-3.webp',
-    ],
-    specs: {
-      Diameter: '300 mm',
-      'Button Count': 12,
-      'Paddle Type': 'Magnetic',
-      'Has Display': false,
-      'QR Compatibility': 'Fanatec QR1 / QR2',
-      Material: 'Forged Carbon',
-      Weight: '0.95 kg',
-      'Shifter Paddles': 'Dual / Magnetic',
-      'Rotary Encoders': 2,
-      'Thumb Wheels': 1,
-    },
-    affiliateLinks: [
-      { retailer: 'Fanatec Direct', url: 'https://fanatec.com/mclaren-gt3-v2', price: 229.95, inStock: true },
-      { retailer: 'Amazon', url: 'https://amazon.com/dp/B09MCLA2', price: 249.99, inStock: true },
-    ],
-    productInput: {
-      id: 'r1',
-      category: 'WHEEL_RIM',
-      specs: {
-        diameter: 300,
-        buttonCount: 12,
-        paddleType: 'magnetic',
-        hasDisplay: false,
-        qrCompatibility: ['fanatec_qr1', 'fanatec_qr2'],
-        weight: 0.95,
-        material: 'forged carbon',
-      } as ProductInput['specs'],
-      platforms: ['PC', 'PLAYSTATION', 'XBOX'],
-    },
-  },
-};
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Placeholder build cards for community section
@@ -302,7 +201,30 @@ export function ProductDetailPage() {
   const slot: CategorySlot | null =
     slotParam && VALID_SLOTS.has(slotParam) ? (slotParam as CategorySlot) : null;
 
-  const product = slug ? DEMO_PRODUCTS[slug] : undefined;
+  // ── Fetch product from API by slug ────────────────────────────────────
+  const [product, setProduct] = useState<DisplayProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) { setLoading(false); return; }
+
+    let cancelled = false;
+    setLoading(true);
+
+    api<ApiProduct>(`/products/slug/${slug}`)
+      .then((data) => {
+        if (!cancelled) setProduct(toDisplayProduct(data));
+      })
+      .catch((err) => {
+        console.error('Failed to load product', slug, err);
+        if (!cancelled) setProduct(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [slug]);
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
@@ -372,6 +294,14 @@ export function ProductDetailPage() {
   };
 
   // --- Not found ---
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <p>Loading product…</p>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className={styles.page}>
