@@ -29,10 +29,15 @@ const SHORT_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz'
 const SHORT_ID_LENGTH = 6;
 
 export function generateShortId(length = SHORT_ID_LENGTH): string {
-  const bytes = crypto.randomBytes(length);
+  const maxValid = Math.floor(256 / SHORT_ALPHABET.length) * SHORT_ALPHABET.length;
   let id = '';
-  for (let i = 0; i < length; i++) {
-    id += SHORT_ALPHABET[bytes[i] % SHORT_ALPHABET.length];
+  while (id.length < length) {
+    const bytes = crypto.randomBytes(length - id.length + 4); // extra to compensate for rejections
+    for (let i = 0; i < bytes.length && id.length < length; i++) {
+      if (bytes[i] < maxValid) {
+        id += SHORT_ALPHABET[bytes[i] % SHORT_ALPHABET.length];
+      }
+    }
   }
   return id;
 }
