@@ -142,11 +142,15 @@ export const useBuildStore = create<BuildState>()(
         const { totalPrice, totalWeight } = computeTotals(next);
         const compatibilityReport = computeCompatibility(next);
 
+        // Clear stale permalink unless the build belongs to a logged-in account
+        const clearLink = !get().savedBuildOwnerId ? { savedBuildId: null } : {};
+
         set({
           selectedParts: next,
           totalPrice,
           totalWeight,
           compatibilityReport,
+          ...clearLink,
         });
       },
 
@@ -156,11 +160,15 @@ export const useBuildStore = create<BuildState>()(
         const { totalPrice, totalWeight } = computeTotals(next);
         const compatibilityReport = computeCompatibility(next);
 
+        // Clear stale permalink unless the build belongs to a logged-in account
+        const clearLink = !get().savedBuildOwnerId ? { savedBuildId: null } : {};
+
         set({
           selectedParts: next,
           totalPrice,
           totalWeight,
           compatibilityReport,
+          ...clearLink,
         });
       },
 
