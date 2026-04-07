@@ -281,6 +281,33 @@
 }
 
 // ---------------------------------------------------------------------------
+// Add to Build button
+// ---------------------------------------------------------------------------
+
+.addButton {
+  padding: 6px 16px;
+  background: var(--accent-primary);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Empty state
 // ---------------------------------------------------------------------------
 

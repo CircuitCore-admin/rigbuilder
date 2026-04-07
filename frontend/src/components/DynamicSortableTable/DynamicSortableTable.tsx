@@ -40,6 +40,7 @@ export interface ColumnDef {
 export interface TableProduct {
   id: string;
   name: string;
+  slug?: string;
   manufacturer: string;
   thumbnail?: string;
   keySpec: string;
@@ -64,7 +65,10 @@ export interface DynamicSortableTableProps {
   compatMap: Map<string, CompatInfo>;
   sort: SortState;
   onSortChange: (next: SortState) => void;
+  /** Legacy: called when user clicks "Add" button. */
   onSelect: (product: TableProduct) => void;
+  /** Navigate to product detail page (row click area, excluding the Add button). */
+  onNavigate?: (product: TableProduct) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -157,6 +161,7 @@ export function DynamicSortableTable({
   sort,
   onSortChange,
   onSelect,
+  onNavigate,
 }: DynamicSortableTableProps) {
   const handleHeaderClick = useCallback(
     (colKey: string) => {
@@ -169,7 +174,7 @@ export function DynamicSortableTable({
     [sort, onSortChange],
   );
 
-  const gridCols = columns.map((c) => c.width ?? '1fr').join(' ');
+  const gridCols = columns.map((c) => c.width ?? '1fr').join(' ') + ' 100px';
 
   return (
     <div className={styles.table} role="table" aria-label="Product list">
@@ -201,6 +206,7 @@ export function DynamicSortableTable({
             </button>
           );
         })}
+        <span className={styles.headerCell} role="columnheader" />
       </div>
 
       {/* Data rows */}
@@ -235,13 +241,19 @@ export function DynamicSortableTable({
               />
             )}
 
-            {/* Main row content */}
-            <button
-              type="button"
+            {/* Main row content — clicking navigates to detail page */}
+            <div
               className={styles.rowBtn}
               style={{ gridTemplateColumns: gridCols }}
-              onClick={() => !isError && onSelect(product)}
-              disabled={isError}
+              role="button"
+              tabIndex={0}
+              onClick={() => onNavigate ? onNavigate(product) : (!isError && onSelect(product))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onNavigate ? onNavigate(product) : (!isError && onSelect(product));
+                }
+              }}
             >
               {columns.map((col) => {
                 const val = col.getValue(product);
@@ -282,7 +294,21 @@ export function DynamicSortableTable({
                   </span>
                 );
               })}
-            </button>
+              {/* Add to Build button */}
+              <span className={styles.cell}>
+                <button
+                  type="button"
+                  className={styles.addButton}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isError) onSelect(product);
+                  }}
+                  disabled={isError}
+                >
+                  Add
+                </button>
+              </span>
+            </div>
           </div>
         );
       })}

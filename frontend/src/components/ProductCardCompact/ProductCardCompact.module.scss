@@ -12,7 +12,6 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  cursor: pointer;
   text-align: left;
   color: var(--text-primary);
   font-family: inherit;
@@ -22,15 +21,18 @@
     box-shadow var(--transition-default),
     transform var(--transition-default);
 
-  &:hover:not(:disabled) {
+  &:hover {
     border-color: var(--accent-primary);
     box-shadow: 0 0 16px rgba(0, 255, 163, 0.12), 0 0 2px rgba(0, 255, 163, 0.3);
     transform: translateY(-2px);
   }
+}
 
-  &:disabled {
-    cursor: not-allowed;
-  }
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  flex: 1;
 }
 
 .cardError {
@@ -164,6 +166,35 @@
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   color: var(--text-secondary);
+}
+
+// ---------------------------------------------------------------------------
+// Add to Build button
+// ---------------------------------------------------------------------------
+
+.addButton {
+  display: block;
+  width: calc(100% - 28px);
+  margin: 0 14px 12px;
+  padding: 8px 14px;
+  background: var(--accent-primary);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
 }
 
 // ---------------------------------------------------------------------------

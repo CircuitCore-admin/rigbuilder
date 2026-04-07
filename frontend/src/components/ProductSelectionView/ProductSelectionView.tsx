@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './ProductSelectionView.module.scss';
 import { DynamicSortableTable, getColumnsForCategory } from '../DynamicSortableTable/DynamicSortableTable';
 import type { SortState, TableProduct, CompatInfo } from '../DynamicSortableTable/DynamicSortableTable';
@@ -34,6 +35,7 @@ import type { FilterState, FilterableProduct, SpecFilterDefinition } from '../..
 
 export interface SelectionProduct {
   id: string;
+  slug?: string;
   name: string;
   manufacturer: string;
   thumbnail?: string;
@@ -85,6 +87,7 @@ function toTableProduct(p: SelectionProduct): TableProduct {
 
   return {
     id: p.id,
+    slug: p.slug,
     name: p.name,
     manufacturer: p.manufacturer,
     thumbnail: p.thumbnail,
@@ -125,6 +128,7 @@ export function ProductSelectionView({
 }: ProductSelectionViewProps) {
   const selectedParts = useBuildStore((s) => s.selectedParts);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   // -------------------------------------------------------------------------
   // Filter state
@@ -302,6 +306,17 @@ export function ProductSelectionView({
       onSelect(slot, part);
     },
     [products, slot, onSelect],
+  );
+
+  /** Navigate to product detail page, carrying the active slot as a query param. */
+  const handleNavigate = useCallback(
+    (tableProduct: TableProduct) => {
+      const product = products.find((p) => p.id === tableProduct.id);
+      if (!product) return;
+      const slug = product.slug ?? product.id;
+      navigate(`/products/${slug}?slot=${slot}`);
+    },
+    [products, slot, navigate],
   );
 
   const toggleManufacturer = useCallback((mfr: string) => {
@@ -589,6 +604,7 @@ export function ProductSelectionView({
                 sort={sort}
                 onSortChange={setSort}
                 onSelect={handleSelect}
+                onNavigate={handleNavigate}
               />
             )}
 
@@ -601,6 +617,7 @@ export function ProductSelectionView({
                     product={product}
                     compat={compatMap.get(product.id) ?? { severity: 'OK', reasons: [], conflicts: [] }}
                     onSelect={handleSelect}
+                    onNavigate={handleNavigate}
                   />
                 ))}
               </div>
@@ -616,6 +633,7 @@ export function ProductSelectionView({
                     compat={compatMap.get(product.id) ?? { severity: 'OK', reasons: [], conflicts: [] }}
                     columns={columns}
                     onSelect={handleSelect}
+                    onNavigate={handleNavigate}
                   />
                 ))}
               </div>
