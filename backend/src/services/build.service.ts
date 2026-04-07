@@ -1,7 +1,7 @@
 import { BuildRepository } from '../repositories/build.repository';
 import type { BuildListParams } from '../repositories/build.repository';
 import { createBuildSchema, updateBuildSchema } from '../validators/build.schema';
-import { slugify } from '../utils/slug';
+import { slugify, generateShortId } from '../utils/slug';
 import { toTitleCase } from '../utils/format';
 
 export class BuildService {
@@ -48,7 +48,7 @@ export class BuildService {
 
   static async create(userId: string, raw: unknown) {
     const data = createBuildSchema.parse(raw);
-    const slug = slugify(data.name);
+    const slug = generateShortId();
 
     const totalCost = data.parts.reduce((sum, p) => sum + (p.pricePaid ?? 0), 0);
 

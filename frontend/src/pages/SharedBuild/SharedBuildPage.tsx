@@ -121,7 +121,7 @@ export function SharedBuildPage() {
         if (cancelled) return;
 
         const parts = toBuildParts(data.parts);
-        loadBuild(parts, data.id, data.userId);
+        loadBuild(parts, data.slug, data.userId);
 
         // Redirect to the main configurator with the build loaded
         navigate('/build', { replace: true });
