@@ -43,6 +43,8 @@ export class BuildRepository {
   }
 
   static async findById(id: string) {
+    console.log('🔍 findById called with:', JSON.stringify(id));
+
     const build = await prisma.build.findFirst({
       where: {
         OR: [
@@ -59,9 +61,7 @@ export class BuildRepository {
       },
     });
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 DB Result:', JSON.stringify(build, null, 2));
-    }
+    console.log('🔍 DB Result:', build ? `Found build id=${build.id} slug=${build.slug}` : 'null');
 
     return build;
   }

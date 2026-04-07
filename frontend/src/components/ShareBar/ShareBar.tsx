@@ -7,8 +7,8 @@ import { useState, useCallback, useMemo } from 'react';
 import styles from './ShareBar.module.scss';
 import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
-import { generateBuildId, buildPermalink } from '../../utils/buildShortener';
-import { api } from '../../utils/api';
+import { buildPermalink } from '../../utils/buildShortener';
+import { api, ApiError } from '../../utils/api';
 import { MarkupModal } from './MarkupModal';
 
 // ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ export function ShareBar() {
   const [copied, setCopied] = useState(false);
   const [modalFormat, setModalFormat] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [localOnly, setLocalOnly] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const hasParts = Object.keys(selectedParts).length > 0;
   const permalink = useMemo(
@@ -38,6 +38,7 @@ export function ShareBar() {
   const handleSave = useCallback(async () => {
     if (saving) return;
     setSaving(true);
+    setSaveError(null);
 
     try {
       // Build the parts array for the API
@@ -58,15 +59,16 @@ export function ShareBar() {
         },
       });
 
-      setSavedBuildId(response.id);
-      setLocalOnly(false);
+      setSavedBuildId(response.slug);
       setCopied(false);
-    } catch {
-      // Backend unavailable — fall back to local-only ID (link won't resolve for others)
-      const id = generateBuildId();
-      setSavedBuildId(id);
-      setLocalOnly(true);
-      setCopied(false);
+    } catch (err) {
+      const message =
+        err instanceof ApiError && err.status === 401
+          ? 'Please log in to save your build.'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to save build. Please try again.';
+      setSaveError(message);
     } finally {
       setSaving(false);
     }
@@ -94,6 +96,7 @@ export function ShareBar() {
   // Save As New — clone with a fresh ID
   const handleSaveAsNew = useCallback(async () => {
     resetSavedMeta();
+    setSaveError(null);
     // Slight delay so UI updates before triggering save
     setTimeout(() => handleSave(), 50);
   }, [resetSavedMeta, handleSave]);
@@ -102,6 +105,7 @@ export function ShareBar() {
   const handleNew = useCallback(() => {
     clearBuild();
     setCopied(false);
+    setSaveError(null);
   }, [clearBuild]);
 
   return (
@@ -136,12 +140,11 @@ export function ShareBar() {
                   </svg>
                 )}
               </button>
-              {localOnly && (
-                <span className={styles.localHint} title="Saved locally only — link won't work for others until the server is connected">
-                  Local only
-                </span>
-              )}
             </div>
+          ) : saveError ? (
+            <span className={styles.errorHint} title={saveError}>
+              ⚠ {saveError}
+            </span>
           ) : (
             <span className={styles.placeholder}>Save your build to get a shareable link</span>
           )}

@@ -94,6 +94,16 @@
   white-space: nowrap;
 }
 
+.errorHint {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--color-warning, #ffa500);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 // ---------------------------------------------------------------------------
 // Markup format toggles
 // ---------------------------------------------------------------------------
