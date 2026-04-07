@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import styles from './RigBuilderPage.module.scss';
 import { Configurator } from '../../components/Configurator/Configurator';
 import { CompatibilityPanel } from '../../components/CompatibilityPanel/CompatibilityPanel';
+import { ShareBar } from '../../components/ShareBar/ShareBar';
 import { ProductSelectionView } from '../../components/ProductSelectionView/ProductSelectionView';
 import type { SelectionProduct } from '../../components/ProductSelectionView/ProductSelectionView';
 import { useBuildStore } from '../../stores/buildStore';
@@ -94,7 +95,6 @@ export function RigBuilderPage() {
   const totalPrice = useBuildStore((s) => s.totalPrice);
   const totalWeight = useBuildStore((s) => s.totalWeight);
   const addPart = useBuildStore((s) => s.addPart);
-  const clearBuild = useBuildStore((s) => s.clearBuild);
   const handleRemovePart = useBuildStore((s) => s.removePart);
 
   const filledCount = Object.keys(selectedParts).length;
@@ -152,17 +152,6 @@ export function RigBuilderPage() {
 
   return (
     <div className={styles.page}>
-      {/* Top bar */}
-      <header className={styles.topBar}>
-        <div className={styles.logo}>
-          Rig<span>Builder</span>
-        </div>
-        <nav className={styles.nav}>
-          <a href="/admin" className={styles.navLink}>Admin</a>
-          <a href="/login" className={styles.navLink}>Sign In</a>
-        </nav>
-      </header>
-
       {/* Page header */}
       <div className={styles.pageHeader}>
         <div>
@@ -171,15 +160,10 @@ export function RigBuilderPage() {
             Select your components below. Compatibility is checked automatically.
           </p>
         </div>
-        <div className={styles.headerActions}>
-          <button type="button" className={styles.btnGhost} onClick={clearBuild}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            New Build
-          </button>
-        </div>
       </div>
+
+      {/* Share / Save / Export bar */}
+      <ShareBar />
 
       {/* Main layout */}
       <div className={styles.layout}>
@@ -227,8 +211,10 @@ export function RigBuilderPage() {
               </div>
 
               <div className={styles.summaryActions}>
-                <button type="button" className={styles.btnPrimary}>Save Build</button>
-                <button type="button" className={styles.btnOutline}>Share</button>
+                <button type="button" className={styles.btnOutline} onClick={() => {
+                  /* Scroll to top where ShareBar lives */
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}>Share / Export</button>
               </div>
             </div>
           </div>
