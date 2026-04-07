@@ -2,6 +2,7 @@ import { BuildRepository } from '../repositories/build.repository';
 import type { BuildListParams } from '../repositories/build.repository';
 import { createBuildSchema, updateBuildSchema } from '../validators/build.schema';
 import { slugify } from '../utils/slug';
+import { toTitleCase } from '../utils/format';
 
 export class BuildService {
   static async list(params: BuildListParams) {
@@ -12,6 +13,37 @@ export class BuildService {
     const build = await BuildRepository.findById(id);
     if (!build) throw new Error('Build not found');
     return build;
+  }
+
+  /**
+   * Retrieve a build by its ID or slug (short permalink ID) and format
+   * string spec values to Title Case for frontend consumption.
+   */
+  static async getByShortId(id: string) {
+    const build = await BuildRepository.findById(id);
+    if (!build) throw new Error('Build not found');
+
+    // Format spec values: convert snake_case strings to Title Case
+    const parts = build.parts.map((part) => {
+      const product = part.product;
+      const rawSpecs = (product.specs ?? {}) as Record<string, unknown>;
+      const formattedSpecs: Record<string, unknown> = {};
+
+      for (const [key, val] of Object.entries(rawSpecs)) {
+        formattedSpecs[key] =
+          typeof val === 'string' && /[_A-Z]/.test(val) ? toTitleCase(val) : val;
+      }
+
+      return {
+        ...part,
+        product: {
+          ...product,
+          specs: formattedSpecs,
+        },
+      };
+    });
+
+    return { ...build, parts };
   }
 
   static async create(userId: string, raw: unknown) {

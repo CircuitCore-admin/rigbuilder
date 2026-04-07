@@ -21,7 +21,8 @@ export function App() {
     <>
       <Navbar />
       <CommandPalette />
-      <Routes>
+      <div className="appContent">
+        <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -59,6 +60,7 @@ export function App() {
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </div>
     </>
   );
 }

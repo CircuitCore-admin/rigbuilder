@@ -18,7 +18,7 @@ export class BuildController {
 
   static async getById(req: Request, res: Response) {
     try {
-      const build = await BuildService.getById(req.params.id);
+      const build = await BuildService.getByShortId(req.params.id);
       res.json(build);
     } catch { res.status(404).json({ error: 'Build not found' }); }
   }

@@ -52,3 +52,13 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+// ============================================================================
+// Global app content wrapper — 1600px max-width, centered with 24px padding
+// ============================================================================
+
+.appContent {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
