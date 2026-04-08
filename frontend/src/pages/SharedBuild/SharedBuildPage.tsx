@@ -182,8 +182,8 @@ export function SharedBuildPage() {
         {buildOwner?.role === 'CREATOR' && (
           <div className={styles.creatorBanner}>
             <VerifiedCreatorBadge role={buildOwner.role} />
-            <span className={styles.creatorName}>{buildOwner.username}&apos;s Build</span>
-            {buildOwner.channelUrl ? (
+            <span className={styles.creatorName}>{buildOwner.username}&#39;s Build</span>
+            {buildOwner.channelUrl && (
               <a
                 href={buildOwner.channelUrl}
                 className={styles.creatorCta}
@@ -192,8 +192,6 @@ export function SharedBuildPage() {
               >
                 🎥 Watch the Build Video
               </a>
-            ) : (
-              <span className={styles.creatorCta}>🎥 Watch the Build Video</span>
             )}
           </div>
         )}

@@ -17,8 +17,8 @@ export function VerifiedCreatorBadge({ role }: VerifiedCreatorBadgeProps) {
       <svg
         className={styles.icon}
         width="12"
-        height="12"
-        viewBox="0 0 12 12"
+        height="14"
+        viewBox="0 0 12 14"
         fill="none"
         aria-hidden="true"
       >
