@@ -58,3 +58,44 @@
   &:hover { opacity: 0.9; }
   &:active { transform: scale(0.97); }
 }
+
+// ---------------------------------------------------------------------------
+// Creator CTA banner — shown when build owner is a Verified Creator
+// ---------------------------------------------------------------------------
+
+.creatorBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(110, 86, 255, 0.08);
+  border: 1px solid rgba(110, 86, 255, 0.2);
+  border-radius: var(--radius-md);
+  margin: 16px auto 0;
+  max-width: 1600px;
+  flex-wrap: wrap;
+}
+
+.creatorName {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.creatorCta {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-secondary);
+  text-decoration: none;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(110, 86, 255, 0.12);
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: rgba(110, 86, 255, 0.25);
+  }
+}

@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { ForumThread } from '../../components/ForumThread/ForumThread';
 import { useAuth } from '../../hooks/useAuth';
+import { VerifiedCreatorBadge } from '../../components/VerifiedCreatorBadge/VerifiedCreatorBadge';
 import styles from './CommunityPage.module.scss';
 
 interface ThreadListItem {
@@ -13,7 +14,7 @@ interface ThreadListItem {
   viewCount: number;
   replyCount: number;
   createdAt: string;
-  user: { id: string; username: string; avatarUrl: string | null; reputation: number };
+  user: { id: string; username: string; avatarUrl: string | null; reputation: number; role?: string };
 }
 
 interface PaginatedThreads {
@@ -97,7 +98,7 @@ function CommunityListView() {
                 </span>
                 <h3 className={styles.threadTitle}>{thread.title}</h3>
                 <span className={styles.threadMeta}>
-                  by {thread.user.username} · {new Date(thread.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  by {thread.user.username} <VerifiedCreatorBadge role={thread.user.role} /> · {new Date(thread.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
               <div className={styles.threadStats}>

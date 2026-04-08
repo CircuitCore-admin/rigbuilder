@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBadge';
 import styles from './BuildCard.module.scss';
 
 // ---------------------------------------------------------------------------
@@ -9,6 +10,7 @@ export interface BuildCardData {
   id: string;
   title: string;
   author: string;
+  authorRole?: string;
   thumbnail?: string;
   upvotes: number;
   componentCount: number;
@@ -58,7 +60,10 @@ export function BuildCard({ build }: BuildCardProps) {
 
       <div className={styles.body}>
         <h3 className={styles.title}>{build.title}</h3>
-        <span className={styles.author}>by {build.author}</span>
+        <span className={styles.author}>
+          by {build.author}
+          <VerifiedCreatorBadge role={build.authorRole} />
+        </span>
 
         <div className={styles.meta}>
           <span className={styles.metaItem}>{build.componentCount} parts</span>

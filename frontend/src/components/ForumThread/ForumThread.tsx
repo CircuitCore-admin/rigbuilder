@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import DOMPurify from 'dompurify';
 import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
+import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBadge';
 import styles from './ForumThread.module.scss';
 
 interface ThreadUser {
@@ -60,6 +61,7 @@ function getBadges(reputation: number, role?: string): string[] {
   const badges: string[] = [];
   if (role === 'ADMIN' || role === 'MODERATOR') badges.push('Staff');
   if (role === 'MANUFACTURER') badges.push('Verified Owner');
+  if (role === 'CREATOR') badges.push('Verified Creator');
   if (reputation >= 100) badges.push('Top Contributor');
   if (reputation >= 50) badges.push('Expert');
   else if (reputation >= 10) badges.push('Helpful');
@@ -210,6 +212,7 @@ function ReplyNode({
       <div className={styles.reply}>
         <div className={styles.replyHeader}>
           <UserBadge user={reply.user} />
+          <VerifiedCreatorBadge role={reply.user.role} />
           {badges.map((badge) => (
             <span key={badge} className={styles.badge}>{badge}</span>
           ))}
@@ -243,6 +246,7 @@ function UserBadge({ user }: { user: ThreadUser }) {
     <span className={styles.userBadge}>
       {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} />}
       <span className={styles.userName}>{user.username}</span>
+      <VerifiedCreatorBadge role={user.role} />
     </span>
   );
 }

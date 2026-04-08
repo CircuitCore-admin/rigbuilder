@@ -12,7 +12,7 @@ import { api, ApiError } from '../utils/api';
 // Types
 // ---------------------------------------------------------------------------
 
-export type UserRole = 'USER' | 'ADMIN' | 'MODERATOR' | 'MANUFACTURER';
+export type UserRole = 'USER' | 'ADMIN' | 'MODERATOR' | 'MANUFACTURER' | 'CREATOR';
 
 export interface AuthUser {
   userId: string;

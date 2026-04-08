@@ -10,6 +10,7 @@ import { useBuildStore } from '../../stores/buildStore';
 import { api } from '../../utils/api';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { RigBuilderPage } from '../RigBuilder/RigBuilderPage';
+import { VerifiedCreatorBadge } from '../../components/VerifiedCreatorBadge/VerifiedCreatorBadge';
 import styles from './SharedBuildPage.module.scss';
 
 // ---------------------------------------------------------------------------
@@ -40,6 +41,11 @@ interface BuildResponse {
   slug: string;
   totalCost: number;
   parts: BuildPartResponse[];
+  user?: {
+    role: string;
+    username: string;
+    channelUrl?: string;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -108,6 +114,7 @@ export function SharedBuildPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [ready, setReady] = useState(false);
+  const [buildOwner, setBuildOwner] = useState<BuildResponse['user']>(undefined);
 
   useEffect(() => {
     if (!buildId) {
@@ -125,6 +132,8 @@ export function SharedBuildPage() {
 
         const parts = toBuildParts(data.parts);
         loadBuild(parts, data.slug, data.userId);
+
+        if (data.user) setBuildOwner(data.user);
 
         // Show the configurator inline — keep the user on /list/:buildId
         setReady(true);
@@ -168,7 +177,29 @@ export function SharedBuildPage() {
   }
 
   if (ready) {
-    return <RigBuilderPage />;
+    return (
+      <>
+        {buildOwner?.role === 'CREATOR' && (
+          <div className={styles.creatorBanner}>
+            <VerifiedCreatorBadge role={buildOwner.role} />
+            <span className={styles.creatorName}>{buildOwner.username}&apos;s Build</span>
+            {buildOwner.channelUrl ? (
+              <a
+                href={buildOwner.channelUrl}
+                className={styles.creatorCta}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                🎥 Watch the Build Video
+              </a>
+            ) : (
+              <span className={styles.creatorCta}>🎥 Watch the Build Video</span>
+            )}
+          </div>
+        )}
+        <RigBuilderPage />
+      </>
+    );
   }
 
   return null;

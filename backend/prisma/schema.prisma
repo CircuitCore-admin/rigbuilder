@@ -96,6 +96,7 @@ enum UserRole {
   MODERATOR
   ADMIN
   MANUFACTURER
+  CREATOR
 }
 
 // ---------------------------------------------------------------------------
