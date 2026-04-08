@@ -84,25 +84,115 @@
   margin: 0 4px;
 }
 
-// ---------- Textarea ----------
+// ---------- TipTap Editor ----------
 
-.textarea {
-  width: 100%;
-  padding: 12px 14px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-body);
-  background: transparent;
-  border: none;
-  resize: vertical;
-  outline: none;
-  min-height: 120px;
-  box-sizing: border-box;
+.tiptapWrap {
+  :global(.ProseMirror) {
+    padding: 12px 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-body);
+    min-height: 120px;
+    outline: none;
 
-  &::placeholder {
-    color: var(--text-muted);
+    p {
+      margin: 0 0 10px;
+    }
+
+    > *:last-child {
+      margin-bottom: 0;
+    }
+
+    a {
+      color: var(--accent-secondary);
+      text-decoration: underline;
+    }
+
+    strong {
+      color: var(--text-primary);
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    u {
+      text-decoration: underline;
+    }
+
+    del, s {
+      color: var(--text-muted);
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text-primary);
+      margin: 16px 0 8px;
+    }
+
+    h2 { font-size: 1.3em; }
+    h3 { font-size: 1.15em; }
+
+    ul, ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent-primary);
+      margin: 12px 0;
+      padding: 6px 14px;
+      color: var(--text-secondary);
+    }
+
+    code {
+      font-family: 'IBM Plex Mono', monospace;
+      background: var(--bg-surface);
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      overflow-x: auto;
+      margin: 12px 0;
+
+      code {
+        background: none;
+        padding: 0;
+      }
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-default);
+      margin: 16px 0;
+    }
   }
+
+  :global(.ProseMirror) p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}
+
+// ---------- Toolbar active state ----------
+
+.toolbarBtnActive {
+  color: var(--accent-primary) !important;
+  background: var(--accent-primary-subtle) !important;
 }
 
 // ---------- Preview pane ----------
