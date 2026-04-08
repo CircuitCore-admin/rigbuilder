@@ -349,7 +349,9 @@ export function ForumThread({ slug }: ForumThreadProps) {
     const url = `${window.location.origin}/community/${thread.slug}`;
     navigator.clipboard.writeText(url).then(() => {
       showToast('Link copied to clipboard', 'success');
-    }).catch(() => {});
+    }).catch(() => {
+      showToast('Failed to copy link', 'error');
+    });
   };
 
   const canModify = thread && authUser && (

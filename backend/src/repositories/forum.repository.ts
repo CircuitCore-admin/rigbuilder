@@ -99,7 +99,8 @@ export class ForumRepository {
 
   /**
    * Toggle upvote: if user already voted, remove vote and decrement;
-   * otherwise create vote and increment. Returns { upvotes, voted }.
+   * otherwise create vote and increment. Also adjusts the reply author's
+   * pitCred karma (+1 on upvote, -1 on un-upvote). Returns { upvotes, voted }.
    */
   static async toggleUpvote(replyId: string, userId: string) {
     const existing = await prisma.forumVote.findUnique({
