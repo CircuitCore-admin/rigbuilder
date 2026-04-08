@@ -3,6 +3,8 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { ForumThread } from '../../components/ForumThread/ForumThread';
 import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
+import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
+import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import {
   CATEGORY_BLUEPRINTS,
@@ -19,6 +21,7 @@ import styles from './CommunityPage.module.scss';
 interface ThreadListItem {
   id: string;
   title: string;
+  body?: string;
   slug: string;
   category: string;
   viewCount: number;
@@ -98,19 +101,35 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const activeCategory = (searchParams.get('category') ?? '') as '' | BlueprintCategory;
   const page = parseInt(searchParams.get('page') ?? '1') || 1;
 
+  const [sortBy, setSortBy] = useState<'createdAt' | 'replyCount' | 'viewCount'>('createdAt');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [totalPosts, setTotalPosts] = useState<number | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     setLoading(true);
-    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    const params = new URLSearchParams({ page: String(page), limit: '20', sortBy, sortDir: 'desc' });
     if (activeCategory) params.set('category', activeCategory);
 
     api<PaginatedThreads>(`/forum?${params}`)
       .then((data) => {
-        setThreads(data.items);
+        let items = data.items;
+        if (debouncedSearch) {
+          const q = debouncedSearch.toLowerCase();
+          items = items.filter(t => t.title.toLowerCase().includes(q));
+        }
+        setThreads(items);
         setTotalPages(data.pagination.totalPages);
+        if (totalPosts === null) setTotalPosts(data.pagination.total);
       })
       .catch(() => setThreads([]))
       .finally(() => setLoading(false));
-  }, [activeCategory, page]);
+  }, [activeCategory, page, sortBy, debouncedSearch]);
 
   const setCategory = useCallback(
     (cat: string) => {
@@ -178,64 +197,108 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
       <main className={styles.feed}>
         {threadSlug ? (
           <ForumThread slug={threadSlug} />
-        ) : loading ? (
-          <div className={styles.loadingState}>Loading discussions…</div>
-        ) : threads.length === 0 ? (
-          <div className={styles.emptyState}>No discussions found</div>
-        ) : isShowroom ? (
-          <div className={styles.showroomGrid}>
-            {threads.map((t) => (
-              <a key={t.id} href={`/community/${t.slug}`} className={styles.showroomCard}>
-                {t.imageUrls?.[0] && (
-                  <img
-                    src={t.imageUrls[0]}
-                    alt={`Showroom photo for ${t.title}`}
-                    className={styles.showroomImage}
-                  />
-                )}
-                <div className={styles.showroomInfo}>
-                  <h3 className={styles.showroomTitle}>{t.title}</h3>
-                  <span className={styles.showroomAuthor}>
-                    {t.user.username}
-                  </span>
-                </div>
-              </a>
-            ))}
-          </div>
         ) : (
-          <div className={styles.threadList}>
-            {threads.map((t) => {
-              const color = CATEGORY_COLORS[t.category] ?? '#7878A0';
-              const catLabel =
-                CATEGORY_BLUEPRINTS[t.category as BlueprintCategory]?.label ?? t.category;
+          <>
+            {/* Search */}
+            <div className={styles.searchRow}>
+              <span className={styles.searchIcon}>🔍</span>
+              <input
+                type="text"
+                className={styles.searchInput}
+                placeholder="Search threads…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button className={styles.searchClear} onClick={() => setSearchQuery('')}>×</button>
+              )}
+            </div>
 
-              return (
-                <a key={t.id} href={`/community/${t.slug}`} className={styles.threadRow}>
-                  <span
-                    className={styles.categoryPill}
-                    style={{ background: `${color}cc` }}
-                  >
-                    {catLabel}
-                  </span>
-                  <span className={styles.threadTitle}>{t.title}</span>
-                  <span className={styles.threadAuthor}>
-                    {t.user.avatarUrl && (
-                      <img
-                        src={t.user.avatarUrl}
-                        alt=""
-                        className={styles.threadAvatar}
-                      />
-                    )}
-                    {t.user.username}
-                  </span>
-                  <span className={styles.replyPill}>{t.replyCount}</span>
-                  <span className={styles.threadTime}>
-                    {relativeTime(t.createdAt)}
-                  </span>
-                </a>
-              );
-            })}
-          </div>
+            {/* Sort pills */}
+            <div className={styles.sortRow}>
+              {([['createdAt', 'Latest'], ['replyCount', 'Most Replies'], ['viewCount', 'Most Viewed']] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  className={`${styles.sortPill} ${sortBy === key ? styles.sortPillActive : ''}`}
+                  onClick={() => setSortBy(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {loading ? (
+              <div className={styles.loadingState}>Loading discussions…</div>
+            ) : threads.length === 0 ? (
+              <div className={styles.emptyState}>No discussions found</div>
+            ) : isShowroom ? (
+              <div className={styles.showroomGrid}>
+                {threads.map((t) => (
+                  <a key={t.id} href={`/community/${t.slug}`} className={styles.showroomCard}>
+                    <div style={{ position: 'relative' }}>
+                      {t.imageUrls?.[0] && (
+                        <img
+                          src={t.imageUrls[0]}
+                          alt={`Showroom photo for ${t.title}`}
+                          className={styles.showroomImage}
+                        />
+                      )}
+                      {t.imageUrls && t.imageUrls.length > 1 && (
+                        <span className={styles.imageCountBadge}>📷 {t.imageUrls.length}</span>
+                      )}
+                    </div>
+                    <div className={styles.showroomInfo}>
+                      <h3 className={styles.showroomTitle}>{t.title}</h3>
+                      <span className={styles.showroomAuthor}>
+                        {t.user.username}
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.threadList}>
+                {threads.map((t) => {
+                  const color = CATEGORY_COLORS[t.category] ?? '#7878A0';
+                  const catLabel =
+                    CATEGORY_BLUEPRINTS[t.category as BlueprintCategory]?.label ?? t.category;
+
+                  return (
+                    <a key={t.id} href={`/community/${t.slug}`} className={styles.threadRow}>
+                      <span
+                        className={styles.categoryPill}
+                        style={{ background: `${color}cc` }}
+                      >
+                        {catLabel}
+                      </span>
+                      <div className={styles.threadContent}>
+                        <span className={styles.threadTitle}>{t.title}</span>
+                        {t.body && (
+                          <span className={styles.threadSnippet}>
+                            {t.body.length > 120 ? t.body.slice(0, 120) + '…' : t.body}
+                          </span>
+                        )}
+                      </div>
+                      <span className={styles.threadAuthor}>
+                        {t.user.avatarUrl && (
+                          <img
+                            src={t.user.avatarUrl}
+                            alt=""
+                            className={styles.threadAvatar}
+                          />
+                        )}
+                        {t.user.username}
+                      </span>
+                      <span className={styles.replyPill}>{t.replyCount}</span>
+                      <span className={styles.threadTime}>
+                        {relativeTime(t.createdAt)}
+                      </span>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
 
         {!threadSlug && totalPages > 1 && (
@@ -282,16 +345,17 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
         <div className={styles.sidebarCard}>
           <h3 className={styles.sidebarCardTitle}>Site Stats</h3>
           <div className={styles.statRow}>
-            <span className={styles.statValue}>12.4k</span>
+            <span className={styles.statValue}>{totalPosts !== null ? totalPosts.toLocaleString() : '—'}</span>
+            <span className={styles.statLabel}>Posts</span>
+          </div>
+          <div className={styles.statRow}>
+            {/* TODO: Add members/active endpoint */}
+            <span className={styles.statValue}>—</span>
             <span className={styles.statLabel}>Members</span>
           </div>
           <div className={styles.statRow}>
-            <span className={styles.statValue}>342</span>
+            <span className={styles.statValue}>—</span>
             <span className={styles.statLabel}>Active</span>
-          </div>
-          <div className={styles.statRow}>
-            <span className={styles.statValue}>8.9k</span>
-            <span className={styles.statLabel}>Posts</span>
           </div>
         </div>
       </aside>
@@ -306,6 +370,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
 function NewThreadForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [category, setCategory] = useState<BlueprintCategory | null>(null);
@@ -316,39 +381,128 @@ function NewThreadForm() {
   const [bomEntries, setBomEntries] = useState<BomEntry[]>([{ item: '', quantity: '1' }]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
+  // Image upload states
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const [uploadingIndexes, setUploadingIndexes] = useState<Set<number>>(new Set());
+  const [addUrlValue, setAddUrlValue] = useState('');
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  // Draft states
+  const DRAFT_KEY = 'rigbuilder-draft-thread';
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+
+  // On mount, check for draft
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (saved) setShowDraftBanner(true);
+  }, []);
+
+  // Save draft on changes (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const draft = { category, title, body, metadata, imageUrls };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [category, title, body, metadata, imageUrls]);
+
+  const restoreDraft = () => {
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1';
-      const csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
-      const headers: Record<string, string> = {};
-      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
-      const res = await fetch(`${baseUrl}/uploads`, {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json() as { url: string };
-      setImageUrls((prev) => {
-        const filtered = prev.filter((u) => u.trim().length > 0);
-        return [...filtered, data.url];
-      });
-    } catch {
-      setError('Image upload failed. Please try again.');
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (!saved) return;
+      const draft = JSON.parse(saved);
+      if (draft.category) { setCategory(draft.category); setStep(2); }
+      if (draft.title) setTitle(draft.title);
+      if (draft.body) setBody(draft.body);
+      if (draft.metadata) setMetadata(draft.metadata);
+      if (draft.imageUrls) setImageUrls(draft.imageUrls);
+    } catch { /* ignore corrupt drafts */ }
+    setShowDraftBanner(false);
   };
+
+  const discardDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setShowDraftBanner(false);
+  };
+
+  const handleImageFiles = async (files: FileList | File[]) => {
+    const fileArr = Array.from(files);
+    if (fileArr.length === 0) return;
+
+    for (const file of fileArr) {
+      const placeholderIdx = imageUrls.length;
+      setImageUrls(prev => [...prev.filter(u => u.trim()), '']);
+      setUploadingIndexes(prev => new Set(prev).add(placeholderIdx));
+
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1';
+        const csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
+        const headers: Record<string, string> = {};
+        if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+        const res = await fetch(`${baseUrl}/uploads`, {
+          method: 'POST',
+          credentials: 'include',
+          headers,
+          body: formData,
+        });
+        if (!res.ok) throw new Error('Upload failed');
+        const data = await res.json() as { url: string };
+        setImageUrls(prev => {
+          const next = [...prev];
+          const emptyIdx = next.indexOf('');
+          if (emptyIdx >= 0) next[emptyIdx] = data.url;
+          else next.push(data.url);
+          return next;
+        });
+        showToast('Image uploaded');
+      } catch {
+        setUploadErrors(prev => [...prev, `Failed to upload ${file.name}`]);
+        setImageUrls(prev => prev.filter(u => u !== ''));
+      } finally {
+        setUploadingIndexes(prev => {
+          const next = new Set(prev);
+          next.delete(placeholderIdx);
+          return next;
+        });
+      }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragActive(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setDragActive(false); };
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+    if (e.dataTransfer.files.length > 0) handleImageFiles(e.dataTransfer.files);
+  };
+
+  const handleAddUrl = () => {
+    const url = addUrlValue.trim();
+    if (!url) return;
+    try { new URL(url); } catch { setUploadErrors(prev => [...prev, 'Invalid URL']); return; }
+    setImageUrls(prev => [...prev.filter(u => u.trim()), url]);
+    setAddUrlValue('');
+  };
+
+  const handleThumbDragStart = (idx: number) => setDragIdx(idx);
+  const handleThumbDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (dragIdx === null || dragIdx === idx) return;
+    setImageUrls(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(idx, 0, moved);
+      return next;
+    });
+    setDragIdx(idx);
+  };
+  const handleThumbDragEnd = () => setDragIdx(null);
 
   // Login gate
   if (!user) {
@@ -457,6 +611,8 @@ function NewThreadForm() {
           imageUrls: filteredImages.length > 0 ? filteredImages : undefined,
         },
       });
+      showToast('Thread created');
+      localStorage.removeItem(DRAFT_KEY);
       navigate(`/community/${thread.slug}`);
     } catch (err) {
       setError(
@@ -470,6 +626,14 @@ function NewThreadForm() {
   // ----- Step 2: dynamic form -----
   return (
     <div className={styles.formContainer}>
+      {showDraftBanner && (
+        <div className={styles.draftBanner}>
+          <span>You have an unsaved draft. Restore it?</span>
+          <button className={styles.draftRestore} onClick={restoreDraft}>Restore</button>
+          <button className={styles.draftDiscard} onClick={discardDraft}>Discard</button>
+        </div>
+      )}
+
       <header className={styles.formHeader}>
         <button
           className={styles.backLink}
@@ -511,12 +675,11 @@ function NewThreadForm() {
           <label className={styles.fieldLabel} htmlFor="thread-body">
             Body
           </label>
-          <textarea
+          <MarkdownEditor
             id="thread-body"
-            className={styles.fieldTextarea}
-            placeholder="Share the details… (Markdown supported: **bold**, *italic*, `code`, > quote)"
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={setBody}
+            placeholder="Share the details…"
             rows={8}
             required
           />
@@ -708,64 +871,87 @@ function NewThreadForm() {
         )}
 
         <div className={styles.fieldGroup}>
-            <span className={styles.fieldLabel}>Images (optional)</span>
-            {imageUrls.map((url, i) => (
-              <div key={i} className={styles.urlRow}>
-                <input
-                  type="url"
-                  className={styles.fieldInput}
-                  placeholder="https://…"
-                  value={url}
-                  onChange={(e) => {
-                    const next = [...imageUrls];
-                    next[i] = e.target.value;
-                    setImageUrls(next);
-                  }}
-                />
-                {imageUrls.length > 1 && (
-                  <button
-                    type="button"
-                    className={styles.removeBtn}
-                    onClick={() => setImageUrls(imageUrls.filter((_, j) => j !== i))}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ))}
-            <div className={styles.uploadRow}>
-              <button
-                type="button"
-                className={styles.addBtn}
-                onClick={() => setImageUrls([...imageUrls, ''])}
-              >
-                + Add URL
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleImageUpload}
-              />
-              <button
-                type="button"
-                className={styles.uploadBtn}
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? 'Uploading…' : '📁 Upload Image'}
-              </button>
-              {uploading && <span className={styles.uploadStatus}>Uploading…</span>}
-            </div>
-            {imageUrls.filter((u) => u.trim()).length > 0 && (
-              <div className={styles.imagePreview}>
-                {imageUrls.filter((u) => u.trim()).map((url, i) => (
-                  <img key={i} src={url} alt={`Preview ${i + 1}`} className={styles.previewThumb} />
-                ))}
-              </div>
-            )}
+          <span className={styles.fieldLabel}>
+            Images {category === 'SHOWROOM' ? '(at least 1 required)' : '(optional)'}
+          </span>
+
+          {/* Drop zone */}
+          <div
+            className={`${styles.dropZone} ${dragActive ? styles.dropZoneActive : ''}`}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <span className={styles.dropZoneIcon}>📁</span>
+            <span className={styles.dropZoneText}>Drop images here or click to upload</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              style={{ display: 'none' }}
+              onChange={(e) => e.target.files && handleImageFiles(e.target.files)}
+            />
           </div>
+
+          {/* URL input */}
+          <div className={styles.urlAddRow}>
+            <input
+              type="url"
+              className={styles.fieldInput}
+              placeholder="Or add image by URL…"
+              value={addUrlValue}
+              onChange={(e) => setAddUrlValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddUrl())}
+            />
+            <button type="button" className={styles.addBtn} onClick={handleAddUrl}>
+              Add
+            </button>
+          </div>
+
+          {/* Error messages */}
+          {uploadErrors.length > 0 && (
+            <div className={styles.uploadErrorList}>
+              {uploadErrors.map((err, i) => (
+                <div key={i} className={styles.uploadError}>{err}</div>
+              ))}
+            </div>
+          )}
+
+          {/* Thumbnail row */}
+          {imageUrls.filter(u => u.trim()).length > 0 && (
+            <div className={styles.thumbRow}>
+              {imageUrls.map((url, i) => {
+                if (!url.trim()) return (
+                  <div key={i} className={styles.thumbCard}>
+                    <div className={styles.thumbLoading}>⏳</div>
+                  </div>
+                );
+                return (
+                  <div
+                    key={`${url}-${i}`}
+                    className={`${styles.thumbCard} ${dragIdx === i ? styles.thumbDragging : ''}`}
+                    draggable
+                    onDragStart={() => handleThumbDragStart(i)}
+                    onDragOver={(e) => handleThumbDragOver(e, i)}
+                    onDragEnd={handleThumbDragEnd}
+                  >
+                    <img src={url} alt={`Image ${i + 1}`} className={styles.thumbImg} />
+                    <button
+                      type="button"
+                      className={styles.thumbRemove}
+                      onClick={() => setImageUrls(imageUrls.filter((_, j) => j !== i))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         <div className={styles.formActions}>
           <button
