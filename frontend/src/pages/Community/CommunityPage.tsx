@@ -65,6 +65,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   GENERAL: '#7878A0',
 };
 
+const SNIPPET_MAX_LENGTH = 120;
+
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -275,7 +277,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                         <span className={styles.threadTitle}>{t.title}</span>
                         {t.body && (
                           <span className={styles.threadSnippet}>
-                            {t.body.length > 120 ? t.body.slice(0, 120) + '…' : t.body}
+                            {t.body.length > SNIPPET_MAX_LENGTH ? t.body.slice(0, SNIPPET_MAX_LENGTH) + '…' : t.body}
                           </span>
                         )}
                       </div>
