@@ -24,6 +24,10 @@ export class ForumService {
     return thread;
   }
 
+  static async getThreadById(id: string) {
+    return ForumRepository.findThreadById(id);
+  }
+
   static async createThread(data: {
     title: string;
     body: string;
@@ -67,6 +71,18 @@ export class ForumService {
 
   static async upvoteReply(replyId: string) {
     return ForumRepository.upvoteReply(replyId);
+  }
+
+  static async toggleUpvote(replyId: string, userId: string) {
+    return ForumRepository.toggleUpvote(replyId, userId);
+  }
+
+  static async updateThread(id: string, data: { title?: string; body?: string; metadata?: Record<string, unknown>; imageUrls?: string[] }) {
+    return ForumRepository.updateThread(id, data);
+  }
+
+  static async deleteThread(id: string) {
+    return ForumRepository.deleteThread(id);
   }
 
   static async getRelatedDiscussions(productId: string, limit?: number) {

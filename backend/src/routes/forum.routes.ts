@@ -13,6 +13,8 @@ router.get('/:slug/replies', searchLimiter, ForumController.getReplies);
 
 // Authenticated writes
 router.post('/', authenticate, writeLimiter, ForumController.createThread);
+router.put('/:id', authenticate, writeLimiter, ForumController.updateThread);
+router.delete('/:id', authenticate, writeLimiter, ForumController.deleteThread);
 router.post('/:slug/replies', authenticate, writeLimiter, ForumController.createReply);
 router.post('/replies/:id/upvote', authenticate, writeLimiter, ForumController.upvoteReply);
 

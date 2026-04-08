@@ -80,8 +80,54 @@ export class ForumController {
 
   /** POST /api/v1/forum/replies/:id/upvote */
   static async upvoteReply(req: Request, res: Response) {
-    const reply = await ForumService.upvoteReply(req.params.id);
-    res.json(reply);
+    const session = (req as any).session;
+    if (!session?.userId) {
+      // Fallback to legacy increment for unauthenticated (should not reach here due to middleware)
+      const reply = await ForumService.upvoteReply(req.params.id);
+      return res.json(reply);
+    }
+    const result = await ForumService.toggleUpvote(req.params.id, session.userId);
+    res.json(result);
+  }
+
+  /** PUT /api/v1/forum/:id */
+  static async updateThread(req: Request, res: Response) {
+    const session = (req as any).session;
+    const threadId = req.params.id;
+
+    // Fetch thread to check ownership
+    const thread = await ForumService.getThreadById(threadId);
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    const isStaff = session.role === 'ADMIN' || session.role === 'MODERATOR';
+    if (thread.userId !== session.userId && !isStaff) {
+      return res.status(403).json({ error: 'You do not have permission to edit this thread' });
+    }
+
+    const updated = await ForumService.updateThread(threadId, {
+      title: req.body.title,
+      body: req.body.body,
+      metadata: req.body.metadata,
+      imageUrls: req.body.imageUrls,
+    });
+    res.json(updated);
+  }
+
+  /** DELETE /api/v1/forum/:id */
+  static async deleteThread(req: Request, res: Response) {
+    const session = (req as any).session;
+    const threadId = req.params.id;
+
+    const thread = await ForumService.getThreadById(threadId);
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    const isStaff = session.role === 'ADMIN' || session.role === 'MODERATOR';
+    if (thread.userId !== session.userId && !isStaff) {
+      return res.status(403).json({ error: 'You do not have permission to delete this thread' });
+    }
+
+    await ForumService.deleteThread(threadId);
+    res.json({ success: true });
   }
 
   /** GET /api/v1/forum/related/:productId */

@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'node:path';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import { corsConfig } from './config/cors';
@@ -25,6 +26,14 @@ app.use(sanitize);
 
 // Trust proxy if behind a reverse proxy (nginx, Cloudflare)
 app.set('trust proxy', 1);
+
+// ---------------------------------------------------------------------------
+// Static file serving — optimized uploads
+// ---------------------------------------------------------------------------
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads'), {
+  maxAge: '30d',
+  immutable: true,
+}));
 
 // ---------------------------------------------------------------------------
 // Routes

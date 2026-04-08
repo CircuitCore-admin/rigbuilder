@@ -126,6 +126,7 @@ model User {
   wishlistItems      WishlistItem[]
   forumThreads       ForumThread[]
   forumReplies       ForumReply[]
+  forumVotes         ForumVote[]
   guides             Guide[]
   badges             UserBadge[]
 
@@ -453,10 +454,23 @@ model ForumReply {
   user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent   ForumReply?  @relation("NestedReplies", fields: [parentId], references: [id])
   children ForumReply[] @relation("NestedReplies")
+  votes    ForumVote[]
 
   @@index([threadId, createdAt])
   @@index([userId])
   @@map("forum_replies")
+}
+
+model ForumVote {
+  id      String @id @default(cuid())
+  userId  String @map("user_id")
+  replyId String @map("reply_id")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reply ForumReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, replyId])
+  @@map("forum_votes")
 }
 
 // ---------------------------------------------------------------------------

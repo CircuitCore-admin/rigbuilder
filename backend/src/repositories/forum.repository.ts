@@ -97,6 +97,53 @@ export class ForumRepository {
     });
   }
 
+  /**
+   * Toggle upvote: if user already voted, remove vote and decrement;
+   * otherwise create vote and increment. Returns { upvotes, voted }.
+   */
+  static async toggleUpvote(replyId: string, userId: string) {
+    const existing = await prisma.forumVote.findUnique({
+      where: { userId_replyId: { userId, replyId } },
+    });
+
+    if (existing) {
+      await prisma.$transaction([
+        prisma.forumVote.delete({ where: { id: existing.id } }),
+        prisma.forumReply.update({ where: { id: replyId }, data: { upvotes: { decrement: 1 } } }),
+      ]);
+      const reply = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
+      return { upvotes: reply?.upvotes ?? 0, voted: false };
+    }
+
+    await prisma.$transaction([
+      prisma.forumVote.create({ data: { userId, replyId } }),
+      prisma.forumReply.update({ where: { id: replyId }, data: { upvotes: { increment: 1 } } }),
+    ]);
+    const reply = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
+    return { upvotes: reply?.upvotes ?? 0, voted: true };
+  }
+
+  /** Update a thread (for edit by owner or staff). */
+  static async updateThread(id: string, data: { title?: string; body?: string; metadata?: unknown; imageUrls?: string[] }) {
+    return prisma.forumThread.update({
+      where: { id },
+      data: {
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.body !== undefined && { body: data.body }),
+        ...(data.metadata !== undefined && { metadata: data.metadata as any }),
+        ...(data.imageUrls !== undefined && { imageUrls: data.imageUrls }),
+      },
+      include: {
+        user: { select: { id: true, username: true, avatarUrl: true } },
+      },
+    });
+  }
+
+  /** Delete a thread (for delete by owner or staff). */
+  static async deleteThread(id: string) {
+    return prisma.forumThread.delete({ where: { id } });
+  }
+
   /** Related discussions for a product (used on product detail pages). */
   static async findRelatedByProduct(productId: string, limit = 5) {
     return prisma.forumThread.findMany({
