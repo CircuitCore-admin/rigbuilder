@@ -404,9 +404,9 @@ function NewThreadForm() {
           ← Change category
         </button>
         <h1 className={styles.formTitle}>
-          {blueprint!.icon} {blueprint!.label}
+          {blueprint?.icon} {blueprint?.label}
         </h1>
-        <p className={styles.formSubtitle}>{blueprint!.description}</p>
+        <p className={styles.formSubtitle}>{blueprint?.description}</p>
       </header>
 
       <form className={styles.threadForm} onSubmit={handleSubmit}>
