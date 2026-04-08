@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { ForumThread } from '../../components/ForumThread/ForumThread';
 import { useAuth } from '../../hooks/useAuth';
@@ -32,6 +32,7 @@ const FORUM_CATEGORIES = [
 
 export function CommunityPage() {
   const { slug } = useParams<{ slug: string }>();
+  if (slug === 'new') return <NewThreadForm />;
   if (slug) return <ForumThread slug={slug} />;
   return <CommunityListView />;
 }
@@ -129,6 +130,131 @@ function CommunityListView() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// New Thread Form
+// ---------------------------------------------------------------------------
+
+const THREAD_CATEGORIES = [
+  { value: 'GENERAL', label: 'General' },
+  { value: 'BUILD_ADVICE', label: 'Build Advice' },
+  { value: 'TROUBLESHOOTING', label: 'Troubleshooting' },
+  { value: 'DEALS', label: 'Deals' },
+];
+
+interface CreatedThread {
+  id: string;
+  slug: string;
+}
+
+function NewThreadForm() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [category, setCategory] = useState('GENERAL');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!user) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loginRequired}>
+          <h2 className={styles.formTitle}>Create a New Thread</h2>
+          <p className={styles.loginMessage}>
+            You must be logged in to create a thread.
+          </p>
+          <a href="/login" className={styles.loginLink}>Log In</a>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !body.trim() || submitting) return;
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const thread = await api<CreatedThread>('/forum', {
+        method: 'POST',
+        body: { title: title.trim(), body: body.trim(), category },
+      });
+      navigate(`/community/${thread.slug}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create thread. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      <header className={styles.formHeader}>
+        <a href="/community" className={styles.backLink}>← Back to Community</a>
+        <h1 className={styles.formTitle}>New Thread</h1>
+        <p className={styles.formSubtitle}>Start a new discussion with the community</p>
+      </header>
+
+      <form className={styles.threadForm} onSubmit={handleSubmit}>
+        {error && <div className={styles.formError}>{error}</div>}
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel} htmlFor="thread-category">Category</label>
+          <select
+            id="thread-category"
+            className={styles.fieldSelect}
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            {THREAD_CATEGORIES.map((cat) => (
+              <option key={cat.value} value={cat.value}>{cat.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel} htmlFor="thread-title">Title</label>
+          <input
+            id="thread-title"
+            type="text"
+            className={styles.fieldInput}
+            placeholder="What's your thread about?"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
+            required
+          />
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel} htmlFor="thread-body">Body</label>
+          <textarea
+            id="thread-body"
+            className={styles.fieldTextarea}
+            placeholder="Share the details… (basic HTML formatting supported)"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={10}
+            required
+          />
+        </div>
+
+        <div className={styles.formActions}>
+          <button
+            type="submit"
+            className={styles.submitBtn}
+            disabled={submitting || !title.trim() || !body.trim()}
+          >
+            {submitting ? 'Creating…' : 'Create Thread'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
