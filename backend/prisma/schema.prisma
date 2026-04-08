@@ -129,6 +129,8 @@ model User {
   forumVotes         ForumVote[]
   guides             Guide[]
   badges             UserBadge[]
+  threadFollows      ThreadFollower[]
+  notifications      Notification[]
 
   @@index([username])
   @@index([email])
@@ -417,6 +419,7 @@ model ForumThread {
   title      String
   slug       String        @unique
   body       String // sanitised markdown
+  link       String?       // optional external link
   category   ForumCategory
   userId     String        @map("user_id")
   productId  String?       @map("product_id") // optional link to a product
@@ -429,9 +432,10 @@ model ForumThread {
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
-  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
-  replies ForumReply[]
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  replies   ForumReply[]
+  followers ThreadFollower[]
 
   @@index([category, createdAt(sort: Desc)])
   @@index([productId])
@@ -518,4 +522,45 @@ model UserBadge {
   @@unique([userId, badge])
   @@index([userId])
   @@map("user_badges")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7: Thread Following & Notifications
+// ---------------------------------------------------------------------------
+
+model ThreadFollower {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  threadId  String   @map("thread_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, threadId])
+  @@index([threadId])
+  @@map("thread_followers")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  threadId  String?          @map("thread_id")
+  replyId   String?          @map("reply_id")
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  REPLY
+  MENTION
+  FOLLOW
 }

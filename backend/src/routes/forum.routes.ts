@@ -18,4 +18,12 @@ router.delete('/:id', authenticate, writeLimiter, ForumController.deleteThread);
 router.post('/:slug/replies', authenticate, writeLimiter, ForumController.createReply);
 router.post('/replies/:id/upvote', authenticate, writeLimiter, ForumController.upvoteReply);
 
+// Thread following
+router.post('/threads/:id/follow', authenticate, writeLimiter, ForumController.toggleFollow);
+router.get('/threads/:id/following', authenticate, searchLimiter, ForumController.isFollowing);
+
+// Notifications
+router.get('/notifications', authenticate, searchLimiter, ForumController.getNotifications);
+router.put('/notifications/read', authenticate, writeLimiter, ForumController.markNotificationsRead);
+
 export default router;

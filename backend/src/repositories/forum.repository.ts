@@ -124,12 +124,13 @@ export class ForumRepository {
   }
 
   /** Update a thread (for edit by owner or staff). */
-  static async updateThread(id: string, data: { title?: string; body?: string; metadata?: unknown; imageUrls?: string[] }) {
+  static async updateThread(id: string, data: { title?: string; body?: string; link?: string | null; metadata?: unknown; imageUrls?: string[] }) {
     return prisma.forumThread.update({
       where: { id },
       data: {
         ...(data.title !== undefined && { title: data.title }),
         ...(data.body !== undefined && { body: data.body }),
+        ...(data.link !== undefined && { link: data.link }),
         ...(data.metadata !== undefined && { metadata: data.metadata as any }),
         ...(data.imageUrls !== undefined && { imageUrls: data.imageUrls }),
       },
@@ -161,5 +162,88 @@ export class ForumRepository {
       where: { id },
       data: { viewCount: { increment: 1 } },
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Thread Following
+  // ---------------------------------------------------------------------------
+
+  /** Toggle follow: if already following, unfollow; else follow. */
+  static async toggleFollow(threadId: string, userId: string) {
+    const existing = await prisma.threadFollower.findUnique({
+      where: { userId_threadId: { userId, threadId } },
+    });
+
+    if (existing) {
+      await prisma.threadFollower.delete({ where: { id: existing.id } });
+      return { following: false };
+    }
+
+    await prisma.threadFollower.create({ data: { userId, threadId } });
+    return { following: true };
+  }
+
+  /** Check if a user is following a thread. */
+  static async isFollowing(threadId: string, userId: string) {
+    const row = await prisma.threadFollower.findUnique({
+      where: { userId_threadId: { userId, threadId } },
+    });
+    return !!row;
+  }
+
+  /** Get all follower user IDs for a thread. */
+  static async getFollowerIds(threadId: string): Promise<string[]> {
+    const followers = await prisma.threadFollower.findMany({
+      where: { threadId },
+      select: { userId: true },
+    });
+    return followers.map((f) => f.userId);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Notifications
+  // ---------------------------------------------------------------------------
+
+  /** Create notification records for multiple users. */
+  static async createNotifications(data: { userIds: string[]; type: 'REPLY' | 'MENTION' | 'FOLLOW'; threadId?: string; replyId?: string; message: string }) {
+    if (data.userIds.length === 0) return;
+    await prisma.notification.createMany({
+      data: data.userIds.map((userId) => ({
+        userId,
+        type: data.type,
+        threadId: data.threadId,
+        replyId: data.replyId,
+        message: data.message,
+      })),
+    });
+  }
+
+  /** Get notifications for a user (paginated, newest first). */
+  static async findNotifications(userId: string, params: { page: number; limit: number; unreadOnly?: boolean }) {
+    const where: Prisma.NotificationWhereInput = {
+      userId,
+      ...(params.unreadOnly && { isRead: false }),
+    };
+
+    const [items, total] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (params.page - 1) * params.limit,
+        take: params.limit,
+      }),
+      prisma.notification.count({ where }),
+    ]);
+
+    return { items, total };
+  }
+
+  /** Mark notifications as read. */
+  static async markNotificationsRead(userId: string, ids?: string[]) {
+    const where: Prisma.NotificationWhereInput = {
+      userId,
+      ...(ids && { id: { in: ids } }),
+    };
+    await prisma.notification.updateMany({ where, data: { isRead: true } });
   }
 }

@@ -42,6 +42,7 @@ export class ForumController {
       category: req.body.category,
       userId: session.userId,
       productId: req.body.productId,
+      link: req.body.link,
       metadata: req.body.metadata,
       imageUrls: req.body.imageUrls,
     });
@@ -107,6 +108,7 @@ export class ForumController {
     const updated = await ForumService.updateThread(threadId, {
       title: req.body.title,
       body: req.body.body,
+      link: req.body.link,
       metadata: req.body.metadata,
       imageUrls: req.body.imageUrls,
     });
@@ -135,5 +137,54 @@ export class ForumController {
     const limit = parseInt(req.query.limit as string) || 5;
     const threads = await ForumService.getRelatedDiscussions(req.params.productId, limit);
     res.json(threads);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Follow
+  // ---------------------------------------------------------------------------
+
+  /** POST /api/v1/forum/threads/:id/follow */
+  static async toggleFollow(req: Request, res: Response) {
+    const session = (req as any).session;
+    const threadId = req.params.id;
+
+    const thread = await ForumService.getThreadById(threadId);
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    const result = await ForumService.toggleFollow(threadId, session.userId);
+    res.json(result);
+  }
+
+  /** GET /api/v1/forum/threads/:id/following */
+  static async isFollowing(req: Request, res: Response) {
+    const session = (req as any).session;
+    const following = await ForumService.isFollowing(req.params.id, session.userId);
+    res.json({ following });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Notifications
+  // ---------------------------------------------------------------------------
+
+  /** GET /api/v1/forum/notifications */
+  static async getNotifications(req: Request, res: Response) {
+    const session = (req as any).session;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const unreadOnly = req.query.unread === 'true';
+
+    const { items, total } = await ForumService.getNotifications(session.userId, { page, limit, unreadOnly });
+    res.json({
+      items,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
+  }
+
+  /** PUT /api/v1/forum/notifications/read */
+  static async markNotificationsRead(req: Request, res: Response) {
+    const session = (req as any).session;
+    const ids = req.body.ids as string[] | undefined;
+    await ForumService.markNotificationsRead(session.userId, ids);
+    res.json({ success: true });
   }
 }
