@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBadge';
+import { EmbedBuildCard } from '../EmbedBuildCard/EmbedBuildCard';
 import styles from './ForumThread.module.scss';
 
 interface ThreadUser {
@@ -44,6 +45,8 @@ interface Thread {
   createdAt: string;
   user: ThreadUser;
   product: ThreadProduct | null;
+  metadata?: Record<string, unknown>;
+  imageUrls?: string[];
 }
 
 interface ForumThreadProps {
@@ -53,6 +56,9 @@ interface ForumThreadProps {
 const CATEGORY_LABELS: Record<string, string> = {
   TROUBLESHOOTING: 'Troubleshooting',
   BUILD_ADVICE: 'Build Advice',
+  DIY_MODS: 'DIY Mods',
+  SHOWROOM: 'Showroom',
+  TELEMETRY: 'Telemetry',
   DEALS: 'Deals',
   GENERAL: 'General',
 };
@@ -152,6 +158,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
         }}
       />
 
+      <ThreadMetadata thread={thread} />
+
       <section className={styles.repliesSection}>
         <h3 className={styles.repliesTitle}>
           {replies.length} {replies.length === 1 ? 'Reply' : 'Replies'}
@@ -249,6 +257,124 @@ function UserBadge({ user }: { user: ThreadUser }) {
       <VerifiedCreatorBadge role={user.role} />
     </span>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Thread Metadata renderer
+// ---------------------------------------------------------------------------
+
+function ThreadMetadata({ thread }: { thread: Thread }) {
+  const { metadata, imageUrls, category } = thread;
+
+  if (category === 'BUILD_ADVICE' && metadata?.buildPermalink) {
+    return (
+      <div className={styles.metadataSection}>
+        <h4 className={styles.metadataTitle}>Linked Build</h4>
+        <EmbedBuildCard permalink={String(metadata.buildPermalink)} />
+      </div>
+    );
+  }
+
+  if (category === 'DIY_MODS' && metadata) {
+    const tools = Array.isArray(metadata.toolsRequired) ? metadata.toolsRequired as string[] : [];
+    const bom = Array.isArray(metadata.billOfMaterials)
+      ? (metadata.billOfMaterials as { item: string; quantity: string }[])
+      : [];
+
+    if (tools.length === 0 && bom.length === 0) return null;
+
+    return (
+      <div className={styles.metadataSection}>
+        {tools.length > 0 && (
+          <>
+            <h4 className={styles.metadataTitle}>Tools Required</h4>
+            <ul className={styles.toolsList}>
+              {tools.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        {bom.length > 0 && (
+          <>
+            <h4 className={styles.metadataTitle}>Bill of Materials</h4>
+            <table className={styles.bomTable}>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bom.map((row, i) => (
+                  <tr key={i}>
+                    <td>{row.item}</td>
+                    <td>{row.quantity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (category === 'SHOWROOM' && imageUrls && imageUrls.length > 0) {
+    return (
+      <div className={styles.metadataSection}>
+        <h4 className={styles.metadataTitle}>Gallery</h4>
+        <div className={styles.imageGallery}>
+          {imageUrls.map((url, i) => (
+            <img key={i} src={url} alt={`Photo ${i + 1}`} className={styles.galleryImage} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (category === 'TELEMETRY' && metadata?.codeSnippet) {
+    return (
+      <div className={styles.metadataSection}>
+        {metadata.profileType && (
+          <span className={styles.profileBadge}>{String(metadata.profileType)}</span>
+        )}
+        <h4 className={styles.metadataTitle}>Configuration</h4>
+        <pre className={styles.codeBlock}>{String(metadata.codeSnippet)}</pre>
+      </div>
+    );
+  }
+
+  if (category === 'DEALS' && metadata) {
+    const status = metadata.dealStatus ? String(metadata.dealStatus) : null;
+    const price = metadata.price != null ? Number(metadata.price) : null;
+    const currency = metadata.currency ? String(metadata.currency) : 'USD';
+
+    if (!status && price == null) return null;
+
+    return (
+      <div className={styles.metadataSection}>
+        <div className={styles.dealInfo}>
+          {status && (
+            <span
+              className={`${styles.dealBadge} ${
+                status === 'Active' ? styles.dealActive : styles.dealExpired
+              }`}
+            >
+              {status}
+            </span>
+          )}
+          {price != null && (
+            <span className={styles.dealPrice}>
+              {currency} {price.toFixed(2)}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function buildReplyTree(replies: Reply[]): (Reply & { children: Reply[] })[] {
