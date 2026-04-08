@@ -573,3 +573,47 @@
   color: var(--accent-primary);
   font-weight: 600;
 }
+
+// ============================================================================
+// Mobile responsive
+// ============================================================================
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .threadTitle {
+    font-size: 22px;
+  }
+
+  .threadMeta {
+    font-size: 11px;
+  }
+
+  .imageGallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .replyNode {
+    padding-left: 8px;
+  }
+
+  .reply {
+    padding: 10px 12px;
+  }
+
+  .lightboxArrow {
+    width: 36px;
+    height: 36px;
+    font-size: 24px;
+  }
+
+  .lightboxArrowLeft {
+    left: 8px;
+  }
+
+  .lightboxArrowRight {
+    right: 8px;
+  }
+}

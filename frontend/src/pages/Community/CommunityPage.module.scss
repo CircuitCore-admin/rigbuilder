@@ -1000,3 +1000,153 @@
     border-color: var(--border-strong);
   }
 }
+
+// ============================================================================
+// Mobile responsive layout
+// ============================================================================
+
+// Horizontal category pill bar (hidden by default, shown on mobile)
+.mobileCategoryBar {
+  display: none;
+}
+
+.mobileCategoryPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+}
+
+.mobileCategoryPillActive {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: rgba(0, 255, 163, 0.06);
+}
+
+.mobileFab {
+  display: none;
+}
+
+// ---------- Tablet: <= 1024px – hide right sidebar ----------
+
+@media (max-width: 1024px) {
+  .rightSidebar {
+    display: none;
+  }
+
+  .feed {
+    padding: 20px 20px;
+  }
+
+  .showroomGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+// ---------- Mobile: <= 768px – hide left sidebar, show category bar ----------
+
+@media (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+    margin: 0;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .mobileCategoryBar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-primary);
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .mobileFab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    font-size: 24px;
+    color: var(--bg-void);
+    background: var(--accent-primary);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(0, 255, 163, 0.3);
+    cursor: pointer;
+    z-index: 100;
+    text-decoration: none;
+
+    &:hover {
+      opacity: 0.9;
+      color: var(--bg-void);
+    }
+  }
+
+  .feed {
+    padding: 16px;
+  }
+
+  .threadRow {
+    gap: 10px;
+    padding: 8px;
+  }
+
+  .threadAuthor {
+    display: none;
+  }
+
+  .showroomGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .categoryGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .formContainer {
+    padding: 20px 12px;
+  }
+
+  .sortRow {
+    flex-wrap: wrap;
+  }
+
+  .searchRow {
+    padding: 0 8px;
+  }
+
+  .formTitle {
+    font-size: 22px;
+  }
+}

@@ -195,6 +195,28 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
         </nav>
       </aside>
 
+      {/* ---------- Mobile category bar ---------- */}
+      <div className={styles.mobileCategoryBar}>
+        <button
+          className={`${styles.mobileCategoryPill} ${activeCategory === '' ? styles.mobileCategoryPillActive : ''}`}
+          onClick={() => setCategory('')}
+        >
+          🗂️ All
+        </button>
+        {CATEGORY_LIST.map((key) => {
+          const cfg = CATEGORY_BLUEPRINTS[key];
+          return (
+            <button
+              key={key}
+              className={`${styles.mobileCategoryPill} ${activeCategory === key ? styles.mobileCategoryPillActive : ''}`}
+              onClick={() => setCategory(key)}
+            >
+              {cfg.icon} {cfg.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* ---------- Main feed ---------- */}
       <main className={styles.feed}>
         {threadSlug ? (
@@ -361,6 +383,13 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
           </div>
         </div>
       </aside>
+
+      {/* ---------- Mobile FAB ---------- */}
+      {user && (
+        <a href="/community/new" className={styles.mobileFab} aria-label="New thread">
+          +
+        </a>
+      )}
     </div>
   );
 }
