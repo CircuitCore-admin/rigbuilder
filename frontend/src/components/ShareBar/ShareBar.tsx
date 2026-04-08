@@ -21,7 +21,7 @@ export function ShareBar() {
   const clearBuild = useBuildStore((s) => s.clearBuild);
   const savedBuildId = useBuildStore((s) => s.savedBuildId);
   const setSavedBuildId = useBuildStore((s) => s.setSavedBuildId);
-  const resetSavedMeta = useBuildStore((s) => s.resetSavedMeta);
+  const isDirty = useBuildStore((s) => s.isDirty);
 
   const [copied, setCopied] = useState(false);
   const [modalFormat, setModalFormat] = useState<string | null>(null);
@@ -34,14 +34,87 @@ export function ShareBar() {
     [savedBuildId],
   );
 
-  // Save build to backend and generate permalink
+  // Save: update existing build (PUT) or create new (POST)
   const handleSave = useCallback(async () => {
     if (saving) return;
     setSaving(true);
     setSaveError(null);
 
     try {
-      // Build the parts array for the API
+      const parts = (Object.entries(selectedParts) as [CategorySlot, SelectedPart][]).map(
+        ([slot, part]) => ({
+          productId: part.id,
+          categorySlot: slot,
+          pricePaid: part.price,
+        }),
+      );
+
+      if (savedBuildId) {
+        // Update existing build — PUT keeps the same slug/URL
+        await api<{ id: string; slug: string }>(`/builds/${savedBuildId}`, {
+          method: 'PUT',
+          body: {
+            name: 'My RigBuilder Build',
+            parts,
+            isPublic: true,
+          },
+        });
+        // Mark as clean (same ID, no longer dirty)
+        setSavedBuildId(savedBuildId);
+      } else {
+        // Create new build
+        const response = await api<{ id: string; slug: string }>('/builds', {
+          method: 'POST',
+          body: {
+            name: 'My RigBuilder Build',
+            parts,
+            isPublic: true,
+          },
+        });
+        setSavedBuildId(response.slug);
+      }
+      setCopied(false);
+    } catch (err) {
+      const message =
+        err instanceof ApiError && err.status === 401
+          ? 'Please log in to save your build.'
+          : err instanceof ApiError && err.status === 403
+            ? 'You can only update your own builds. Use "Save As" to create a copy.'
+            : err instanceof Error
+              ? err.message
+              : 'Failed to save build. Please try again.';
+      setSaveError(message);
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedParts, saving, savedBuildId, setSavedBuildId]);
+
+  // Copy permalink
+  const handleCopy = useCallback(async () => {
+    if (!permalink) return;
+    try {
+      await navigator.clipboard.writeText(permalink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback
+      const input = document.querySelector<HTMLInputElement>('[data-sharebar-url]');
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    }
+  }, [permalink]);
+
+  // Save As New — create a new build with a fresh slug
+  const handleSaveAsNew = useCallback(async () => {
+    if (saving) return;
+    setSaving(true);
+    setSaveError(null);
+
+    try {
       const parts = (Object.entries(selectedParts) as [CategorySlot, SelectedPart][]).map(
         ([slot, part]) => ({
           productId: part.id,
@@ -73,33 +146,6 @@ export function ShareBar() {
       setSaving(false);
     }
   }, [selectedParts, saving, setSavedBuildId]);
-
-  // Copy permalink
-  const handleCopy = useCallback(async () => {
-    if (!permalink) return;
-    try {
-      await navigator.clipboard.writeText(permalink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback
-      const input = document.querySelector<HTMLInputElement>('[data-sharebar-url]');
-      if (input) {
-        input.select();
-        document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    }
-  }, [permalink]);
-
-  // Save As New — clone with a fresh ID
-  const handleSaveAsNew = useCallback(async () => {
-    resetSavedMeta();
-    setSaveError(null);
-    // Slight delay so UI updates before triggering save
-    setTimeout(() => handleSave(), 50);
-  }, [resetSavedMeta, handleSave]);
 
   // New build
   const handleNew = useCallback(() => {
@@ -140,6 +186,11 @@ export function ShareBar() {
                   </svg>
                 )}
               </button>
+              {isDirty && (
+                <span className={styles.unsavedBadge} title="You have unsaved changes">
+                  ● unsaved
+                </span>
+              )}
             </div>
           ) : saveError ? (
             <span className={styles.errorHint} title={saveError}>
@@ -195,11 +246,21 @@ export function ShareBar() {
           <button
             type="button"
             className={styles.actionBtn}
-            onClick={savedBuildId ? handleSaveAsNew : handleSave}
-            disabled={!hasParts || saving}
+            onClick={handleSave}
+            disabled={!hasParts || saving || (savedBuildId != null && !isDirty)}
           >
-            {saving ? 'Saving…' : savedBuildId ? 'Save As' : 'Save'}
+            {saving ? 'Saving…' : 'Save'}
           </button>
+          {savedBuildId && (
+            <button
+              type="button"
+              className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
+              onClick={handleSaveAsNew}
+              disabled={!hasParts || saving}
+            >
+              Save As
+            </button>
+          )}
           <button
             type="button"
             className={`${styles.actionBtn} ${styles.actionBtnNew}`}

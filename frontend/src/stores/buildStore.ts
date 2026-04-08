@@ -52,6 +52,8 @@ export interface BuildState {
   savedBuildId: string | null;
   /** Owner user ID of the loaded build (null for unsaved / own builds). */
   savedBuildOwnerId: string | null;
+  /** True when parts have changed since the last save or load. */
+  isDirty: boolean;
   /** Transient flag: true after loadBuild — prevents persist rehydration from overwriting. */
   _hydratedFromShare: boolean;
 
@@ -135,6 +137,7 @@ export const useBuildStore = create<BuildState>()(
       },
       savedBuildId: null,
       savedBuildOwnerId: null,
+      isDirty: false,
       _hydratedFromShare: false,
 
       addPart: (slot: CategorySlot, part: SelectedPart) => {
@@ -142,15 +145,12 @@ export const useBuildStore = create<BuildState>()(
         const { totalPrice, totalWeight } = computeTotals(next);
         const compatibilityReport = computeCompatibility(next);
 
-        // Clear stale permalink unless the build belongs to a logged-in account
-        const clearLink = !get().savedBuildOwnerId ? { savedBuildId: null } : {};
-
         set({
           selectedParts: next,
           totalPrice,
           totalWeight,
           compatibilityReport,
-          ...clearLink,
+          isDirty: true,
         });
       },
 
@@ -160,15 +160,12 @@ export const useBuildStore = create<BuildState>()(
         const { totalPrice, totalWeight } = computeTotals(next);
         const compatibilityReport = computeCompatibility(next);
 
-        // Clear stale permalink unless the build belongs to a logged-in account
-        const clearLink = !get().savedBuildOwnerId ? { savedBuildId: null } : {};
-
         set({
           selectedParts: next,
           totalPrice,
           totalWeight,
           compatibilityReport,
-          ...clearLink,
+          isDirty: true,
         });
       },
 
@@ -184,6 +181,7 @@ export const useBuildStore = create<BuildState>()(
           },
           savedBuildId: null,
           savedBuildOwnerId: null,
+          isDirty: false,
           _hydratedFromShare: false,
         });
       },
@@ -204,12 +202,13 @@ export const useBuildStore = create<BuildState>()(
           compatibilityReport,
           savedBuildId: buildId,
           savedBuildOwnerId: ownerId ?? null,
+          isDirty: false,
           _hydratedFromShare: true,
         });
       },
 
       setSavedBuildId: (id: string) => {
-        set({ savedBuildId: id });
+        set({ savedBuildId: id, isDirty: false });
       },
 
       resetSavedMeta: () => {

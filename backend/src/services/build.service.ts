@@ -77,7 +77,27 @@ export class BuildService {
     if (existing.userId !== userId) throw new Error('Forbidden');
 
     const data = updateBuildSchema.parse(raw);
-    return BuildRepository.update(id, {
+
+    // If parts are provided, do a full replace (delete + create)
+    if (data.parts && data.parts.length > 0) {
+      const totalCost = data.parts.reduce((sum, p) => sum + (p.pricePaid ?? 0), 0);
+
+      return BuildRepository.updateWithParts(
+        existing.id,
+        {
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.ratings !== undefined && { ratings: data.ratings }),
+          ...(data.images !== undefined && { images: data.images }),
+          ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
+          totalCost,
+        },
+        data.parts,
+      );
+    }
+
+    // Metadata-only update
+    return BuildRepository.update(existing.id, {
       ...(data.name !== undefined && { name: data.name }),
       ...(data.description !== undefined && { description: data.description }),
       ...(data.ratings !== undefined && { ratings: data.ratings }),

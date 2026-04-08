@@ -105,6 +105,37 @@ export class BuildRepository {
     return prisma.build.update({ where: { id }, data });
   }
 
+  /**
+   * Replace parts on an existing build (delete-then-create inside a tx).
+   * `id` must be the primary-key CUID.
+   */
+  static async updateWithParts(
+    id: string,
+    data: Prisma.BuildUpdateInput,
+    parts: any[],
+  ) {
+    return prisma.$transaction(async (tx) => {
+      // Remove old parts
+      await tx.buildPart.deleteMany({ where: { buildId: id } });
+      // Update build metadata + create new parts
+      return tx.build.update({
+        where: { id },
+        data: {
+          ...data,
+          parts: {
+            create: parts.map((p) => ({
+              product: { connect: { id: p.productId } },
+              categorySlot: p.categorySlot,
+              pricePaid: p.pricePaid ?? null,
+              notes: p.notes ?? null,
+            })),
+          },
+        },
+        include: { parts: { include: { product: true } } },
+      });
+    });
+  }
+
   static async delete(id: string) {
     await prisma.build.delete({ where: { id } });
   }
