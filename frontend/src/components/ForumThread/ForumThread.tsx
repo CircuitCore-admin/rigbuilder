@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBadge';
 import { EmbedBuildCard } from '../EmbedBuildCard/EmbedBuildCard';
+import { MarkdownEditor } from '../MarkdownEditor/MarkdownEditor';
+import { useToast } from '../Toast/Toast';
 import styles from './ForumThread.module.scss';
 
 interface ThreadUser {
@@ -76,9 +78,71 @@ function getBadges(reputation: number, role?: string): string[] {
   return badges;
 }
 
+// ---------------------------------------------------------------------------
+// Lightbox Modal
+// ---------------------------------------------------------------------------
+
+function LightboxModal({
+  images,
+  startIndex,
+  onClose,
+}: {
+  images: string[];
+  startIndex: number;
+  onClose: () => void;
+}) {
+  const [index, setIndex] = useState(startIndex);
+
+  const goPrev = useCallback(() => setIndex((i) => (i > 0 ? i - 1 : images.length - 1)), [images.length]);
+  const goNext = useCallback(() => setIndex((i) => (i < images.length - 1 ? i + 1 : 0)), [images.length]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowLeft') goPrev();
+      else if (e.key === 'ArrowRight') goNext();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose, goPrev, goNext]);
+
+  return (
+    <div className={styles.lightbox} onClick={onClose}>
+      <button className={styles.lightboxClose} onClick={onClose}>×</button>
+      {images.length > 1 && (
+        <button
+          className={`${styles.lightboxArrow} ${styles.lightboxArrowLeft}`}
+          onClick={(e) => { e.stopPropagation(); goPrev(); }}
+        >
+          ‹
+        </button>
+      )}
+      <img
+        src={images[index]}
+        alt={`Photo ${index + 1}`}
+        className={styles.lightboxImage}
+        onClick={(e) => e.stopPropagation()}
+      />
+      {images.length > 1 && (
+        <button
+          className={`${styles.lightboxArrow} ${styles.lightboxArrowRight}`}
+          onClick={(e) => { e.stopPropagation(); goNext(); }}
+        >
+          ›
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
 export function ForumThread({ slug }: ForumThreadProps) {
   const { user: authUser } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [thread, setThread] = useState<Thread | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +155,9 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [saving, setSaving] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [inlineReplyId, setInlineReplyId] = useState<string | null>(null);
+  const [inlineReplyBody, setInlineReplyBody] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -123,8 +190,38 @@ export function ForumThread({ slug }: ForumThreadProps) {
       setReplies((prev) => [...prev, newReply]);
       setReplyBody('');
       setReplyingTo(null);
+      showToast('Reply posted', 'success');
     } catch { /* silently fail */ }
     finally { setSubmitting(false); }
+  };
+
+  const handleSubmitInlineReply = async () => {
+    if (!inlineReplyBody.trim() || submitting || !inlineReplyId) return;
+    setSubmitting(true);
+    try {
+      const newReply = await api<Reply>(`/forum/${slug}/replies`, {
+        method: 'POST',
+        body: { body: inlineReplyBody, parentId: inlineReplyId },
+      });
+      setReplies((prev) => [...prev, newReply]);
+      setInlineReplyBody('');
+      setInlineReplyId(null);
+      setReplyingTo(null);
+      showToast('Reply posted', 'success');
+    } catch { /* silently fail */ }
+    finally { setSubmitting(false); }
+  };
+
+  const handleCancelInlineReply = () => {
+    setInlineReplyId(null);
+    setInlineReplyBody('');
+    setReplyingTo(null);
+  };
+
+  const handleReplyToComment = (id: string) => {
+    setInlineReplyId(id);
+    setReplyingTo(id);
+    setInlineReplyBody('');
   };
 
   const handleUpvote = async (replyId: string) => {
@@ -151,6 +248,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
     if (!window.confirm('Are you sure you want to delete this thread?')) return;
     try {
       await api(`/forum/${thread.id}`, { method: 'DELETE' });
+      showToast('Thread deleted', 'success');
       navigate('/community');
     } catch { /* silently fail */ }
   };
@@ -172,6 +270,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
       });
       setThread(updated);
       setEditing(false);
+      showToast('Thread updated', 'success');
     } catch { /* silently fail */ }
     finally { setSaving(false); }
   };
@@ -192,6 +291,11 @@ export function ForumThread({ slug }: ForumThreadProps) {
     authUser.role === 'MODERATOR'
   );
 
+  // Resolve the username of the reply being replied to
+  const replyingToUsername = replyingTo
+    ? replies.find((r) => r.id === replyingTo)?.user.username ?? null
+    : null;
+
   if (loading) return <div className={styles.loading}>Loading discussion…</div>;
   if (!thread) return <div className={styles.notFound}>Discussion not found</div>;
 
@@ -205,11 +309,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
           />
-          <textarea
-            className={styles.editTextarea}
-            value={editBody}
-            onChange={(e) => setEditBody(e.target.value)}
-          />
+          <MarkdownEditor value={editBody} onChange={setEditBody} rows={8} />
           <div className={styles.editActions}>
             <button
               className={styles.saveBtn}
@@ -274,7 +374,19 @@ export function ForumThread({ slug }: ForumThreadProps) {
         </>
       )}
 
-      <ThreadMetadata thread={thread} />
+      <ThreadMetadata
+        thread={thread}
+        lightboxIndex={lightboxIndex}
+        setLightboxIndex={setLightboxIndex}
+      />
+
+      {lightboxIndex !== null && thread.imageUrls && thread.imageUrls.length > 0 && (
+        <LightboxModal
+          images={thread.imageUrls}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
 
       <section className={styles.repliesSection}>
         <h3 className={styles.repliesTitle}>
@@ -283,32 +395,49 @@ export function ForumThread({ slug }: ForumThreadProps) {
 
         <div className={styles.replyList}>
           {nestedReplies.map((reply) => (
-            <ReplyNode key={reply.id} reply={reply} depth={0} onReply={(id) => setReplyingTo(id)} onUpvote={handleUpvote} />
+            <ReplyNode
+              key={reply.id}
+              reply={reply}
+              depth={0}
+              onReply={handleReplyToComment}
+              onUpvote={handleUpvote}
+              inlineReplyId={inlineReplyId}
+              inlineReplyBody={inlineReplyBody}
+              onInlineReplyBodyChange={setInlineReplyBody}
+              onInlineReplySubmit={handleSubmitInlineReply}
+              onInlineReplyCancel={handleCancelInlineReply}
+              submitting={submitting}
+            />
           ))}
         </div>
 
         {authUser ? (
           <div className={styles.replyForm}>
-            {replyingTo && (
-              <div className={styles.replyingTo}>
-                Replying to a comment
-                <button className={styles.cancelReply} onClick={() => setReplyingTo(null)}>Cancel</button>
-              </div>
+            {inlineReplyId ? (
+              <div className={styles.replyDisabled}>Replying to a comment above…</div>
+            ) : (
+              <>
+                {replyingTo && replyingToUsername && (
+                  <div className={styles.replyingTo}>
+                    Replying to <span className={styles.replyingToUsername}>@{replyingToUsername}</span>
+                    <button className={styles.cancelReply} onClick={() => setReplyingTo(null)}>Cancel</button>
+                  </div>
+                )}
+                <MarkdownEditor
+                  value={replyBody}
+                  onChange={setReplyBody}
+                  rows={4}
+                  placeholder="Write your reply (Markdown supported)…"
+                />
+                <button
+                  className={styles.submitReply}
+                  onClick={handleSubmitReply}
+                  disabled={submitting || !replyBody.trim()}
+                >
+                  {submitting ? 'Posting…' : 'Post Reply'}
+                </button>
+              </>
             )}
-            <textarea
-              className={styles.replyTextarea}
-              placeholder="Write your reply (Markdown supported)…"
-              value={replyBody}
-              onChange={(e) => setReplyBody(e.target.value)}
-              rows={4}
-            />
-            <button
-              className={styles.submitReply}
-              onClick={handleSubmitReply}
-              disabled={submitting || !replyBody.trim()}
-            >
-              {submitting ? 'Posting…' : 'Post Reply'}
-            </button>
           </div>
         ) : (
           <div className={styles.loginPrompt}>
@@ -322,14 +451,23 @@ export function ForumThread({ slug }: ForumThreadProps) {
 
 function ReplyNode({
   reply, depth, onReply, onUpvote,
+  inlineReplyId, inlineReplyBody, onInlineReplyBodyChange,
+  onInlineReplySubmit, onInlineReplyCancel, submitting,
 }: {
   reply: Reply & { children?: Reply[] };
   depth: number;
   onReply: (id: string) => void;
   onUpvote: (id: string) => void;
+  inlineReplyId: string | null;
+  inlineReplyBody: string;
+  onInlineReplyBodyChange: (val: string) => void;
+  onInlineReplySubmit: () => void;
+  onInlineReplyCancel: () => void;
+  submitting: boolean;
 }) {
   const maxDepth = 4;
   const badges = getBadges(reply.user.reputation, reply.user.role);
+  const showInlineForm = inlineReplyId === reply.id;
 
   return (
     <div className={styles.replyNode} style={{ marginLeft: Math.min(depth, maxDepth) * 24 }}>
@@ -352,8 +490,42 @@ function ReplyNode({
           <button className={styles.replyBtn} onClick={() => onReply(reply.id)}>Reply</button>
         </div>
       </div>
+      {showInlineForm && (
+        <div className={styles.inlineReplyForm}>
+          <MarkdownEditor
+            value={inlineReplyBody}
+            onChange={onInlineReplyBodyChange}
+            rows={3}
+            placeholder="Write your reply…"
+          />
+          <div className={styles.inlineReplyActions}>
+            <button
+              className={styles.inlineSubmit}
+              onClick={onInlineReplySubmit}
+              disabled={submitting || !inlineReplyBody.trim()}
+            >
+              {submitting ? 'Posting…' : 'Post Reply'}
+            </button>
+            <button className={styles.inlineCancel} onClick={onInlineReplyCancel}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       {reply.children?.map((child) => (
-        <ReplyNode key={child.id} reply={child} depth={depth + 1} onReply={onReply} onUpvote={onUpvote} />
+        <ReplyNode
+          key={child.id}
+          reply={child}
+          depth={depth + 1}
+          onReply={onReply}
+          onUpvote={onUpvote}
+          inlineReplyId={inlineReplyId}
+          inlineReplyBody={inlineReplyBody}
+          onInlineReplyBodyChange={onInlineReplyBodyChange}
+          onInlineReplySubmit={onInlineReplySubmit}
+          onInlineReplyCancel={onInlineReplyCancel}
+          submitting={submitting}
+        />
       ))}
     </div>
   );
@@ -373,15 +545,53 @@ function UserBadge({ user }: { user: ThreadUser }) {
 // Thread Metadata renderer
 // ---------------------------------------------------------------------------
 
-function ThreadMetadata({ thread }: { thread: Thread }) {
+function ImageGallery({
+  imageUrls,
+  onImageClick,
+}: {
+  imageUrls: string[];
+  onImageClick: (index: number) => void;
+}) {
+  return (
+    <div className={styles.metadataSection}>
+      <h4 className={styles.metadataTitle}>Gallery</h4>
+      <div className={styles.imageGallery}>
+        {imageUrls.map((url, i) => (
+          <img
+            key={i}
+            src={url}
+            alt={`Photo ${i + 1}`}
+            className={`${styles.galleryImage} ${styles.galleryImageClickable}`}
+            onClick={() => onImageClick(i)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ThreadMetadata({
+  thread,
+  lightboxIndex: _lightboxIndex,
+  setLightboxIndex,
+}: {
+  thread: Thread;
+  lightboxIndex: number | null;
+  setLightboxIndex: (index: number | null) => void;
+}) {
   const { metadata, imageUrls, category } = thread;
 
   if (category === 'BUILD_ADVICE' && metadata?.buildPermalink) {
     return (
-      <div className={styles.metadataSection}>
-        <h4 className={styles.metadataTitle}>Linked Build</h4>
-        <EmbedBuildCard permalink={String(metadata.buildPermalink)} />
-      </div>
+      <>
+        <div className={styles.metadataSection}>
+          <h4 className={styles.metadataTitle}>Linked Build</h4>
+          <EmbedBuildCard permalink={String(metadata.buildPermalink)} />
+        </div>
+        {imageUrls && imageUrls.length > 0 && (
+          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
+        )}
+      </>
     );
   }
 
@@ -391,67 +601,75 @@ function ThreadMetadata({ thread }: { thread: Thread }) {
       ? (metadata.billOfMaterials as { item: string; quantity: string }[])
       : [];
 
-    if (tools.length === 0 && bom.length === 0) return null;
+    if (tools.length === 0 && bom.length === 0) {
+      if (imageUrls && imageUrls.length > 0) {
+        return <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />;
+      }
+      return null;
+    }
 
     return (
-      <div className={styles.metadataSection}>
-        {tools.length > 0 && (
-          <>
-            <h4 className={styles.metadataTitle}>Tools Required</h4>
-            <ul className={styles.toolsList}>
-              {tools.map((t, i) => (
-                <li key={i}>{t}</li>
-              ))}
-            </ul>
-          </>
-        )}
-        {bom.length > 0 && (
-          <>
-            <h4 className={styles.metadataTitle}>Bill of Materials</h4>
-            <table className={styles.bomTable}>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bom.map((row, i) => (
-                  <tr key={i}>
-                    <td>{row.item}</td>
-                    <td>{row.quantity}</td>
-                  </tr>
+      <>
+        <div className={styles.metadataSection}>
+          {tools.length > 0 && (
+            <>
+              <h4 className={styles.metadataTitle}>Tools Required</h4>
+              <ul className={styles.toolsList}>
+                {tools.map((t, i) => (
+                  <li key={i}>{t}</li>
                 ))}
-              </tbody>
-            </table>
-          </>
+              </ul>
+            </>
+          )}
+          {bom.length > 0 && (
+            <>
+              <h4 className={styles.metadataTitle}>Bill of Materials</h4>
+              <table className={styles.bomTable}>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bom.map((row, i) => (
+                    <tr key={i}>
+                      <td>{row.item}</td>
+                      <td>{row.quantity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+        {imageUrls && imageUrls.length > 0 && (
+          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
         )}
-      </div>
+      </>
     );
   }
 
   if (category === 'SHOWROOM' && imageUrls && imageUrls.length > 0) {
     return (
-      <div className={styles.metadataSection}>
-        <h4 className={styles.metadataTitle}>Gallery</h4>
-        <div className={styles.imageGallery}>
-          {imageUrls.map((url, i) => (
-            <img key={i} src={url} alt={`Photo ${i + 1}`} className={styles.galleryImage} />
-          ))}
-        </div>
-      </div>
+      <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
     );
   }
 
   if (category === 'TELEMETRY' && metadata?.codeSnippet) {
     return (
-      <div className={styles.metadataSection}>
-        {metadata.profileType && (
-          <span className={styles.profileBadge}>{String(metadata.profileType)}</span>
+      <>
+        <div className={styles.metadataSection}>
+          {metadata.profileType && (
+            <span className={styles.profileBadge}>{String(metadata.profileType)}</span>
+          )}
+          <h4 className={styles.metadataTitle}>Configuration</h4>
+          <pre className={styles.codeBlock}>{String(metadata.codeSnippet)}</pre>
+        </div>
+        {imageUrls && imageUrls.length > 0 && (
+          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
         )}
-        <h4 className={styles.metadataTitle}>Configuration</h4>
-        <pre className={styles.codeBlock}>{String(metadata.codeSnippet)}</pre>
-      </div>
+      </>
     );
   }
 
@@ -460,28 +678,43 @@ function ThreadMetadata({ thread }: { thread: Thread }) {
     const price = metadata.price != null ? Number(metadata.price) : null;
     const currency = metadata.currency ? String(metadata.currency) : 'USD';
 
-    if (!status && price == null) return null;
+    if (!status && price == null) {
+      if (imageUrls && imageUrls.length > 0) {
+        return <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />;
+      }
+      return null;
+    }
 
     return (
-      <div className={styles.metadataSection}>
-        <div className={styles.dealInfo}>
-          {status && (
-            <span
-              className={`${styles.dealBadge} ${
-                status === 'Active' ? styles.dealActive : styles.dealExpired
-              }`}
-            >
-              {status}
-            </span>
-          )}
-          {price != null && (
-            <span className={styles.dealPrice}>
-              {currency} {price.toFixed(2)}
-            </span>
-          )}
+      <>
+        <div className={styles.metadataSection}>
+          <div className={styles.dealInfo}>
+            {status && (
+              <span
+                className={`${styles.dealBadge} ${
+                  status === 'Active' ? styles.dealActive : styles.dealExpired
+                }`}
+              >
+                {status}
+              </span>
+            )}
+            {price != null && (
+              <span className={styles.dealPrice}>
+                {currency} {price.toFixed(2)}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+        {imageUrls && imageUrls.length > 0 && (
+          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
+        )}
+      </>
     );
+  }
+
+  // Fallback: show gallery for any category with images
+  if (imageUrls && imageUrls.length > 0) {
+    return <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />;
   }
 
   return null;
