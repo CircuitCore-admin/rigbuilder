@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { ForumThread } from '../../components/ForumThread/ForumThread';
 import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
@@ -99,10 +99,13 @@ export function CommunityPage() {
 
 function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [threads, setThreads] = useState<ThreadListItem[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const activeCategory = (searchParams.get('category') ?? '') as '' | BlueprintCategory;
   const page = parseInt(searchParams.get('page') ?? '1') || 1;
@@ -116,6 +119,11 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Re-fetch whenever pathname changes (e.g., navigating back from thread to feed)
+  useEffect(() => {
+    if (!threadSlug) setRefreshKey((k) => k + 1);
+  }, [location.pathname, threadSlug]);
 
   useEffect(() => {
     setLoading(true);
@@ -135,17 +143,22 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
       })
       .catch(() => setThreads([]))
       .finally(() => setLoading(false));
-  }, [activeCategory, page, sortBy, debouncedSearch]);
+  }, [activeCategory, page, sortBy, debouncedSearch, refreshKey]);
 
   const setCategory = useCallback(
     (cat: string) => {
+      if (threadSlug) {
+        // Navigate away from thread view back to the feed with category filter
+        navigate(`/community${cat ? `?category=${cat}` : ''}`);
+        return;
+      }
       const next = new URLSearchParams(searchParams);
       if (cat) next.set('category', cat);
       else next.delete('category');
       next.set('page', '1');
       setSearchParams(next);
     },
-    [searchParams, setSearchParams],
+    [searchParams, setSearchParams, threadSlug, navigate],
   );
 
   const setPage = useCallback(

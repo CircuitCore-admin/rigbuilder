@@ -26,7 +26,7 @@ export class ForumRepository {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true } },
+          user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true, pitCred: true } },
         },
       }),
       prisma.forumThread.count({ where }),
@@ -39,7 +39,7 @@ export class ForumRepository {
     return prisma.forumThread.findUnique({
       where: { slug },
       include: {
-        user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true } },
+        user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true, pitCred: true } },
         product: { select: { id: true, name: true, slug: true, category: true } },
       },
     });
@@ -68,7 +68,7 @@ export class ForumRepository {
       where: { threadId },
       orderBy: { createdAt: 'asc' },
       include: {
-        user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true } },
+        user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true, pitCred: true } },
       },
     });
   }
@@ -106,21 +106,129 @@ export class ForumRepository {
       where: { userId_replyId: { userId, replyId } },
     });
 
+    // Get reply author for pitCred adjustment
+    const reply = await prisma.forumReply.findUnique({
+      where: { id: replyId },
+      select: { userId: true },
+    });
+    const authorId = reply?.userId;
+
     if (existing) {
-      await prisma.$transaction([
+      const txOps: any[] = [
         prisma.forumVote.delete({ where: { id: existing.id } }),
         prisma.forumReply.update({ where: { id: replyId }, data: { upvotes: { decrement: 1 } } }),
-      ]);
-      const reply = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
-      return { upvotes: reply?.upvotes ?? 0, voted: false };
+      ];
+      if (authorId) {
+        txOps.push(prisma.user.update({ where: { id: authorId }, data: { pitCred: { decrement: 1 } } }));
+      }
+      await prisma.$transaction(txOps);
+      const updated = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
+      return { upvotes: updated?.upvotes ?? 0, voted: false };
     }
 
-    await prisma.$transaction([
+    const txOps: any[] = [
       prisma.forumVote.create({ data: { userId, replyId } }),
       prisma.forumReply.update({ where: { id: replyId }, data: { upvotes: { increment: 1 } } }),
-    ]);
-    const reply = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
-    return { upvotes: reply?.upvotes ?? 0, voted: true };
+    ];
+    if (authorId) {
+      txOps.push(prisma.user.update({ where: { id: authorId }, data: { pitCred: { increment: 1 } } }));
+    }
+    await prisma.$transaction(txOps);
+    const updated = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
+    return { upvotes: updated?.upvotes ?? 0, voted: true };
+  }
+
+  /**
+   * Toggle thread vote: upsert or remove vote. Adjusts cached score/upvotes/downvotes
+   * and author's pitCred. Returns { score, userVote }.
+   */
+  static async voteThread(threadId: string, userId: string, value: 1 | -1 | 0) {
+    const existing = await prisma.threadVote.findUnique({
+      where: { threadId_userId: { threadId, userId } },
+    });
+
+    const thread = await prisma.forumThread.findUnique({
+      where: { id: threadId },
+      select: { userId: true },
+    });
+    if (!thread) throw new Error('Thread not found');
+
+    const authorId = thread.userId;
+
+    if (value === 0 || (existing && existing.value === value)) {
+      // Remove the vote (toggle off)
+      if (existing) {
+        const oldValue = existing.value;
+        await prisma.$transaction([
+          prisma.threadVote.delete({ where: { id: existing.id } }),
+          prisma.forumThread.update({
+            where: { id: threadId },
+            data: {
+              score: { decrement: oldValue },
+              upvotes: oldValue === 1 ? { decrement: 1 } : undefined,
+              downvotes: oldValue === -1 ? { decrement: 1 } : undefined,
+            },
+          }),
+          prisma.user.update({
+            where: { id: authorId },
+            data: { pitCred: { decrement: oldValue } },
+          }),
+        ]);
+      }
+      const updated = await prisma.forumThread.findUnique({ where: { id: threadId }, select: { score: true } });
+      return { score: updated?.score ?? 0, userVote: 0 };
+    }
+
+    if (existing) {
+      // Change the vote (e.g., upvote → downvote)
+      const delta = value - existing.value;
+      await prisma.$transaction([
+        prisma.threadVote.update({
+          where: { id: existing.id },
+          data: { value },
+        }),
+        prisma.forumThread.update({
+          where: { id: threadId },
+          data: {
+            score: { increment: delta },
+            upvotes: value === 1 ? { increment: 1 } : existing.value === 1 ? { decrement: 1 } : undefined,
+            downvotes: value === -1 ? { increment: 1 } : existing.value === -1 ? { decrement: 1 } : undefined,
+          },
+        }),
+        prisma.user.update({
+          where: { id: authorId },
+          data: { pitCred: { increment: delta } },
+        }),
+      ]);
+    } else {
+      // Create new vote
+      await prisma.$transaction([
+        prisma.threadVote.create({ data: { threadId, userId, value } }),
+        prisma.forumThread.update({
+          where: { id: threadId },
+          data: {
+            score: { increment: value },
+            upvotes: value === 1 ? { increment: 1 } : undefined,
+            downvotes: value === -1 ? { increment: 1 } : undefined,
+          },
+        }),
+        prisma.user.update({
+          where: { id: authorId },
+          data: { pitCred: { increment: value } },
+        }),
+      ]);
+    }
+
+    const updated = await prisma.forumThread.findUnique({ where: { id: threadId }, select: { score: true } });
+    return { score: updated?.score ?? 0, userVote: value };
+  }
+
+  /** Get user's current vote on a thread. */
+  static async getThreadVote(threadId: string, userId: string) {
+    const vote = await prisma.threadVote.findUnique({
+      where: { threadId_userId: { threadId, userId } },
+    });
+    return vote?.value ?? 0;
   }
 
   /** Update a thread (for edit by owner or staff). */

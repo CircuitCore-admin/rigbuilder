@@ -97,6 +97,19 @@ export class ForumService {
   }
 
   // ---------------------------------------------------------------------------
+  // Thread Voting
+  // ---------------------------------------------------------------------------
+
+  static async voteThread(threadId: string, userId: string, value: 1 | -1 | 0) {
+    return ForumRepository.voteThread(threadId, userId, value);
+  }
+
+  static async getThreadVote(threadId: string, userId: string) {
+    const userVote = await ForumRepository.getThreadVote(threadId, userId);
+    return { userVote };
+  }
+
+  // ---------------------------------------------------------------------------
   // Following
   // ---------------------------------------------------------------------------
 

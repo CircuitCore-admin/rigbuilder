@@ -140,6 +140,34 @@ export class ForumController {
   }
 
   // ---------------------------------------------------------------------------
+  // Thread Voting
+  // ---------------------------------------------------------------------------
+
+  /** POST /api/v1/forum/threads/:id/vote */
+  static async voteThread(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.status(401).json({ error: 'Authentication required' });
+
+    const threadId = req.params.id;
+    const { value } = req.body;
+    if (value !== 1 && value !== -1 && value !== 0) {
+      return res.status(400).json({ error: 'value must be 1, -1, or 0' });
+    }
+
+    const result = await ForumService.voteThread(threadId, session.userId, value);
+    res.json(result);
+  }
+
+  /** GET /api/v1/forum/threads/:id/vote */
+  static async getThreadVote(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.json({ userVote: 0 });
+
+    const result = await ForumService.getThreadVote(req.params.id, session.userId);
+    res.json(result);
+  }
+
+  // ---------------------------------------------------------------------------
   // Follow
   // ---------------------------------------------------------------------------
 

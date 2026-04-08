@@ -114,6 +114,7 @@ model User {
   role         UserRole @default(USER)
   isPro        Boolean  @default(false) @map("is_pro")
   reputation   Int      @default(0)
+  pitCred      Int      @default(0) @map("pit_cred")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -127,6 +128,7 @@ model User {
   forumThreads       ForumThread[]
   forumReplies       ForumReply[]
   forumVotes         ForumVote[]
+  threadVotes        ThreadVote[]
   guides             Guide[]
   badges             UserBadge[]
   threadFollows      ThreadFollower[]
@@ -427,6 +429,9 @@ model ForumThread {
   isLocked   Boolean       @default(false) @map("is_locked")
   viewCount  Int           @default(0) @map("view_count")
   replyCount Int           @default(0) @map("reply_count")
+  upvotes    Int           @default(0)
+  downvotes  Int           @default(0)
+  score      Int           @default(0)
   metadata   Json?         // category-specific blueprint data (BOM, tools, deal status, etc.)
   imageUrls  String[]      @default([]) @map("image_urls") // gallery images for SHOWROOM
   createdAt  DateTime      @default(now()) @map("created_at")
@@ -434,8 +439,9 @@ model ForumThread {
 
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
-  replies   ForumReply[]
-  followers ThreadFollower[]
+  replies     ForumReply[]
+  followers   ThreadFollower[]
+  threadVotes ThreadVote[]
 
   @@index([category, createdAt(sort: Desc)])
   @@index([productId])
@@ -475,6 +481,22 @@ model ForumVote {
 
   @@unique([userId, replyId])
   @@map("forum_votes")
+}
+
+model ThreadVote {
+  id        String   @id @default(cuid())
+  threadId  String   @map("thread_id")
+  userId    String   @map("user_id")
+  value     Int      // 1 for upvote, -1 for downvote
+  createdAt DateTime @default(now()) @map("created_at")
+
+  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+  @@index([threadId])
+  @@index([userId])
+  @@map("thread_votes")
 }
 
 // ---------------------------------------------------------------------------

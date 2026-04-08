@@ -18,9 +18,11 @@ router.delete('/:id', authenticate, writeLimiter, ForumController.deleteThread);
 router.post('/:slug/replies', authenticate, writeLimiter, ForumController.createReply);
 router.post('/replies/:id/upvote', authenticate, writeLimiter, ForumController.upvoteReply);
 
-// Thread following
+// Thread following & voting
 router.post('/threads/:id/follow', authenticate, writeLimiter, ForumController.toggleFollow);
 router.get('/threads/:id/following', authenticate, searchLimiter, ForumController.isFollowing);
+router.post('/threads/:id/vote', authenticate, writeLimiter, ForumController.voteThread);
+router.get('/threads/:id/vote', searchLimiter, ForumController.getThreadVote);
 
 // Notifications
 router.get('/notifications', authenticate, searchLimiter, ForumController.getNotifications);
