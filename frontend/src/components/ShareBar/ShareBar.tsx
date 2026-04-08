@@ -4,11 +4,13 @@
 // ============================================================================
 
 import { useState, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import styles from './ShareBar.module.scss';
 import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { buildPermalink } from '../../utils/buildShortener';
 import { api, ApiError } from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 import { MarkupModal } from './MarkupModal';
 
 // ---------------------------------------------------------------------------
@@ -20,13 +22,16 @@ export function ShareBar() {
   const totalPrice = useBuildStore((s) => s.totalPrice);
   const clearBuild = useBuildStore((s) => s.clearBuild);
   const savedBuildId = useBuildStore((s) => s.savedBuildId);
+  const savedBuildOwnerId = useBuildStore((s) => s.savedBuildOwnerId);
   const setSavedBuildId = useBuildStore((s) => s.setSavedBuildId);
   const isDirty = useBuildStore((s) => s.isDirty);
+  const { user } = useAuth();
 
   const [copied, setCopied] = useState(false);
   const [modalFormat, setModalFormat] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const hasParts = Object.keys(selectedParts).length > 0;
   const permalink = useMemo(
@@ -34,11 +39,20 @@ export function ShareBar() {
     [savedBuildId],
   );
 
+  // Ownership: can the current user overwrite this build?
+  const isOwnBuild = !savedBuildOwnerId || (user != null && savedBuildOwnerId === user.userId);
+  const canOverwrite = user != null && isOwnBuild;
+
   // Save: update existing build (PUT) or create new (POST)
   const handleSave = useCallback(async () => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
     if (saving) return;
     setSaving(true);
     setSaveError(null);
+    setShowLoginPrompt(false);
 
     try {
       const parts = (Object.entries(selectedParts) as [CategorySlot, SelectedPart][]).map(
@@ -49,7 +63,7 @@ export function ShareBar() {
         }),
       );
 
-      if (savedBuildId) {
+      if (savedBuildId && canOverwrite) {
         // Update existing build — PUT keeps the same slug/URL
         await api<{ id: string; slug: string }>(`/builds/${savedBuildId}`, {
           method: 'PUT',
@@ -87,7 +101,7 @@ export function ShareBar() {
     } finally {
       setSaving(false);
     }
-  }, [selectedParts, saving, savedBuildId, setSavedBuildId]);
+  }, [selectedParts, saving, savedBuildId, canOverwrite, setSavedBuildId, user]);
 
   // Copy permalink
   const handleCopy = useCallback(async () => {
@@ -110,9 +124,14 @@ export function ShareBar() {
 
   // Save As New — create a new build with a fresh slug
   const handleSaveAsNew = useCallback(async () => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
     if (saving) return;
     setSaving(true);
     setSaveError(null);
+    setShowLoginPrompt(false);
 
     try {
       const parts = (Object.entries(selectedParts) as [CategorySlot, SelectedPart][]).map(
@@ -145,7 +164,7 @@ export function ShareBar() {
     } finally {
       setSaving(false);
     }
-  }, [selectedParts, saving, setSavedBuildId]);
+  }, [selectedParts, saving, setSavedBuildId, user]);
 
   // New build
   const handleNew = useCallback(() => {
@@ -241,16 +260,37 @@ export function ShareBar() {
           </button>
         </div>
 
+        {/* Login prompt banner */}
+        {showLoginPrompt && !user && (
+          <div className={styles.loginPrompt}>
+            <span>Please log in to save your build.</span>
+            <Link to="/login" className={styles.loginLink}>Sign In</Link>
+            <Link to="/register" className={styles.loginLink}>Register</Link>
+            <button
+              type="button"
+              className={styles.dismissBtn}
+              onClick={() => setShowLoginPrompt(false)}
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Action buttons */}
         <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.actionBtn}
-            onClick={handleSave}
-            disabled={!hasParts || saving || (savedBuildId != null && !isDirty)}
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+          {/* Save button: only show when user owns the build (or it's a brand-new unsaved build) */}
+          {(canOverwrite || !savedBuildId) && (
+            <button
+              type="button"
+              className={styles.actionBtn}
+              onClick={handleSave}
+              disabled={!hasParts || saving || (savedBuildId != null && !isDirty)}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          )}
+          {/* Save As: shown when a build exists (always creates a new copy) */}
           {savedBuildId && (
             <button
               type="button"
