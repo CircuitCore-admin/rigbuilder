@@ -323,3 +323,98 @@
   font-weight: 700;
   color: var(--text-primary);
 }
+
+// ---------- Thread edit/delete actions ----------
+
+.threadActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.editBtn,
+.deleteBtn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  &:hover { border-color: var(--border-strong); color: var(--text-primary); }
+}
+
+.deleteBtn {
+  &:hover { border-color: var(--color-error); color: var(--color-error); }
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.editInput {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  box-sizing: border-box;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px 14px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-body);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.saveBtn {
+  padding: 6px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.cancelBtn {
+  padding: 6px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { border-color: var(--border-strong); }
+}

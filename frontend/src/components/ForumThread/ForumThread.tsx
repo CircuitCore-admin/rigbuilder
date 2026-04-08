@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
@@ -76,12 +77,17 @@ function getBadges(reputation: number, role?: string): string[] {
 
 export function ForumThread({ slug }: ForumThreadProps) {
   const { user: authUser } = useAuth();
+  const navigate = useNavigate();
   const [thread, setThread] = useState<Thread | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyBody, setReplyBody] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editBody, setEditBody] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -113,50 +119,122 @@ export function ForumThread({ slug }: ForumThreadProps) {
 
   const handleUpvote = async (replyId: string) => {
     try {
-      const updated = await api<Reply>(`/forum/replies/${replyId}/upvote`, { method: 'POST' });
+      const updated = await api<{ upvotes: number; voted: boolean }>(`/forum/replies/${replyId}/upvote`, { method: 'POST' });
       setReplies((prev) =>
         prev.map((r) => (r.id === replyId ? { ...r, upvotes: updated.upvotes } : r))
       );
     } catch { /* silently fail */ }
   };
 
+  const handleDelete = async () => {
+    if (!thread) return;
+    if (!window.confirm('Are you sure you want to delete this thread?')) return;
+    try {
+      await api(`/forum/${thread.id}`, { method: 'DELETE' });
+      navigate('/community');
+    } catch { /* silently fail */ }
+  };
+
+  const handleStartEdit = () => {
+    if (!thread) return;
+    setEditTitle(thread.title);
+    setEditBody(thread.body);
+    setEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!thread || saving) return;
+    setSaving(true);
+    try {
+      const updated = await api<Thread>(`/forum/${thread.id}`, {
+        method: 'PUT',
+        body: { title: editTitle.trim(), body: editBody.trim() },
+      });
+      setThread(updated);
+      setEditing(false);
+    } catch { /* silently fail */ }
+    finally { setSaving(false); }
+  };
+
+  const canModify = thread && authUser && (
+    authUser.userId === thread.userId ||
+    authUser.role === 'ADMIN' ||
+    authUser.role === 'MODERATOR'
+  );
+
   if (loading) return <div className={styles.loading}>Loading discussion…</div>;
   if (!thread) return <div className={styles.notFound}>Discussion not found</div>;
 
   return (
     <div className={styles.container}>
-      <header className={styles.threadHeader}>
-        <span className={styles.categoryTag}>
-          {CATEGORY_LABELS[thread.category] ?? thread.category}
-        </span>
-        <h1 className={styles.threadTitle}>{thread.title}</h1>
-        <div className={styles.threadMeta}>
-          <UserBadge user={thread.user} />
-          <span className={styles.metaDot}>·</span>
-          <time className={styles.metaTime}>
-            {new Date(thread.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </time>
-          <span className={styles.metaDot}>·</span>
-          <span className={styles.metaStat}>{thread.viewCount} views</span>
-          <span className={styles.metaDot}>·</span>
-          <span className={styles.metaStat}>{thread.replyCount} replies</span>
+      {editing ? (
+        <div className={styles.editForm}>
+          <input
+            type="text"
+            className={styles.editInput}
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+          />
+          <textarea
+            className={styles.editTextarea}
+            value={editBody}
+            onChange={(e) => setEditBody(e.target.value)}
+          />
+          <div className={styles.editActions}>
+            <button
+              className={styles.saveBtn}
+              onClick={handleSaveEdit}
+              disabled={saving || !editTitle.trim() || !editBody.trim()}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button className={styles.cancelBtn} onClick={() => setEditing(false)}>
+              Cancel
+            </button>
+          </div>
         </div>
-        {thread.product && (
-          <a href={`/products/${thread.product.slug}`} className={styles.linkedProduct}>
-            📦 {thread.product.name}
-          </a>
-        )}
-      </header>
+      ) : (
+        <>
+          <header className={styles.threadHeader}>
+            <span className={styles.categoryTag}>
+              {CATEGORY_LABELS[thread.category] ?? thread.category}
+            </span>
+            <h1 className={styles.threadTitle}>{thread.title}</h1>
+            <div className={styles.threadMeta}>
+              <UserBadge user={thread.user} />
+              <span className={styles.metaDot}>·</span>
+              <time className={styles.metaTime}>
+                {new Date(thread.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </time>
+              <span className={styles.metaDot}>·</span>
+              <span className={styles.metaStat}>{thread.viewCount} views</span>
+              <span className={styles.metaDot}>·</span>
+              <span className={styles.metaStat}>{thread.replyCount} replies</span>
+            </div>
+            {thread.product && (
+              <a href={`/products/${thread.product.slug}`} className={styles.linkedProduct}>
+                📦 {thread.product.name}
+              </a>
+            )}
+            {canModify && (
+              <div className={styles.threadActions}>
+                <button className={styles.editBtn} onClick={handleStartEdit}>Edit</button>
+                <button className={styles.deleteBtn} onClick={handleDelete}>Delete</button>
+              </div>
+            )}
+          </header>
 
-      <div
-        className={styles.threadBody}
-        dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(thread.body, {
-            ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote'],
-            ALLOWED_ATTR: ['href', 'target', 'rel'],
-          }),
-        }}
-      />
+          <div
+            className={styles.threadBody}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(thread.body, {
+                ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote'],
+                ALLOWED_ATTR: ['href', 'target', 'rel'],
+              }),
+            }}
+          />
+        </>
+      )}
 
       <ThreadMetadata thread={thread} />
 

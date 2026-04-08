@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { ForumThread } from '../../components/ForumThread/ForumThread';
@@ -81,15 +81,14 @@ function relativeTime(dateStr: string): string {
 export function CommunityPage() {
   const { slug } = useParams<{ slug: string }>();
   if (slug === 'new') return <NewThreadForm />;
-  if (slug) return <ForumThread slug={slug} />;
-  return <CommunityDashboard />;
+  return <CommunityDashboard threadSlug={slug} />;
 }
 
 // ---------------------------------------------------------------------------
 // Dashboard — two-column layout
 // ---------------------------------------------------------------------------
 
-function CommunityDashboard() {
+function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [threads, setThreads] = useState<ThreadListItem[]>([]);
@@ -177,7 +176,9 @@ function CommunityDashboard() {
 
       {/* ---------- Main feed ---------- */}
       <main className={styles.feed}>
-        {loading ? (
+        {threadSlug ? (
+          <ForumThread slug={threadSlug} />
+        ) : loading ? (
           <div className={styles.loadingState}>Loading discussions…</div>
         ) : threads.length === 0 ? (
           <div className={styles.emptyState}>No discussions found</div>
@@ -237,7 +238,7 @@ function CommunityDashboard() {
           </div>
         )}
 
-        {totalPages > 1 && (
+        {!threadSlug && totalPages > 1 && (
           <div className={styles.pagination}>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
@@ -251,6 +252,49 @@ function CommunityDashboard() {
           </div>
         )}
       </main>
+
+      {/* ---------- Right sidebar ---------- */}
+      <aside className={styles.rightSidebar}>
+        <div className={styles.sidebarCard}>
+          <h3 className={styles.sidebarCardTitle}>Community Rules</h3>
+          <ol className={styles.rulesList} style={{ counterReset: 'rule-counter' }}>
+            <li className={styles.ruleItem}>Be respectful and constructive</li>
+            <li className={styles.ruleItem}>No spam or self-promotion</li>
+            <li className={styles.ruleItem}>Stay on topic for each category</li>
+            <li className={styles.ruleItem}>Share your own work, credit others</li>
+            <li className={styles.ruleItem}>No buying/selling outside Deals</li>
+          </ol>
+        </div>
+
+        <div className={styles.sidebarCard}>
+          <h3 className={styles.sidebarCardTitle}>Top Categories</h3>
+          {CATEGORY_LIST.slice(0, 4).map((key) => {
+            const cfg = CATEGORY_BLUEPRINTS[key];
+            return (
+              <div key={key} className={styles.topCategoryRow}>
+                <span className={styles.topCategoryIcon}>{cfg.icon}</span>
+                {cfg.label}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className={styles.sidebarCard}>
+          <h3 className={styles.sidebarCardTitle}>Site Stats</h3>
+          <div className={styles.statRow}>
+            <span className={styles.statValue}>12.4k</span>
+            <span className={styles.statLabel}>Members</span>
+          </div>
+          <div className={styles.statRow}>
+            <span className={styles.statValue}>342</span>
+            <span className={styles.statLabel}>Active</span>
+          </div>
+          <div className={styles.statRow}>
+            <span className={styles.statValue}>8.9k</span>
+            <span className={styles.statLabel}>Posts</span>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }
@@ -272,6 +316,39 @@ function NewThreadForm() {
   const [bomEntries, setBomEntries] = useState<BomEntry[]>([{ item: '', quantity: '1' }]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1';
+      const csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
+      const headers: Record<string, string> = {};
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+      const res = await fetch(`${baseUrl}/uploads`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json() as { url: string };
+      setImageUrls((prev) => {
+        const filtered = prev.filter((u) => u.trim().length > 0);
+        return [...filtered, data.url];
+      });
+    } catch {
+      setError('Image upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   // Login gate
   if (!user) {
@@ -566,13 +643,38 @@ function NewThreadForm() {
                 )}
               </div>
             ))}
-            <button
-              type="button"
-              className={styles.addBtn}
-              onClick={() => setImageUrls([...imageUrls, ''])}
-            >
-              + Add image
-            </button>
+            <div className={styles.uploadRow}>
+              <button
+                type="button"
+                className={styles.addBtn}
+                onClick={() => setImageUrls([...imageUrls, ''])}
+              >
+                + Add URL
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleImageUpload}
+              />
+              <button
+                type="button"
+                className={styles.uploadBtn}
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? 'Uploading…' : '📁 Upload Image'}
+              </button>
+              {uploading && <span className={styles.uploadStatus}>Uploading…</span>}
+            </div>
+            {imageUrls.filter((u) => u.trim()).length > 0 && (
+              <div className={styles.imagePreview}>
+                {imageUrls.filter((u) => u.trim()).map((url, i) => (
+                  <img key={i} src={url} alt={`Preview ${i + 1}`} className={styles.previewThumb} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
