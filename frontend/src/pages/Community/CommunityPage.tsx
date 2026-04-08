@@ -514,7 +514,7 @@ function NewThreadForm() {
           <textarea
             id="thread-body"
             className={styles.fieldTextarea}
-            placeholder="Share the details… (basic HTML formatting supported)"
+            placeholder="Share the details… (Markdown supported: **bold**, *italic*, `code`, > quote)"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={8}
@@ -616,68 +616,6 @@ function NewThreadForm() {
           </>
         )}
 
-        {category === 'SHOWROOM' && (
-          <div className={styles.fieldGroup}>
-            <span className={styles.fieldLabel}>Image URLs (at least 1)</span>
-            {imageUrls.map((url, i) => (
-              <div key={i} className={styles.urlRow}>
-                <input
-                  type="url"
-                  className={styles.fieldInput}
-                  placeholder="https://…"
-                  value={url}
-                  onChange={(e) => {
-                    const next = [...imageUrls];
-                    next[i] = e.target.value;
-                    setImageUrls(next);
-                  }}
-                />
-                {imageUrls.length > 1 && (
-                  <button
-                    type="button"
-                    className={styles.removeBtn}
-                    onClick={() => setImageUrls(imageUrls.filter((_, j) => j !== i))}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ))}
-            <div className={styles.uploadRow}>
-              <button
-                type="button"
-                className={styles.addBtn}
-                onClick={() => setImageUrls([...imageUrls, ''])}
-              >
-                + Add URL
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleImageUpload}
-              />
-              <button
-                type="button"
-                className={styles.uploadBtn}
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? 'Uploading…' : '📁 Upload Image'}
-              </button>
-              {uploading && <span className={styles.uploadStatus}>Uploading…</span>}
-            </div>
-            {imageUrls.filter((u) => u.trim()).length > 0 && (
-              <div className={styles.imagePreview}>
-                {imageUrls.filter((u) => u.trim()).map((url, i) => (
-                  <img key={i} src={url} alt={`Preview ${i + 1}`} className={styles.previewThumb} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {category === 'TELEMETRY' && (
           <>
             <div className={styles.fieldGroup}>
@@ -768,6 +706,66 @@ function NewThreadForm() {
             </div>
           </>
         )}
+
+        <div className={styles.fieldGroup}>
+            <span className={styles.fieldLabel}>Images (optional)</span>
+            {imageUrls.map((url, i) => (
+              <div key={i} className={styles.urlRow}>
+                <input
+                  type="url"
+                  className={styles.fieldInput}
+                  placeholder="https://…"
+                  value={url}
+                  onChange={(e) => {
+                    const next = [...imageUrls];
+                    next[i] = e.target.value;
+                    setImageUrls(next);
+                  }}
+                />
+                {imageUrls.length > 1 && (
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => setImageUrls(imageUrls.filter((_, j) => j !== i))}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            <div className={styles.uploadRow}>
+              <button
+                type="button"
+                className={styles.addBtn}
+                onClick={() => setImageUrls([...imageUrls, ''])}
+              >
+                + Add URL
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleImageUpload}
+              />
+              <button
+                type="button"
+                className={styles.uploadBtn}
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? 'Uploading…' : '📁 Upload Image'}
+              </button>
+              {uploading && <span className={styles.uploadStatus}>Uploading…</span>}
+            </div>
+            {imageUrls.filter((u) => u.trim()).length > 0 && (
+              <div className={styles.imagePreview}>
+                {imageUrls.filter((u) => u.trim()).map((url, i) => (
+                  <img key={i} src={url} alt={`Preview ${i + 1}`} className={styles.previewThumb} />
+                ))}
+              </div>
+            )}
+          </div>
 
         <div className={styles.formActions}>
           <button

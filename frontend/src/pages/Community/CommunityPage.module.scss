@@ -6,12 +6,13 @@
 
 .dashboard {
   display: flex;
+  gap: 0;
   min-height: calc(100vh - 64px);
   margin: 0 -20px; // break out of content wrapper
 }
 
 .sidebar {
-  width: 240px;
+  width: 250px;
   flex-shrink: 0;
   background: var(--bg-primary);
   border-right: 1px solid var(--border-default);
@@ -100,7 +101,7 @@
 .feed {
   flex: 1;
   min-width: 0;
-  padding: 24px 28px;
+  padding: 24px 32px;
 }
 
 .loadingState,

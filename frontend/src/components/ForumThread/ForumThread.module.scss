@@ -418,3 +418,37 @@
   cursor: pointer;
   &:hover { border-color: var(--border-strong); }
 }
+
+.followBtn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 4px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  margin-top: 12px;
+  &:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.followBtnActive {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(0, 255, 163, 0.08);
+}
+
+.threadLink {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--accent-secondary);
+  background: rgba(110, 86, 255, 0.08);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  word-break: break-all;
+  &:hover { background: rgba(110, 86, 255, 0.18); }
+}

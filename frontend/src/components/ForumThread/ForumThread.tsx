@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DOMPurify from 'dompurify';
+import Markdown from 'react-markdown';
 import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBadge';
@@ -48,6 +48,7 @@ interface Thread {
   product: ThreadProduct | null;
   metadata?: Record<string, unknown>;
   imageUrls?: string[];
+  link?: string | null;
 }
 
 interface ForumThreadProps {
@@ -88,6 +89,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -99,6 +102,13 @@ export function ForumThread({ slug }: ForumThreadProps) {
       .catch(() => setThread(null))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    if (!thread?.id || !authUser) return;
+    api<{ following: boolean }>(`/forum/threads/${thread.id}/following`)
+      .then((data) => setIsFollowing(data.following))
+      .catch(() => {});
+  }, [thread?.id, authUser]);
 
   const nestedReplies = useMemo(() => buildReplyTree(replies), [replies]);
 
@@ -118,12 +128,22 @@ export function ForumThread({ slug }: ForumThreadProps) {
   };
 
   const handleUpvote = async (replyId: string) => {
+    // Optimistic update: increment immediately
+    setReplies((prev) =>
+      prev.map((r) => (r.id === replyId ? { ...r, upvotes: r.upvotes + 1 } : r))
+    );
     try {
       const updated = await api<{ upvotes: number; voted: boolean }>(`/forum/replies/${replyId}/upvote`, { method: 'POST' });
+      // Reconcile with server value
       setReplies((prev) =>
         prev.map((r) => (r.id === replyId ? { ...r, upvotes: updated.upvotes } : r))
       );
-    } catch { /* silently fail */ }
+    } catch {
+      // Revert on failure
+      setReplies((prev) =>
+        prev.map((r) => (r.id === replyId ? { ...r, upvotes: r.upvotes - 1 } : r))
+      );
+    }
   };
 
   const handleDelete = async () => {
@@ -154,6 +174,16 @@ export function ForumThread({ slug }: ForumThreadProps) {
       setEditing(false);
     } catch { /* silently fail */ }
     finally { setSaving(false); }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!thread || followLoading) return;
+    setFollowLoading(true);
+    try {
+      const result = await api<{ following: boolean }>(`/forum/threads/${thread.id}/follow`, { method: 'POST' });
+      setIsFollowing(result.following);
+    } catch { /* silently fail */ }
+    finally { setFollowLoading(false); }
   };
 
   const canModify = thread && authUser && (
@@ -216,23 +246,31 @@ export function ForumThread({ slug }: ForumThreadProps) {
                 📦 {thread.product.name}
               </a>
             )}
+            {thread.link && (
+              <a href={thread.link} target="_blank" rel="noopener noreferrer" className={styles.threadLink}>
+                🔗 {thread.link}
+              </a>
+            )}
             {canModify && (
               <div className={styles.threadActions}>
                 <button className={styles.editBtn} onClick={handleStartEdit}>Edit</button>
                 <button className={styles.deleteBtn} onClick={handleDelete}>Delete</button>
               </div>
             )}
+            {authUser && (
+              <button
+                className={`${styles.followBtn} ${isFollowing ? styles.followBtnActive : ''}`}
+                onClick={handleToggleFollow}
+                disabled={followLoading}
+              >
+                {followLoading ? '…' : isFollowing ? '✓ Following' : '+ Follow'}
+              </button>
+            )}
           </header>
 
-          <div
-            className={styles.threadBody}
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(thread.body, {
-                ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote'],
-                ALLOWED_ATTR: ['href', 'target', 'rel'],
-              }),
-            }}
-          />
+          <div className={styles.threadBody}>
+            <Markdown>{thread.body}</Markdown>
+          </div>
         </>
       )}
 
@@ -306,15 +344,9 @@ function ReplyNode({
             {new Date(reply.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </time>
         </div>
-        <div
-          className={styles.replyBody}
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(reply.body, {
-              ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li', 'code', 'pre'],
-              ALLOWED_ATTR: ['href', 'target', 'rel'],
-            }),
-          }}
-        />
+        <div className={styles.replyBody}>
+          <Markdown>{reply.body}</Markdown>
+        </div>
         <div className={styles.replyActions}>
           <button className={styles.upvoteBtn} onClick={() => onUpvote(reply.id)}>▲ {reply.upvotes}</button>
           <button className={styles.replyBtn} onClick={() => onReply(reply.id)}>Reply</button>
