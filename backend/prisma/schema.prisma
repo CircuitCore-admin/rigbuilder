@@ -372,6 +372,7 @@ enum ForumCategory {
   TELEMETRY
   DEALS
   GENERAL
+  TROUBLESHOOTING // legacy — kept for backward compatibility with existing threads
 }
 
 enum GuideCategory {

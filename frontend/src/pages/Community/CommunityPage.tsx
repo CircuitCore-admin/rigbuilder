@@ -188,7 +188,7 @@ function CommunityDashboard() {
                 {t.imageUrls?.[0] && (
                   <img
                     src={t.imageUrls[0]}
-                    alt={t.title}
+                    alt={`Showroom photo for ${t.title}`}
                     className={styles.showroomImage}
                   />
                 )}
