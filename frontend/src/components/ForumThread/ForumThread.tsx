@@ -7,7 +7,7 @@ import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBad
 import { EmbedBuildCard } from '../EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../MarkdownEditor/MarkdownEditor';
 import { useToast } from '../Toast/Toast';
-import { CloseIcon, ChevronLeftIcon, ChevronRightIcon } from '../Icons/ForumIcons';
+import { CloseIcon, ChevronLeftIcon, ChevronRightIcon, UpArrowIcon, DownArrowIcon, ChatIcon, EyeIcon, ShareIcon } from '../Icons/ForumIcons';
 import styles from './ForumThread.module.scss';
 
 interface ThreadUser {
@@ -16,6 +16,7 @@ interface ThreadUser {
   avatarUrl: string | null;
   reputation: number;
   role?: string;
+  pitCred?: number;
 }
 
 interface ThreadProduct {
@@ -46,6 +47,9 @@ interface Thread {
   userId: string;
   viewCount: number;
   replyCount: number;
+  score: number;
+  upvotes: number;
+  downvotes: number;
   createdAt: string;
   user: ThreadUser;
   product: ThreadProduct | null;
@@ -171,6 +175,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [inlineReplyId, setInlineReplyId] = useState<string | null>(null);
   const [inlineReplyBody, setInlineReplyBody] = useState('');
+  const [threadScore, setThreadScore] = useState(0);
+  const [userVote, setUserVote] = useState<1 | -1 | 0>(0);
 
   useEffect(() => {
     setLoading(true);
@@ -178,10 +184,22 @@ export function ForumThread({ slug }: ForumThreadProps) {
       api<Thread>(`/forum/${slug}`),
       api<Reply[]>(`/forum/${slug}/replies`),
     ])
-      .then(([t, r]) => { setThread(t); setReplies(r); })
+      .then(([t, r]) => {
+        setThread(t);
+        setReplies(r);
+        setThreadScore(t.score ?? 0);
+      })
       .catch(() => setThread(null))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  // Fetch user's current vote on thread
+  useEffect(() => {
+    if (!thread?.id) return;
+    api<{ userVote: number }>(`/forum/threads/${thread.id}/vote`)
+      .then((data) => setUserVote(data.userVote as 1 | -1 | 0))
+      .catch(() => {});
+  }, [thread?.id]);
 
   useEffect(() => {
     if (!thread?.id || !authUser) return;
@@ -298,6 +316,42 @@ export function ForumThread({ slug }: ForumThreadProps) {
     finally { setFollowLoading(false); }
   };
 
+  const handleThreadVote = async (value: 1 | -1) => {
+    if (!thread) return;
+    if (!authUser) {
+      showToast('Log in to vote', 'error');
+      return;
+    }
+    // Toggle: if same vote, remove it
+    const newValue = userVote === value ? 0 : value;
+    const oldScore = threadScore;
+    const oldVote = userVote;
+
+    // Optimistic update
+    setUserVote(newValue as 1 | -1 | 0);
+    setThreadScore(oldScore - oldVote + newValue);
+
+    try {
+      const result = await api<{ score: number; userVote: number }>(`/forum/threads/${thread.id}/vote`, {
+        method: 'POST',
+        body: { value: newValue },
+      });
+      setThreadScore(result.score);
+      setUserVote(result.userVote as 1 | -1 | 0);
+    } catch {
+      setUserVote(oldVote);
+      setThreadScore(oldScore);
+    }
+  };
+
+  const handleShareThread = () => {
+    if (!thread) return;
+    const url = `${window.location.origin}/community/${thread.slug}`;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied to clipboard', 'success');
+    }).catch(() => {});
+  };
+
   const canModify = thread && authUser && (
     authUser.userId === thread.userId ||
     authUser.role === 'ADMIN' ||
@@ -337,23 +391,44 @@ export function ForumThread({ slug }: ForumThreadProps) {
           </div>
         </div>
       ) : (
-        <>
-          <header className={styles.threadHeader}>
-            <span className={styles.categoryTag}>
-              {CATEGORY_LABELS[thread.category] ?? thread.category}
-            </span>
-            <h1 className={styles.threadTitle}>{thread.title}</h1>
-            <div className={styles.threadMeta}>
-              <UserBadge user={thread.user} />
-              <span className={styles.metaDot}>·</span>
-              <time className={styles.metaTime}>
-                {new Date(thread.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </time>
-              <span className={styles.metaDot}>·</span>
-              <span className={styles.metaStat}>{thread.viewCount} views</span>
-              <span className={styles.metaDot}>·</span>
-              <span className={styles.metaStat}>{thread.replyCount} replies</span>
+        <div className={styles.threadLayout}>
+          {/* Vote column */}
+          <div className={styles.voteColumn}>
+            <button
+              className={`${styles.voteBtn} ${styles.voteBtnUp} ${userVote === 1 ? styles.voteBtnUpActive : ''}`}
+              onClick={() => handleThreadVote(1)}
+              title="Upvote"
+            >
+              <UpArrowIcon size={18} />
+            </button>
+            <span className={styles.voteScore}>{threadScore}</span>
+            <button
+              className={`${styles.voteBtn} ${styles.voteBtnDown} ${userVote === -1 ? styles.voteBtnDownActive : ''}`}
+              onClick={() => handleThreadVote(-1)}
+              title="Downvote"
+            >
+              <DownArrowIcon size={18} />
+            </button>
+          </div>
+
+          {/* Thread content */}
+          <div className={styles.threadContent}>
+            <div className={styles.threadTopLine}>
+              <span className={styles.categoryTag}>
+                {CATEGORY_LABELS[thread.category] ?? thread.category}
+              </span>
+              <span className={styles.threadMetaText}>
+                Posted by <UserBadge user={thread.user} />
+                {thread.user.pitCred != null && (
+                  <span className={styles.pitCredInline}> · {thread.user.pitCred} PC</span>
+                )}
+                <span className={styles.metaDot}>·</span>
+                <time>{new Date(thread.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
+              </span>
             </div>
+
+            <h1 className={styles.threadTitle}>{thread.title}</h1>
+
             {thread.product && (
               <a href={`/products/${thread.product.slug}`} className={styles.linkedProduct}>
                 {thread.product.name}
@@ -364,27 +439,57 @@ export function ForumThread({ slug }: ForumThreadProps) {
                 {thread.link}
               </a>
             )}
-            {canModify && (
-              <div className={styles.threadActions}>
-                <button className={styles.editBtn} onClick={handleStartEdit}>Edit</button>
-                <button className={styles.deleteBtn} onClick={handleDelete}>Delete</button>
-              </div>
-            )}
-            {authUser && (
-              <button
-                className={`${styles.followBtn} ${isFollowing ? styles.followBtnActive : ''}`}
-                onClick={handleToggleFollow}
-                disabled={followLoading}
-              >
-                {followLoading ? '…' : isFollowing ? '✓ Following' : '+ Follow'}
-              </button>
-            )}
-          </header>
 
-          <div className={styles.threadBody}>
-            <Markdown>{thread.body}</Markdown>
+            <div className={styles.threadBody}>
+              <Markdown>{thread.body}</Markdown>
+            </div>
+
+            {/* Actions bar (Reddit-style) */}
+            <div className={styles.threadActionsBar}>
+              <span className={styles.actionItem}>
+                <ChatIcon size={14} /> {thread.replyCount} {thread.replyCount === 1 ? 'Comment' : 'Comments'}
+              </span>
+              <span className={styles.actionItem}>
+                <EyeIcon size={14} /> {thread.viewCount} Views
+              </span>
+              <button className={styles.actionBtn} onClick={handleShareThread}>
+                <ShareIcon size={14} /> Share
+              </button>
+              {authUser && (
+                <button
+                  className={`${styles.actionBtn} ${isFollowing ? styles.actionBtnActive : ''}`}
+                  onClick={handleToggleFollow}
+                  disabled={followLoading}
+                >
+                  {followLoading ? '…' : isFollowing ? '✓ Following' : '+ Follow'}
+                </button>
+              )}
+              {canModify && (
+                <>
+                  <button className={styles.actionBtn} onClick={handleStartEdit}>Edit</button>
+                  <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={handleDelete}>Delete</button>
+                </>
+              )}
+            </div>
+
+            {/* Mobile vote display (inline) */}
+            <div className={styles.mobileVoteRow}>
+              <button
+                className={`${styles.voteBtn} ${styles.voteBtnUp} ${userVote === 1 ? styles.voteBtnUpActive : ''}`}
+                onClick={() => handleThreadVote(1)}
+              >
+                <UpArrowIcon size={16} />
+              </button>
+              <span className={styles.voteScore}>{threadScore}</span>
+              <button
+                className={`${styles.voteBtn} ${styles.voteBtnDown} ${userVote === -1 ? styles.voteBtnDownActive : ''}`}
+                onClick={() => handleThreadVote(-1)}
+              >
+                <DownArrowIcon size={16} />
+              </button>
+            </div>
           </div>
-        </>
+        </div>
       )}
 
       <ThreadMetadata
@@ -550,6 +655,9 @@ function UserBadge({ user }: { user: ThreadUser }) {
       {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} />}
       <span className={styles.userName}>{user.username}</span>
       <VerifiedCreatorBadge role={user.role} />
+      {user.pitCred != null && user.pitCred > 0 && (
+        <span className={styles.pitCredBadge}>{user.pitCred} PC</span>
+      )}
     </span>
   );
 }

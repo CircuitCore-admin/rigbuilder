@@ -7,7 +7,7 @@ import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import {
-  FolderIcon, SearchIcon, UploadIcon, ImageIcon,
+  FolderIcon, SearchIcon, UploadIcon, ImageIcon, ChatIcon, EyeIcon, UpArrowIcon,
 } from '../../components/Icons/ForumIcons';
 import { CATEGORY_ICONS } from '../../components/Icons/ForumIcons';
 import {
@@ -30,6 +30,7 @@ interface ThreadListItem {
   category: string;
   viewCount: number;
   replyCount: number;
+  score?: number;
   createdAt: string;
   imageUrls?: string[];
   user: {
@@ -38,6 +39,7 @@ interface ThreadListItem {
     avatarUrl: string | null;
     reputation: number;
     role?: string;
+    pitCred?: number;
   };
 }
 
@@ -308,35 +310,50 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
 
                   return (
                     <a key={t.id} href={`/community/${t.slug}`} className={styles.threadRow}>
-                      <span
-                        className={styles.categoryPill}
-                        style={{ background: `${color}cc` }}
-                      >
-                        {catLabel}
-                      </span>
-                      <div className={styles.threadContent}>
-                        <span className={styles.threadTitle}>{t.title}</span>
+                      <div className={styles.threadCardScore}>
+                        <UpArrowIcon size={12} />
+                        <span>{t.score ?? 0}</span>
+                      </div>
+                      <div className={styles.threadCardContent}>
+                        <div className={styles.threadCardTopLine}>
+                          <span
+                            className={styles.categoryPill}
+                            style={{ background: `${color}cc` }}
+                          >
+                            {catLabel}
+                          </span>
+                          <span className={styles.threadCardMeta}>
+                            Posted by {t.user.username}
+                            {t.user.pitCred != null && t.user.pitCred > 0 && (
+                              <span className={styles.pitCredSmall}> · {t.user.pitCred} PC</span>
+                            )}
+                            {' · '}
+                            {relativeTime(t.createdAt)}
+                          </span>
+                        </div>
+                        <div className={styles.threadTitleRow}>
+                          <span className={styles.threadTitle}>{t.title}</span>
+                          {t.imageUrls && t.imageUrls.length > 0 && t.imageUrls[0] && (
+                            <img
+                              src={t.imageUrls[0]}
+                              alt=""
+                              className={styles.threadThumb}
+                            />
+                          )}
+                        </div>
                         {t.body && (
                           <span className={styles.threadSnippet}>
                             {t.body.length > SNIPPET_MAX_LENGTH ? t.body.slice(0, SNIPPET_MAX_LENGTH) + '…' : t.body}
                           </span>
                         )}
-                      </div>
-                      <div className={styles.threadFooter}>
-                        <span className={styles.threadAuthor}>
-                          {t.user.avatarUrl && (
-                            <img
-                              src={t.user.avatarUrl}
-                              alt=""
-                              className={styles.threadAvatar}
-                            />
-                          )}
-                          {t.user.username}
-                        </span>
-                        <span className={styles.replyPill}>{t.replyCount} replies</span>
-                        <span className={styles.threadTime}>
-                          {relativeTime(t.createdAt)}
-                        </span>
+                        <div className={styles.threadFooter}>
+                          <span className={styles.threadFooterItem}>
+                            <ChatIcon size={13} /> {t.replyCount} Comments
+                          </span>
+                          <span className={styles.threadFooterItem}>
+                            <EyeIcon size={13} /> {t.viewCount} Views
+                          </span>
+                        </div>
                       </div>
                     </a>
                   );
@@ -363,6 +380,13 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
 
       {/* ---------- Right sidebar ---------- */}
       <aside className={styles.rightSidebar}>
+        <div className={styles.sidebarCard}>
+          <h3 className={styles.sidebarCardTitle}>About This Community</h3>
+          <p className={styles.aboutText}>
+            The sim racing community hub — share your builds, get advice, discuss mods, and connect with fellow racing enthusiasts.
+          </p>
+        </div>
+
         <div className={styles.sidebarCard}>
           <h3 className={styles.sidebarCardTitle}>Community Rules</h3>
           <ol className={styles.rulesList} style={{ counterReset: 'rule-counter' }}>
