@@ -26,7 +26,7 @@ export class ForumRepository {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          user: { select: { id: true, username: true, avatarUrl: true, reputation: true } },
+          user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true } },
         },
       }),
       prisma.forumThread.count({ where }),

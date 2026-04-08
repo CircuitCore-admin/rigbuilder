@@ -366,8 +366,10 @@ model WishlistItem {
 // ---------------------------------------------------------------------------
 
 enum ForumCategory {
-  TROUBLESHOOTING
   BUILD_ADVICE
+  DIY_MODS
+  SHOWROOM
+  TELEMETRY
   DEALS
   GENERAL
 }
@@ -420,6 +422,8 @@ model ForumThread {
   isLocked   Boolean       @default(false) @map("is_locked")
   viewCount  Int           @default(0) @map("view_count")
   replyCount Int           @default(0) @map("reply_count")
+  metadata   Json?         // category-specific blueprint data (BOM, tools, deal status, etc.)
+  imageUrls  String[]      @default([]) @map("image_urls") // gallery images for SHOWROOM
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 

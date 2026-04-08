@@ -30,6 +30,8 @@ export class ForumService {
     category: string;
     userId: string;
     productId?: string;
+    metadata?: Record<string, unknown>;
+    imageUrls?: string[];
   }) {
     const slug = slugify(data.title) + '-' + Date.now().toString(36);
 
@@ -40,6 +42,8 @@ export class ForumService {
       category: data.category as any,
       user: { connect: { id: data.userId } },
       ...(data.productId && { product: { connect: { id: data.productId } } }),
+      ...(data.metadata && { metadata: data.metadata }),
+      ...(data.imageUrls?.length && { imageUrls: data.imageUrls }),
     });
   }
 

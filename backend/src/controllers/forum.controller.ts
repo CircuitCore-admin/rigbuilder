@@ -42,6 +42,8 @@ export class ForumController {
       category: req.body.category,
       userId: session.userId,
       productId: req.body.productId,
+      metadata: req.body.metadata,
+      imageUrls: req.body.imageUrls,
     });
     res.status(201).json(thread);
   }
