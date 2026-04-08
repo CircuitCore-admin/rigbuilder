@@ -24,8 +24,17 @@
   // Accents
   --accent-primary: #00FFA3;
   --accent-glow: rgba(0, 255, 163, 0.12);
+  --accent-primary-subtle: rgba(0, 255, 163, 0.08);
+  --accent-primary-muted: rgba(0, 255, 163, 0.15);
   --accent-secondary: #6E56FF;
+  --accent-secondary-subtle: rgba(110, 86, 255, 0.08);
+  --accent-secondary-muted: rgba(110, 86, 255, 0.15);
   --accent-hot: #FF3366;
+  --accent-hot-subtle: rgba(255, 51, 102, 0.08);
+
+  // Surfaces
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --surface-active: rgba(255, 255, 255, 0.07);
 
   // Semantic
   --color-warning: #FFB020;

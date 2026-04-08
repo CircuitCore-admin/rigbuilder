@@ -7,6 +7,10 @@ import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import {
+  FolderIcon, SearchIcon, UploadIcon, ImageIcon,
+} from '../../components/Icons/ForumIcons';
+import { CATEGORY_ICONS } from '../../components/Icons/ForumIcons';
+import {
   CATEGORY_BLUEPRINTS,
   CATEGORY_LIST,
   type BlueprintCategory,
@@ -173,13 +177,14 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             className={`${styles.categoryItem} ${activeCategory === '' ? styles.categoryActive : ''}`}
             onClick={() => setCategory('')}
           >
-            <span className={styles.categoryIcon}>🗂️</span>
+            <span className={styles.categoryIcon}><FolderIcon size={16} /></span>
             <span className={styles.categoryLabel}>All Topics</span>
           </button>
 
           {CATEGORY_LIST.map((key) => {
             const cfg = CATEGORY_BLUEPRINTS[key];
             const isActive = activeCategory === key;
+            const IconComponent = CATEGORY_ICONS[key];
             return (
               <button
                 key={key}
@@ -187,7 +192,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                 onClick={() => setCategory(key)}
                 style={isActive ? { borderLeftColor: cfg.color } : undefined}
               >
-                <span className={styles.categoryIcon}>{cfg.icon}</span>
+                <span className={styles.categoryIcon}>{IconComponent && <IconComponent size={16} />}</span>
                 <span className={styles.categoryLabel}>{cfg.label}</span>
               </button>
             );
@@ -201,17 +206,18 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
           className={`${styles.mobileCategoryPill} ${activeCategory === '' ? styles.mobileCategoryPillActive : ''}`}
           onClick={() => setCategory('')}
         >
-          🗂️ All
+          <FolderIcon size={14} /> All
         </button>
         {CATEGORY_LIST.map((key) => {
           const cfg = CATEGORY_BLUEPRINTS[key];
+          const IconComponent = CATEGORY_ICONS[key];
           return (
             <button
               key={key}
               className={`${styles.mobileCategoryPill} ${activeCategory === key ? styles.mobileCategoryPillActive : ''}`}
               onClick={() => setCategory(key)}
             >
-              {cfg.icon} {cfg.label}
+              {IconComponent && <IconComponent size={14} />} {cfg.label}
             </button>
           );
         })}
@@ -225,7 +231,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
           <>
             {/* Search */}
             <div className={styles.searchRow}>
-              <span className={styles.searchIcon}>🔍</span>
+              <span className={styles.searchIcon}><SearchIcon size={14} /></span>
               <input
                 type="text"
                 className={styles.searchInput}
@@ -268,7 +274,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                         />
                       )}
                       {t.imageUrls && t.imageUrls.length > 1 && (
-                        <span className={styles.imageCountBadge}>📷 {t.imageUrls.length}</span>
+                        <span className={styles.imageCountBadge}><ImageIcon size={12} /> {t.imageUrls.length}</span>
                       )}
                     </div>
                     <div className={styles.showroomInfo}>
@@ -357,9 +363,10 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
           <h3 className={styles.sidebarCardTitle}>Top Categories</h3>
           {CATEGORY_LIST.slice(0, 4).map((key) => {
             const cfg = CATEGORY_BLUEPRINTS[key];
+            const IconComponent = CATEGORY_ICONS[key];
             return (
               <div key={key} className={styles.topCategoryRow}>
-                <span className={styles.topCategoryIcon}>{cfg.icon}</span>
+                <span className={styles.topCategoryIcon}>{IconComponent && <IconComponent size={14} />}</span>
                 {cfg.label}
               </div>
             );
@@ -567,6 +574,7 @@ function NewThreadForm() {
         <div className={styles.categoryGrid}>
           {CATEGORY_LIST.map((key) => {
             const cfg = CATEGORY_BLUEPRINTS[key];
+            const IconComponent = CATEGORY_ICONS[key];
             return (
               <button
                 key={key}
@@ -583,7 +591,7 @@ function NewThreadForm() {
                   setStep(2);
                 }}
               >
-                <span className={styles.categoryCardIcon}>{cfg.icon}</span>
+                <span className={styles.categoryCardIcon}>{IconComponent && <IconComponent size={28} />}</span>
                 <span className={styles.categoryCardLabel}>{cfg.label}</span>
                 <span className={styles.categoryCardDesc}>{cfg.description}</span>
               </button>
@@ -678,7 +686,7 @@ function NewThreadForm() {
           ← Change category
         </button>
         <h1 className={styles.formTitle}>
-          {blueprint?.icon} {blueprint?.label}
+          {category && CATEGORY_ICONS[category] && (() => { const I = CATEGORY_ICONS[category]; return <I size={24} />; })()} {blueprint?.label}
         </h1>
         <p className={styles.formSubtitle}>{blueprint?.description}</p>
       </header>
@@ -737,10 +745,10 @@ function NewThreadForm() {
                 setMetadata((m) => ({ ...m, buildPermalink: e.target.value }))
               }
             />
-            {metadata.buildPermalink && !isPermalinkValid && (
+            {!!metadata.buildPermalink && !isPermalinkValid && (
               <span className={styles.fieldHint}>Must start with /list/</span>
             )}
-            {metadata.buildPermalink && isPermalinkValid && (
+            {!!metadata.buildPermalink && isPermalinkValid && (
               <EmbedBuildCard permalink={String(metadata.buildPermalink)} />
             )}
           </div>
@@ -917,7 +925,7 @@ function NewThreadForm() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
           >
-            <span className={styles.dropZoneIcon}>📁</span>
+            <span className={styles.dropZoneIcon}><UploadIcon size={24} /></span>
             <span className={styles.dropZoneText}>Drop images here or click to upload</span>
             <input
               ref={fileInputRef}
@@ -954,7 +962,7 @@ function NewThreadForm() {
           )}
 
           {/* Thumbnail row */}
-          {imageUrls.filter(u => u.trim()).length > 0 && (
+          {(imageUrls.filter(u => u.trim()).length > 0 || uploadingIndexes.size > 0) && (
             <div className={styles.thumbRow}>
               {imageUrls.map((url, i) => {
                 if (!url.trim()) return (

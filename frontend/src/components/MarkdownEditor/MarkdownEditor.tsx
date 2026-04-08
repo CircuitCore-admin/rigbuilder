@@ -1,5 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, type ReactNode } from 'react';
 import Markdown from 'react-markdown';
+import {
+  BoldIcon, ItalicIcon, StrikethroughIcon, HeadingIcon, LinkIcon,
+  ListBulletIcon, ListNumberedIcon, QuoteIcon, CodeIcon, CodeBlockIcon,
+} from '../Icons/ForumIcons';
 import styles from './MarkdownEditor.module.scss';
 
 interface MarkdownEditorProps {
@@ -14,26 +18,29 @@ interface MarkdownEditorProps {
 
 interface ToolbarAction {
   label: string;
-  icon: string;
+  icon: ReactNode;
   prefix: string;
   suffix: string;
   block?: boolean;
+  placeholder?: string;
+  shortcut?: string;
+  shortcutKey?: string;
 }
 
 const TOOLBAR_ACTIONS: (ToolbarAction | 'sep')[] = [
-  { label: 'Bold', icon: 'B', prefix: '**', suffix: '**' },
-  { label: 'Italic', icon: 'I', prefix: '*', suffix: '*' },
-  { label: 'Strikethrough', icon: 'S̶', prefix: '~~', suffix: '~~' },
+  { label: 'Bold', icon: <BoldIcon size={15} />, prefix: '**', suffix: '**', placeholder: 'bold text', shortcut: 'Ctrl+B', shortcutKey: 'b' },
+  { label: 'Italic', icon: <ItalicIcon size={15} />, prefix: '*', suffix: '*', placeholder: 'italic text', shortcut: 'Ctrl+I', shortcutKey: 'i' },
+  { label: 'Strikethrough', icon: <StrikethroughIcon size={15} />, prefix: '~~', suffix: '~~', placeholder: 'strikethrough text' },
   'sep',
-  { label: 'Heading', icon: 'H', prefix: '## ', suffix: '', block: true },
-  { label: 'Link', icon: '🔗', prefix: '[', suffix: '](url)' },
+  { label: 'Heading', icon: <HeadingIcon size={15} />, prefix: '## ', suffix: '', block: true, placeholder: 'Heading' },
+  { label: 'Link', icon: <LinkIcon size={15} />, prefix: '[', suffix: '](url)', placeholder: 'link text', shortcut: 'Ctrl+K', shortcutKey: 'k' },
   'sep',
-  { label: 'Bulleted list', icon: '•', prefix: '- ', suffix: '', block: true },
-  { label: 'Numbered list', icon: '1.', prefix: '1. ', suffix: '', block: true },
-  { label: 'Quote', icon: '❝', prefix: '> ', suffix: '', block: true },
+  { label: 'Bulleted list', icon: <ListBulletIcon size={15} />, prefix: '- ', suffix: '', block: true, placeholder: 'list item' },
+  { label: 'Numbered list', icon: <ListNumberedIcon size={15} />, prefix: '1. ', suffix: '', block: true, placeholder: 'list item' },
+  { label: 'Quote', icon: <QuoteIcon size={15} />, prefix: '> ', suffix: '', block: true, placeholder: 'quote' },
   'sep',
-  { label: 'Inline code', icon: '`', prefix: '`', suffix: '`' },
-  { label: 'Code block', icon: '```', prefix: '```\n', suffix: '\n```', block: true },
+  { label: 'Inline code', icon: <CodeIcon size={15} />, prefix: '`', suffix: '`', placeholder: 'code' },
+  { label: 'Code block', icon: <CodeBlockIcon size={15} />, prefix: '```\n', suffix: '\n```', block: true, placeholder: 'code' },
 ];
 
 const HELP_ITEMS = [
@@ -71,31 +78,63 @@ export function MarkdownEditor({
       const start = ta.selectionStart;
       const end = ta.selectionEnd;
       const selected = value.slice(start, end);
+      const hasSelection = start !== end;
 
       let insertion: string;
-      let cursorOffset: number;
+      let selectStart: number;
+      let selectEnd: number;
 
-      if (action.block && start > 0 && value[start - 1] !== '\n' && value[start - 1] !== '\r') {
-        // For block-level syntax, ensure we're at line start
-        const prefix = '\n' + action.prefix;
-        insertion = prefix + selected + action.suffix;
-        cursorOffset = prefix.length + selected.length;
+      if (hasSelection) {
+        if (action.block && start > 0 && value[start - 1] !== '\n' && value[start - 1] !== '\r') {
+          const prefix = '\n' + action.prefix;
+          insertion = prefix + selected + action.suffix;
+          selectStart = start + prefix.length;
+          selectEnd = selectStart + selected.length;
+        } else {
+          insertion = action.prefix + selected + action.suffix;
+          selectStart = start + action.prefix.length;
+          selectEnd = selectStart + selected.length;
+        }
       } else {
-        insertion = action.prefix + selected + action.suffix;
-        cursorOffset = action.prefix.length + selected.length;
+        const placeholderText = action.placeholder ?? '';
+        if (action.block && start > 0 && value[start - 1] !== '\n' && value[start - 1] !== '\r') {
+          const prefix = '\n' + action.prefix;
+          insertion = prefix + placeholderText + action.suffix;
+          selectStart = start + prefix.length;
+          selectEnd = selectStart + placeholderText.length;
+        } else {
+          insertion = action.prefix + placeholderText + action.suffix;
+          selectStart = start + action.prefix.length;
+          selectEnd = selectStart + placeholderText.length;
+        }
       }
 
       const newValue = value.slice(0, start) + insertion + value.slice(end);
       onChange(newValue);
 
-      // Restore cursor position
       requestAnimationFrame(() => {
         ta.focus();
-        const pos = start + cursorOffset;
-        ta.setSelectionRange(pos, pos);
+        ta.setSelectionRange(selectStart, selectEnd);
       });
     },
     [value, onChange],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+      if (!isCtrlOrCmd) return;
+
+      for (const action of TOOLBAR_ACTIONS) {
+        if (action === 'sep') continue;
+        if (action.shortcutKey && e.key.toLowerCase() === action.shortcutKey) {
+          e.preventDefault();
+          insertMarkdown(action);
+          return;
+        }
+      }
+    },
+    [insertMarkdown],
   );
 
   const charCount = value.length;
@@ -133,7 +172,7 @@ export function MarkdownEditor({
                   key={action.label}
                   type="button"
                   className={styles.toolbarBtn}
-                  title={action.label}
+                  title={action.shortcut ? `${action.label} (${action.shortcut})` : action.label}
                   onClick={() => insertMarkdown(action)}
                 >
                   {action.icon}
@@ -155,6 +194,7 @@ export function MarkdownEditor({
             maxLength={maxLength}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
+            onKeyDown={handleKeyDown}
           />
         </>
       ) : (
@@ -186,7 +226,7 @@ export function MarkdownEditor({
           {HELP_ITEMS.map((item) => (
             <div key={item.syntax} className={styles.helpRow}>
               <span className={styles.helpSyntax}>{item.syntax}</span>
-              <span>{item.desc}</span>
+              <span className={styles.helpDesc}>{item.desc}</span>
             </div>
           ))}
         </div>

@@ -7,6 +7,7 @@ import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBad
 import { EmbedBuildCard } from '../EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../MarkdownEditor/MarkdownEditor';
 import { useToast } from '../Toast/Toast';
+import { CloseIcon, ChevronLeftIcon, ChevronRightIcon } from '../Icons/ForumIcons';
 import styles from './ForumThread.module.scss';
 
 interface ThreadUser {
@@ -92,9 +93,18 @@ function LightboxModal({
   onClose: () => void;
 }) {
   const [index, setIndex] = useState(startIndex);
+  const [transitioning, setTransitioning] = useState(false);
 
-  const goPrev = useCallback(() => setIndex((i) => (i > 0 ? i - 1 : images.length - 1)), [images.length]);
-  const goNext = useCallback(() => setIndex((i) => (i < images.length - 1 ? i + 1 : 0)), [images.length]);
+  const navigate = useCallback((newIndex: number) => {
+    setTransitioning(true);
+    setTimeout(() => {
+      setIndex(newIndex);
+      setTransitioning(false);
+    }, 150);
+  }, []);
+
+  const goPrev = useCallback(() => navigate(index > 0 ? index - 1 : images.length - 1), [index, images.length, navigate]);
+  const goNext = useCallback(() => navigate(index < images.length - 1 ? index + 1 : 0), [index, images.length, navigate]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -108,28 +118,31 @@ function LightboxModal({
 
   return (
     <div className={styles.lightbox} onClick={onClose}>
-      <button className={styles.lightboxClose} onClick={onClose}>×</button>
+      <button className={styles.lightboxClose} onClick={onClose}><CloseIcon size={24} /></button>
       {images.length > 1 && (
         <button
           className={`${styles.lightboxArrow} ${styles.lightboxArrowLeft}`}
           onClick={(e) => { e.stopPropagation(); goPrev(); }}
         >
-          ‹
+          <ChevronLeftIcon size={24} />
         </button>
       )}
       <img
         src={images[index]}
         alt={`Photo ${index + 1}`}
-        className={styles.lightboxImage}
+        className={`${styles.lightboxImage} ${transitioning ? styles.lightboxImageFade : ''}`}
         onClick={(e) => e.stopPropagation()}
       />
       {images.length > 1 && (
-        <button
-          className={`${styles.lightboxArrow} ${styles.lightboxArrowRight}`}
-          onClick={(e) => { e.stopPropagation(); goNext(); }}
-        >
-          ›
-        </button>
+        <>
+          <button
+            className={`${styles.lightboxArrow} ${styles.lightboxArrowRight}`}
+            onClick={(e) => { e.stopPropagation(); goNext(); }}
+          >
+            <ChevronRightIcon size={24} />
+          </button>
+          <span className={styles.lightboxCounter}>{index + 1} of {images.length}</span>
+        </>
       )}
     </div>
   );
@@ -343,12 +356,12 @@ export function ForumThread({ slug }: ForumThreadProps) {
             </div>
             {thread.product && (
               <a href={`/products/${thread.product.slug}`} className={styles.linkedProduct}>
-                📦 {thread.product.name}
+                {thread.product.name}
               </a>
             )}
             {thread.link && (
               <a href={thread.link} target="_blank" rel="noopener noreferrer" className={styles.threadLink}>
-                🔗 {thread.link}
+                {thread.link}
               </a>
             )}
             {canModify && (
@@ -660,7 +673,7 @@ function ThreadMetadata({
     return (
       <>
         <div className={styles.metadataSection}>
-          {metadata.profileType && (
+          {!!metadata.profileType && (
             <span className={styles.profileBadge}>{String(metadata.profileType)}</span>
           )}
           <h4 className={styles.metadataTitle}>Configuration</h4>

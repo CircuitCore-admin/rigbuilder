@@ -25,7 +25,6 @@ export interface BlueprintFieldConfig {
 export interface CategoryConfig {
   label: string;
   description: string;
-  icon: string;
   color: string;
   fields: BlueprintFieldConfig[];
 }
@@ -34,7 +33,6 @@ export const CATEGORY_BLUEPRINTS: Record<BlueprintCategory, CategoryConfig> = {
   BUILD_ADVICE: {
     label: 'Build Advice',
     description: 'Get feedback on your rig build or planned setup',
-    icon: '🔧',
     color: '#00FFA3',
     fields: [
       {
@@ -54,7 +52,6 @@ export const CATEGORY_BLUEPRINTS: Record<BlueprintCategory, CategoryConfig> = {
   DIY_MODS: {
     label: 'DIY Mods',
     description: 'Share custom modifications and hardware hacks',
-    icon: '🛠️',
     color: '#FFB020',
     fields: [
       {
@@ -77,7 +74,6 @@ export const CATEGORY_BLUEPRINTS: Record<BlueprintCategory, CategoryConfig> = {
   SHOWROOM: {
     label: 'Showroom',
     description: 'Show off your completed rig with photos',
-    icon: '📸',
     color: '#6E56FF',
     fields: [
       {
@@ -98,7 +94,6 @@ export const CATEGORY_BLUEPRINTS: Record<BlueprintCategory, CategoryConfig> = {
   TELEMETRY: {
     label: 'Telemetry',
     description: 'Share and discuss telemetry configs and settings',
-    icon: '📊',
     color: '#00B8FF',
     fields: [
       {
@@ -123,7 +118,6 @@ export const CATEGORY_BLUEPRINTS: Record<BlueprintCategory, CategoryConfig> = {
   DEALS: {
     label: 'Deals',
     description: 'Post and discuss hardware deals and sales',
-    icon: '💰',
     color: '#FF3366',
     fields: [
       {
@@ -155,7 +149,6 @@ export const CATEGORY_BLUEPRINTS: Record<BlueprintCategory, CategoryConfig> = {
   GENERAL: {
     label: 'General',
     description: 'Everything else — questions, chat, off-topic',
-    icon: '💬',
     color: '#7878A0',
     fields: [],
   },
