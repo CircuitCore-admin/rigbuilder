@@ -450,7 +450,9 @@ function NewThreadForm() {
       if (draft.body) setBody(draft.body);
       if (draft.metadata) setMetadata(draft.metadata);
       if (draft.imageUrls) setImageUrls(draft.imageUrls);
-    } catch { /* ignore corrupt drafts */ }
+    } catch (err) {
+      console.warn('Failed to restore draft:', err);
+    }
     setShowDraftBanner(false);
   };
 

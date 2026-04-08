@@ -75,7 +75,7 @@ export function MarkdownEditor({
       let insertion: string;
       let cursorOffset: number;
 
-      if (action.block && start > 0 && value[start - 1] !== '\n') {
+      if (action.block && start > 0 && value[start - 1] !== '\n' && value[start - 1] !== '\r') {
         // For block-level syntax, ensure we're at line start
         const prefix = '\n' + action.prefix;
         insertion = prefix + selected + action.suffix;
