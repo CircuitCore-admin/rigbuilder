@@ -40,7 +40,8 @@ export function ShareBar() {
   );
 
   // Ownership: can the current user overwrite this build?
-  const isOwnBuild = !savedBuildOwnerId || (user != null && savedBuildOwnerId === user.userId);
+  // A build with no owner (null savedBuildOwnerId) is considered "unowned" (new/unsaved).
+  const isOwnBuild = savedBuildOwnerId == null || (user != null && savedBuildOwnerId === user.userId);
   const canOverwrite = user != null && isOwnBuild;
 
   // Save: update existing build (PUT) or create new (POST)
