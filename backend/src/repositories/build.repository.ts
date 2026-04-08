@@ -1,4 +1,4 @@
-import { prisma } from '../prisma';
+import { prisma } from '../prisma.js';
 import type { Prisma, Build } from '@prisma/client';
 
 export interface BuildListParams {
@@ -43,35 +43,97 @@ export class BuildRepository {
   }
 
   static async findById(id: string) {
-    return prisma.build.findUnique({
-      where: { id },
-      include: {
-        user: { select: { id: true, username: true, avatarUrl: true } },
-        parts: { include: { product: true } },
-      },
-    });
-  }
+    console.log('🔍 findById called with:', JSON.stringify(id));
 
-  static async create(userId: string, data: Prisma.BuildCreateInput, parts: { productId: string; categorySlot: any; pricePaid?: number; notes?: string }[]) {
-    return prisma.build.create({
-      data: {
-        ...data,
-        user: { connect: { id: userId } },
+    const build = await prisma.build.findFirst({
+      where: {
+        OR: [
+          { id },
+          { slug: { equals: id, mode: 'insensitive' } },
+        ],
+      },
+      include: {
         parts: {
-          create: parts.map((p) => ({
-            product: { connect: { id: p.productId } },
-            categorySlot: p.categorySlot,
-            pricePaid: p.pricePaid,
-            notes: p.notes,
-          })),
+          include: {
+            product: true,
+          },
         },
       },
-      include: { parts: { include: { product: true } } },
     });
+
+    console.log('🔍 DB Result:', build ? `Found build id=${build.id} slug=${build.slug}` : 'null');
+
+    return build;
   }
+
+  static async create(userId: string, data: any, parts: any[]) {
+  const productIds = parts.map(p => p.productId);
+  
+  // 1. Verify all products exist before starting the transaction
+  const existingProducts = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true }
+  });
+
+  const existingIds = existingProducts.map(p => p.id);
+  const missingIds = productIds.filter(id => !existingIds.includes(id));
+
+  if (missingIds.length > 0) {
+    console.error('❌ Build creation failed. Missing Product IDs:', missingIds);
+    throw new Error(`Invalid products: ${missingIds.join(', ')}. Please clear your build and re-add parts.`);
+  }
+
+  // 2. Proceed with creation if all IDs are valid
+  return prisma.build.create({
+    data: {
+      ...data,
+      user: { connect: { id: userId } },
+      parts: {
+        create: parts.map(p => ({
+          product: { connect: { id: p.productId } },
+          categorySlot: p.categorySlot,
+          pricePaid: p.pricePaid,
+          notes: p.notes
+        }))
+      }
+    },
+    include: { parts: { include: { product: true } } }
+  });
+}
 
   static async update(id: string, data: Prisma.BuildUpdateInput) {
     return prisma.build.update({ where: { id }, data });
+  }
+
+  /**
+   * Replace parts on an existing build (delete-then-create inside a tx).
+   * `id` must be the primary-key CUID.
+   */
+  static async updateWithParts(
+    id: string,
+    data: Prisma.BuildUpdateInput,
+    parts: any[],
+  ) {
+    return prisma.$transaction(async (tx) => {
+      // Remove old parts
+      await tx.buildPart.deleteMany({ where: { buildId: id } });
+      // Update build metadata + create new parts
+      return tx.build.update({
+        where: { id },
+        data: {
+          ...data,
+          parts: {
+            create: parts.map((p) => ({
+              product: { connect: { id: p.productId } },
+              categorySlot: p.categorySlot,
+              pricePaid: p.pricePaid ?? null,
+              notes: p.notes ?? null,
+            })),
+          },
+        },
+        include: { parts: { include: { product: true } } },
+      });
+    });
   }
 
   static async delete(id: string) {

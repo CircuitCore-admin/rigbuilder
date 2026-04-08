@@ -1,7 +1,8 @@
 import { BuildRepository } from '../repositories/build.repository';
 import type { BuildListParams } from '../repositories/build.repository';
 import { createBuildSchema, updateBuildSchema } from '../validators/build.schema';
-import { slugify } from '../utils/slug';
+import { slugify, generateShortId } from '../utils/slug';
+import { toTitleCase } from '../utils/format';
 
 export class BuildService {
   static async list(params: BuildListParams) {
@@ -14,9 +15,40 @@ export class BuildService {
     return build;
   }
 
+  /**
+   * Retrieve a build by its ID or slug (short permalink ID) and format
+   * string spec values to Title Case for frontend consumption.
+   */
+  static async getByShortId(id: string) {
+    const build = await BuildRepository.findById(id);
+    if (!build) throw new Error('Build not found');
+
+    // Format spec values: convert snake_case strings to Title Case
+    const parts = build.parts.map((part) => {
+      const product = part.product;
+      const rawSpecs = (product.specs ?? {}) as Record<string, unknown>;
+      const formattedSpecs: Record<string, unknown> = {};
+
+      for (const [key, val] of Object.entries(rawSpecs)) {
+        formattedSpecs[key] =
+          typeof val === 'string' && /[_A-Z]/.test(val) ? toTitleCase(val) : val;
+      }
+
+      return {
+        ...part,
+        product: {
+          ...product,
+          specs: formattedSpecs,
+        },
+      };
+    });
+
+    return { ...build, parts };
+  }
+
   static async create(userId: string, raw: unknown) {
     const data = createBuildSchema.parse(raw);
-    const slug = slugify(data.name);
+    const slug = generateShortId();
 
     const totalCost = data.parts.reduce((sum, p) => sum + (p.pricePaid ?? 0), 0);
 
@@ -45,7 +77,27 @@ export class BuildService {
     if (existing.userId !== userId) throw new Error('Forbidden');
 
     const data = updateBuildSchema.parse(raw);
-    return BuildRepository.update(id, {
+
+    // If parts are provided, do a full replace (delete + create)
+    if (data.parts && data.parts.length > 0) {
+      const totalCost = data.parts.reduce((sum, p) => sum + (p.pricePaid ?? 0), 0);
+
+      return BuildRepository.updateWithParts(
+        existing.id,
+        {
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.ratings !== undefined && { ratings: data.ratings }),
+          ...(data.images !== undefined && { images: data.images }),
+          ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
+          totalCost,
+        },
+        data.parts,
+      );
+    }
+
+    // Metadata-only update
+    return BuildRepository.update(existing.id, {
       ...(data.name !== undefined && { name: data.name }),
       ...(data.description !== undefined && { description: data.description }),
       ...(data.ratings !== undefined && { ratings: data.ratings }),

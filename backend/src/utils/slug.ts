@@ -18,3 +18,26 @@ export function slugify(input: string): string {
   const suffix = crypto.randomBytes(2).toString('hex');
   return `${base}-${suffix}`;
 }
+
+/**
+ * Generate a short, random, URL-safe ID for build permalinks.
+ * 6 alphanumeric characters (excludes ambiguous: 0/O, 1/l/I).
+ *
+ * @example generateShortId() → 'Xy7Z9k'
+ */
+const SHORT_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
+const SHORT_ID_LENGTH = 6;
+
+export function generateShortId(length = SHORT_ID_LENGTH): string {
+  const maxValid = Math.floor(256 / SHORT_ALPHABET.length) * SHORT_ALPHABET.length;
+  let id = '';
+  while (id.length < length) {
+    const bytes = crypto.randomBytes(length - id.length + 4); // extra to compensate for rejections
+    for (let i = 0; i < bytes.length && id.length < length; i++) {
+      if (bytes[i] < maxValid) {
+        id += SHORT_ALPHABET[bytes[i] % SHORT_ALPHABET.length];
+      }
+    }
+  }
+  return id;
+}

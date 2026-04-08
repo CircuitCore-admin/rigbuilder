@@ -1,0 +1,341 @@
+@use '../../styles/variables' as *;
+
+// ============================================================================
+// DynamicSortableTable — Sortable list view with broadcast-data aesthetic
+// ============================================================================
+
+.table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+// ---------------------------------------------------------------------------
+// Header row
+// ---------------------------------------------------------------------------
+
+.headerRow {
+  display: grid;
+  gap: 0;
+  background: var(--bg-void);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.headerCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-subtle);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+  text-align: left;
+  white-space: nowrap;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.headerActive {
+  color: var(--accent-primary);
+
+  &:hover {
+    color: var(--accent-primary);
+  }
+}
+
+.headerLabel {
+  flex: 1;
+}
+
+.sortIndicator {
+  font-size: 9px;
+  opacity: 0.6;
+
+  .headerActive & {
+    opacity: 1;
+    color: var(--accent-primary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Data rows
+// ---------------------------------------------------------------------------
+
+.dataRow {
+  position: relative;
+  border-bottom: 1px solid #1E1E2A;
+  transition: background var(--transition-fast);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--bg-surface);
+  }
+}
+
+.rowError {
+  opacity: 0.6;
+
+  &:hover {
+    background: rgba(255, 68, 85, 0.03);
+  }
+}
+
+.rowWarning {
+  &:hover {
+    background: rgba(255, 176, 32, 0.03);
+  }
+}
+
+.rowBtn {
+  display: grid;
+  width: 100%;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: inherit;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Conflict left-bar indicator
+// ---------------------------------------------------------------------------
+
+.conflictBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  z-index: 1;
+}
+
+.conflictBarError {
+  background: var(--color-error);
+}
+
+.conflictBarWarning {
+  background: var(--color-warning);
+}
+
+// ---------------------------------------------------------------------------
+// Cells
+// ---------------------------------------------------------------------------
+
+.cell {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-body);
+  border-right: 1px solid var(--border-subtle);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+// Right-aligned data cells (numbers, prices, specs)
+.cellRight {
+  justify-content: flex-end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cellName {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'General Sans', 'Space Grotesk', sans-serif;
+
+  .rowError & {
+    .productName {
+      color: rgba(255, 68, 85, 0.7);
+    }
+  }
+}
+
+.cellPrice {
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+// Thumbnail in name column
+.rowThumb {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.nameWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.productName {
+  font-family: 'General Sans', 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manufacturer {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// ---------------------------------------------------------------------------
+// Inline conflict text (under product name)
+// ---------------------------------------------------------------------------
+
+.conflictInline {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.conflictInlineError {
+  color: var(--color-error);
+}
+
+.conflictInlineWarning {
+  color: var(--color-warning);
+}
+
+// ---------------------------------------------------------------------------
+// Star rating
+// ---------------------------------------------------------------------------
+
+.starRating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stars {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.starFilled {
+  color: var(--accent-primary);
+}
+
+.starEmpty {
+  color: var(--border-strong);
+}
+
+.reviewCount {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+// ---------------------------------------------------------------------------
+// Add to Build button
+// ---------------------------------------------------------------------------
+
+.addButton {
+  padding: 6px 16px;
+  background: var(--accent-primary);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+
+.emptyRow {
+  padding: 40px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+// ---------------------------------------------------------------------------
+// Responsive
+// ---------------------------------------------------------------------------
+
+@media (max-width: $bp-tablet) {
+  .headerRow,
+  .rowBtn {
+    // On small screens, collapse to fewer columns
+    // The grid-template-columns will be set inline, so we rely on overflow
+    overflow-x: auto;
+  }
+
+  .cell {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  .headerCell {
+    padding: 8px 12px;
+  }
+}

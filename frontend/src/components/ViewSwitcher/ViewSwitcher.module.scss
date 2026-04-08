@@ -1,0 +1,43 @@
+@use '../../styles/variables' as *;
+
+// ============================================================================
+// ViewSwitcher — Horizontal toggle for view modes
+// ============================================================================
+
+.switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &:hover:not(.btnActive) {
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+  }
+}
+
+.btnActive {
+  color: var(--accent-primary);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 8px rgba(0, 255, 163, 0.15);
+}

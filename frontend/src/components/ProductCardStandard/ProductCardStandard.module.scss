@@ -1,0 +1,269 @@
+@use '../../styles/variables' as *;
+
+// ============================================================================
+// ProductCardStandard — Hero-style card for 2-column grid
+// ============================================================================
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: inherit;
+  padding: 0;
+  transition:
+    border-color var(--transition-default),
+    box-shadow var(--transition-default),
+    transform var(--transition-default);
+
+  &:hover {
+    border-color: var(--accent-primary);
+    box-shadow:
+      0 0 20px rgba(0, 255, 163, 0.10),
+      0 0 2px rgba(0, 255, 163, 0.25);
+    transform: translateY(-1px);
+  }
+}
+
+.cardBody {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  cursor: pointer;
+  flex: 1;
+
+  @media (max-width: $bp-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cardError {
+  opacity: 0.55;
+  border-color: var(--color-error);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-error);
+    box-shadow: 0 0 12px rgba(255, 68, 85, 0.1);
+  }
+}
+
+.cardWarning {
+  &:hover:not(:disabled) {
+    border-color: var(--color-warning);
+    box-shadow: 0 0 12px rgba(255, 176, 32, 0.1);
+  }
+}
+
+// Conflict bar
+.conflictBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  z-index: 1;
+}
+.conflictBarError { background: var(--color-error); }
+.conflictBarWarning { background: var(--color-warning); }
+
+// ---------------------------------------------------------------------------
+// Hero image
+// ---------------------------------------------------------------------------
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  @media (max-width: $bp-mobile) {
+    min-height: 160px;
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  color: var(--text-muted);
+}
+
+.popularTag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 3px 10px;
+  background: var(--accent-primary);
+  color: var(--bg-void);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: var(--radius-sm);
+}
+
+// ---------------------------------------------------------------------------
+// Body
+// ---------------------------------------------------------------------------
+
+.body {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.manufacturer {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.keySpec {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+// ---------------------------------------------------------------------------
+// Specs grid
+// ---------------------------------------------------------------------------
+
+.specsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.specItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.specLabel {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.specValue {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-body);
+  text-transform: capitalize;
+}
+
+// ---------------------------------------------------------------------------
+// Footer
+// ---------------------------------------------------------------------------
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.price {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.rating {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+// ---------------------------------------------------------------------------
+// Add to Build button
+// ---------------------------------------------------------------------------
+
+.addButton {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px 14px;
+  padding: 10px 18px;
+  background: var(--accent-primary);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Conflict line
+// ---------------------------------------------------------------------------
+
+.conflictLine {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+
+  .cardError & {
+    color: var(--color-error);
+    background: rgba(255, 68, 85, 0.05);
+  }
+
+  .cardWarning & {
+    color: var(--color-warning);
+    background: rgba(255, 176, 32, 0.05);
+  }
+}

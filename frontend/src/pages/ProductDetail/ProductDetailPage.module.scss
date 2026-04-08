@@ -1,0 +1,542 @@
+@use '../../styles/variables' as *;
+
+// ============================================================================
+// ProductDetailPage — Motorsport Broadcast Theme
+// ============================================================================
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+  color: var(--text-body);
+}
+
+// ---------------------------------------------------------------------------
+// Breadcrumbs
+// ---------------------------------------------------------------------------
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.breadcrumbLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--accent-primary);
+  }
+}
+
+.breadcrumbSep {
+  color: var(--text-muted);
+}
+
+.breadcrumbCurrent {
+  color: var(--text-primary);
+}
+
+// ---------------------------------------------------------------------------
+// Hero layout — two columns on desktop, stacked on mobile
+// ---------------------------------------------------------------------------
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 48px;
+
+  @media (max-width: $bp-mobile) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+// Gallery
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.primaryImage {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.thumbnailStrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.thumbnail {
+  width: 72px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  background: var(--bg-surface);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.thumbnailActive {
+  border-color: var(--accent-primary);
+  opacity: 1;
+}
+
+// Info panel (right side)
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.manufacturer {
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.productName {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.stars {
+  color: var(--color-warning);
+  font-size: 16px;
+}
+
+.ratingText {
+  color: var(--text-secondary);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+}
+
+.lowestPrice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  width: fit-content;
+}
+
+.priceLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+.priceValue {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.keySpec {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--bg-elevated);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  width: fit-content;
+}
+
+.platforms {
+  display: flex;
+  gap: 6px;
+}
+
+.platformBadge {
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.addBtn {
+  background: var(--accent-primary);
+  color: #000;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 28px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: fit-content;
+  font-family: 'Space Grotesk', sans-serif;
+
+  &:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+}
+
+.addBtnDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  position: relative;
+
+  &:hover {
+    filter: none;
+    box-shadow: none;
+  }
+}
+
+.tooltip {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+// ---------------------------------------------------------------------------
+// Section heading
+// ---------------------------------------------------------------------------
+
+.sectionTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+// ---------------------------------------------------------------------------
+// Technical Spec Sheet
+// ---------------------------------------------------------------------------
+
+.specSection {
+  margin-bottom: 48px;
+}
+
+.specGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+
+  @media (max-width: $bp-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.specRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 40px;
+
+  &:nth-child(4n + 1),
+  &:nth-child(4n + 2) {
+    background: var(--bg-surface);
+  }
+
+  &:nth-child(4n + 3),
+  &:nth-child(4n + 4) {
+    background: var(--bg-primary);
+  }
+}
+
+.specKey {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.specValue {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+// ---------------------------------------------------------------------------
+// Seller / Pricing Table
+// ---------------------------------------------------------------------------
+
+.sellerSection {
+  margin-bottom: 48px;
+}
+
+.sellerTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.sellerTable th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sellerTable td {
+  padding: 14px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sellerTable tr:hover td {
+  background: var(--bg-elevated);
+}
+
+.retailerName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sellerPrice {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.inStock {
+  color: var(--color-success);
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.outOfStock {
+  color: var(--color-error);
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.buyLink {
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--accent-primary);
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--accent-primary);
+    color: #000;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Price History
+// ---------------------------------------------------------------------------
+
+.priceHistorySection {
+  margin-bottom: 48px;
+}
+
+// ---------------------------------------------------------------------------
+// Community / Social Proof
+// ---------------------------------------------------------------------------
+
+.communitySection {
+  margin-bottom: 48px;
+}
+
+.buildGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $bp-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.buildCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--border-default);
+  }
+}
+
+.buildCardTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.buildCardUser {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.buildCardPrice {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--accent-primary);
+  margin-top: auto;
+}
+
+// Review summary
+.reviewSummary {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+
+  @media (max-width: $bp-mobile) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.reviewScore {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.reviewMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reviewStars {
+  color: var(--color-warning);
+  font-size: 20px;
+}
+
+.reviewCount {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+// ---------------------------------------------------------------------------
+// Rating bars (5-star breakdown)
+// ---------------------------------------------------------------------------
+
+.ratingBars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.ratingBarRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-secondary);
+}
+
+.ratingBarLabel {
+  width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ratingBarTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ratingBarFill {
+  height: 100%;
+  background: var(--color-warning);
+  border-radius: 3px;
+  transition: width var(--transition-default);
+}
+
+.ratingBarCount {
+  width: 28px;
+  text-align: right;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+// ---------------------------------------------------------------------------
+// JSON-LD (hidden)
+// ---------------------------------------------------------------------------
+
+.seoOnly {
+  display: none;
+}

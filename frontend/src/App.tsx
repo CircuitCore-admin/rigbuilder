@@ -3,7 +3,9 @@ import { LoginPage } from './pages/Login/LoginPage';
 import { RegisterPage } from './pages/Register/RegisterPage';
 import { AdminDashboard } from './pages/Admin/AdminDashboard';
 import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
+import { SharedBuildPage } from './pages/SharedBuild/SharedBuildPage';
 import { HomePage } from './pages/Home/HomePage';
+import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
@@ -19,7 +21,8 @@ export function App() {
     <>
       <Navbar />
       <CommandPalette />
-      <Routes>
+      <div className="appContent">
+        <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -45,12 +48,19 @@ export function App() {
         {/* Configurator (moved from / to /build) */}
         <Route path="/build" element={<RigBuilderPage />} />
 
+        {/* Shared build permalink — fetches from API and renders configurator inline */}
+        <Route path="/list/:buildId" element={<SharedBuildPage />} />
+
+        {/* Product detail */}
+        <Route path="/products/:slug" element={<ProductDetailPage />} />
+
         {/* Landing page */}
         <Route path="/" element={<HomePage />} />
 
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </div>
     </>
   );
 }
