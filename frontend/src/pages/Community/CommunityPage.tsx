@@ -265,7 +265,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
               <div className={styles.showroomGrid}>
                 {threads.map((t) => (
                   <a key={t.id} href={`/community/${t.slug}`} className={styles.showroomCard}>
-                    <div style={{ position: 'relative' }}>
+                    <div className={styles.showroomImageWrap}>
                       {t.imageUrls?.[0] && (
                         <img
                           src={t.imageUrls[0]}
@@ -309,20 +309,22 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                           </span>
                         )}
                       </div>
-                      <span className={styles.threadAuthor}>
-                        {t.user.avatarUrl && (
-                          <img
-                            src={t.user.avatarUrl}
-                            alt=""
-                            className={styles.threadAvatar}
-                          />
-                        )}
-                        {t.user.username}
-                      </span>
-                      <span className={styles.replyPill}>{t.replyCount}</span>
-                      <span className={styles.threadTime}>
-                        {relativeTime(t.createdAt)}
-                      </span>
+                      <div className={styles.threadFooter}>
+                        <span className={styles.threadAuthor}>
+                          {t.user.avatarUrl && (
+                            <img
+                              src={t.user.avatarUrl}
+                              alt=""
+                              className={styles.threadAvatar}
+                            />
+                          )}
+                          {t.user.username}
+                        </span>
+                        <span className={styles.replyPill}>{t.replyCount} replies</span>
+                        <span className={styles.threadTime}>
+                          {relativeTime(t.createdAt)}
+                        </span>
+                      </div>
                     </a>
                   );
                 })}

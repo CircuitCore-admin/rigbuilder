@@ -7,6 +7,7 @@ interface ToastItem {
   id: number;
   message: string;
   type: ToastType;
+  exiting?: boolean;
 }
 
 interface ToastContextValue {
@@ -24,7 +25,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const nextId = useRef(0);
 
   const removeToast = useCallback((id: number) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, exiting: true } : t)));
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 200);
   }, []);
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => {
@@ -40,7 +44,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`${styles.toast} ${t.type === 'error' ? styles.toastError : styles.toastSuccess}`}
+            className={`${styles.toast} ${t.type === 'error' ? styles.toastError : styles.toastSuccess} ${t.exiting ? styles.toastExiting : ''}`}
           >
             <span className={styles.toastMessage}>{t.message}</span>
             <button className={styles.toastClose} onClick={() => removeToast(t.id)}>×</button>
