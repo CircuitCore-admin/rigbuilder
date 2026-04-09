@@ -612,7 +612,16 @@ function NewThreadForm() {
         const formData = new FormData();
         formData.append('image', file);
         const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1';
-        const csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
+
+        // Ensure CSRF token exists — refresh if missing (mirrors api() logic)
+        let csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
+        if (!csrfToken) {
+          try {
+            await fetch(`${baseUrl}/csrf`, { credentials: 'include' });
+            csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
+          } catch { /* proceed without token — server will reject if needed */ }
+        }
+
         const headers: Record<string, string> = {};
         if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
         const res = await fetch(`${baseUrl}/uploads`, {

@@ -70,7 +70,9 @@ export function resolveImageUrl(url: string): string {
   if (!url) return url;
   // Already absolute
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  // Relative path — prefix with API base URL (strip /api/v1 suffix)
+  // Relative path — prefix with API base URL (strip /api/v1 suffix).
+  // If BASE_URL is itself relative (e.g. "/api/v1"), the stripped base is empty
+  // and the path stays relative, which works when the Vite proxy handles /uploads.
   const base = BASE_URL.replace(/\/api\/v1\/?$/, '');
   return `${base}${url}`;
 }
