@@ -91,6 +91,20 @@ export class ForumController {
     res.json(result);
   }
 
+  /** POST /api/v1/forum/replies/:id/vote — value-based reply voting (up/down/remove) */
+  static async voteReply(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.status(401).json({ error: 'Authentication required' });
+
+    const value = req.body.value ?? 1; // Default to upvote for backward compat
+    if (value !== 1 && value !== -1 && value !== 0) {
+      return res.status(400).json({ error: 'value must be 1, -1, or 0' });
+    }
+
+    const result = await ForumService.voteReply(req.params.id, session.userId, value);
+    res.json(result);
+  }
+
   /** PUT /api/v1/forum/:id */
   static async updateThread(req: Request, res: Response) {
     const session = (req as any).session;

@@ -475,6 +475,7 @@ model ForumVote {
   id      String @id @default(cuid())
   userId  String @map("user_id")
   replyId String @map("reply_id")
+  value   Int    @default(1)
 
   user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   reply ForumReply @relation(fields: [replyId], references: [id], onDelete: Cascade)

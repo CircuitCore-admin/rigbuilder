@@ -84,6 +84,10 @@ export class ForumService {
     return ForumRepository.toggleUpvote(replyId, userId);
   }
 
+  static async voteReply(replyId: string, userId: string, value: 1 | -1 | 0) {
+    return ForumRepository.voteReply(replyId, userId, value);
+  }
+
   static async updateThread(id: string, data: { title?: string; body?: string; link?: string | null; metadata?: Record<string, unknown>; imageUrls?: string[] }) {
     return ForumRepository.updateThread(id, data);
   }

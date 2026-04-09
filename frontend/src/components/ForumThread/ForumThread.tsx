@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import { api } from '../../utils/api';
@@ -180,6 +180,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [replyVotes, setReplyVotes] = useState<Record<string, { score: number; userVote: 0 | 1 | -1 }>>({});
   const [collapsedReplies, setCollapsedReplies] = useState<Set<string>>(new Set());
   const [replySort, setReplySort] = useState<'top' | 'newest' | 'oldest'>('top');
+  const votingRef = useRef(false);
+  const replyVotingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     setLoading(true);
@@ -273,6 +275,13 @@ export function ForumThread({ slug }: ForumThreadProps) {
   };
 
   const handleReplyVote = async (replyId: string, value: 1 | -1) => {
+    if (!authUser) {
+      showToast('Log in to vote', 'error');
+      return;
+    }
+    if (replyVotingRef.current.has(replyId)) return; // Block concurrent votes on same reply
+    replyVotingRef.current.add(replyId);
+
     const current = replyVotes[replyId] ?? { score: 0, userVote: 0 };
     const newValue = current.userVote === value ? 0 : value;
     const delta = newValue - current.userVote;
@@ -284,20 +293,22 @@ export function ForumThread({ slug }: ForumThreadProps) {
     }));
 
     try {
-      // TODO: Backend only supports upvote toggle for now; downvotes won't persist until backend is updated
-      if (value === 1 || newValue === 0) {
-        const updated = await api<{ upvotes: number; voted: boolean }>(`/forum/replies/${replyId}/upvote`, { method: 'POST' });
-        setReplyVotes((prev) => ({
-          ...prev,
-          [replyId]: { ...prev[replyId], score: updated.upvotes },
-        }));
-      }
+      const result = await api<{ score: number; userVote: number }>(`/forum/replies/${replyId}/vote`, {
+        method: 'POST',
+        body: { value: newValue },
+      });
+      setReplyVotes((prev) => ({
+        ...prev,
+        [replyId]: { score: result.score, userVote: result.userVote as 0 | 1 | -1 },
+      }));
     } catch {
       // Revert on failure
       setReplyVotes((prev) => ({
         ...prev,
         [replyId]: current,
       }));
+    } finally {
+      replyVotingRef.current.delete(replyId);
     }
   };
 
@@ -368,6 +379,9 @@ export function ForumThread({ slug }: ForumThreadProps) {
       showToast('Log in to vote', 'error');
       return;
     }
+    if (votingRef.current) return; // Block concurrent votes
+    votingRef.current = true;
+
     // Toggle: if same vote, remove it
     const newValue = userVote === value ? 0 : value;
     const oldScore = threadScore;
@@ -387,6 +401,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
     } catch {
       setUserVote(oldVote);
       setThreadScore(oldScore);
+    } finally {
+      votingRef.current = false;
     }
   };
 

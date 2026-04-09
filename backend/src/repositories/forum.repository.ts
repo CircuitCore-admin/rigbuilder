@@ -140,6 +140,68 @@ export class ForumRepository {
   }
 
   /**
+   * Value-based reply voting (like thread votes): supports up (+1), down (-1),
+   * and remove (0). Adjusts the reply's upvotes field and author's pitCred.
+   * Returns { score, userVote }.
+   */
+  static async voteReply(replyId: string, userId: string, value: 1 | -1 | 0) {
+    const existing = await prisma.forumVote.findUnique({
+      where: { userId_replyId: { userId, replyId } },
+    });
+
+    const reply = await prisma.forumReply.findUnique({
+      where: { id: replyId },
+      select: { userId: true },
+    });
+    const authorId = reply?.userId;
+
+    if (value === 0 || (existing && existing.value === value)) {
+      // Remove vote (toggle off)
+      if (existing) {
+        const oldValue = existing.value ?? 1; // legacy votes without value field default to 1
+        const txOps: any[] = [
+          prisma.forumVote.delete({ where: { id: existing.id } }),
+          prisma.forumReply.update({ where: { id: replyId }, data: { upvotes: { decrement: oldValue } } }),
+        ];
+        if (authorId) {
+          txOps.push(prisma.user.update({ where: { id: authorId }, data: { pitCred: { decrement: oldValue } } }));
+        }
+        await prisma.$transaction(txOps);
+      }
+      const updated = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
+      return { score: updated?.upvotes ?? 0, userVote: 0 };
+    }
+
+    if (existing) {
+      // Change vote direction
+      const oldValue = existing.value ?? 1;
+      const delta = value - oldValue;
+      const txOps: any[] = [
+        prisma.forumVote.update({ where: { id: existing.id }, data: { value } }),
+        prisma.forumReply.update({ where: { id: replyId }, data: { upvotes: { increment: delta } } }),
+      ];
+      if (authorId) {
+        txOps.push(prisma.user.update({ where: { id: authorId }, data: { pitCred: { increment: delta } } }));
+      }
+      await prisma.$transaction(txOps);
+      const updated = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
+      return { score: updated?.upvotes ?? 0, userVote: value };
+    }
+
+    // New vote
+    const txOps: any[] = [
+      prisma.forumVote.create({ data: { userId, replyId, value } }),
+      prisma.forumReply.update({ where: { id: replyId }, data: { upvotes: { increment: value } } }),
+    ];
+    if (authorId) {
+      txOps.push(prisma.user.update({ where: { id: authorId }, data: { pitCred: { increment: value } } }));
+    }
+    await prisma.$transaction(txOps);
+    const updated = await prisma.forumReply.findUnique({ where: { id: replyId }, select: { upvotes: true } });
+    return { score: updated?.upvotes ?? 0, userVote: value };
+  }
+
+  /**
    * Toggle thread vote: upsert or remove vote. Adjusts cached score/upvotes/downvotes
    * and author's pitCred. Returns { score, userVote }.
    */

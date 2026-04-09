@@ -17,6 +17,7 @@ router.put('/:id', authenticate, writeLimiter, ForumController.updateThread);
 router.delete('/:id', authenticate, writeLimiter, ForumController.deleteThread);
 router.post('/:slug/replies', authenticate, writeLimiter, ForumController.createReply);
 router.post('/replies/:id/upvote', authenticate, writeLimiter, ForumController.upvoteReply);
+router.post('/replies/:id/vote', authenticate, writeLimiter, ForumController.voteReply);
 
 // Thread following & voting
 router.post('/threads/:id/follow', authenticate, writeLimiter, ForumController.toggleFollow);
