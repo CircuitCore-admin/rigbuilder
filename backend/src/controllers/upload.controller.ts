@@ -31,10 +31,10 @@ export class UploadController {
         .webp({ quality: 80 })
         .toFile(path.join(UPLOAD_DIR, filename));
 
-      // Return absolute URL using the request's origin
-      const protocol = req.protocol;
-      const host = req.get('host');
-      const url = `${protocol}://${host}/uploads/${filename}`;
+      // Return absolute URL using configured base or request origin
+      const baseUrl = process.env.PUBLIC_URL
+        ?? `${req.protocol}://${req.get('host') ?? 'localhost:4000'}`;
+      const url = `${baseUrl}/uploads/${filename}`;
       res.json({ url });
     } catch (err) {
       console.error('Image upload failed:', err);
