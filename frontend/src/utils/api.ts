@@ -21,10 +21,14 @@ export async function api<T = unknown>(path: string, options: FetchOptions = {})
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
     let csrfToken = getCookie('__csrf');
 
-    // If no CSRF token, refresh it by hitting a GET endpoint
+    // If no CSRF token, refresh it by hitting the lightweight CSRF endpoint
     if (!csrfToken) {
-      await fetch(`${BASE_URL}/forum?limit=1`, { credentials: 'include' });
-      csrfToken = getCookie('__csrf');
+      try {
+        await fetch(`${BASE_URL}/csrf`, { credentials: 'include' });
+        csrfToken = getCookie('__csrf');
+      } catch {
+        // Continue without CSRF token — server will reject if needed
+      }
     }
 
     if (csrfToken) headers['X-CSRF-Token'] = csrfToken;

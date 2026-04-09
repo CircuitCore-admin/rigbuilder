@@ -185,14 +185,13 @@ export function ForumThread({ slug }: ForumThreadProps) {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      api<Thread>(`/forum/${slug}`),
-      api<Reply[]>(`/forum/${slug}/replies`),
-    ])
-      .then(([t, r]) => {
+    api<{ thread: Thread; replies: Reply[]; userVote?: number; following?: boolean }>(`/forum/${slug}/full`)
+      .then(({ thread: t, replies: r, userVote: uv, following: f }) => {
         setThread(t);
         setReplies(r);
         setThreadScore(t.score ?? 0);
+        if (uv !== undefined) setUserVote(uv as 0 | 1 | -1);
+        if (f !== undefined) setIsFollowing(f);
         // Initialize reply vote state from server data
         const voteMap: Record<string, { score: number; userVote: 0 | 1 | -1 }> = {};
         for (const reply of r) {
@@ -203,21 +202,6 @@ export function ForumThread({ slug }: ForumThreadProps) {
       .catch(() => setThread(null))
       .finally(() => setLoading(false));
   }, [slug]);
-
-  // Fetch user's current vote on thread
-  useEffect(() => {
-    if (!thread?.id) return;
-    api<{ userVote: number }>(`/forum/threads/${thread.id}/vote`)
-      .then((data) => setUserVote(data.userVote as 1 | -1 | 0))
-      .catch(() => {});
-  }, [thread?.id]);
-
-  useEffect(() => {
-    if (!thread?.id || !authUser) return;
-    api<{ following: boolean }>(`/forum/threads/${thread.id}/following`)
-      .then((data) => setIsFollowing(data.following))
-      .catch(() => {});
-  }, [thread?.id, authUser]);
 
   const nestedReplies = useMemo(() => {
     // Sort flat replies before building tree
@@ -298,20 +282,16 @@ export function ForumThread({ slug }: ForumThreadProps) {
       [replyId]: { score: current.score + scoreDelta, userVote: sendValue as 0 | 1 | -1 },
     }));
 
-    console.log('[ReplyVote]', replyId, 'clicked:', clickedValue, 'prev:', current.userVote, 'sending:', sendValue);
-
     try {
       const result = await api<{ score: number; userVote: number }>(`/forum/replies/${replyId}/vote`, {
         method: 'POST',
         body: { value: sendValue },
       });
-      console.log('[ReplyVote] response:', result);
       setReplyVotes(prev => ({
         ...prev,
         [replyId]: { score: result.score, userVote: result.userVote as 0 | 1 | -1 },
       }));
     } catch (err) {
-      console.error('[ReplyVote] Error:', err);
       setReplyVotes(prev => ({ ...prev, [replyId]: current }));
       const message = err instanceof Error ? err.message : 'Vote failed';
       showToast(message, 'error');
@@ -405,18 +385,14 @@ export function ForumThread({ slug }: ForumThreadProps) {
     setUserVote(sendValue as 0 | 1 | -1);
     setThreadScore(prevScore + scoreDelta);
 
-    console.log('[Vote] clicked:', clickedValue, 'prev:', prevVote, 'sending:', sendValue, 'scoreDelta:', scoreDelta);
-
     try {
       const result = await api<{ score: number; userVote: number }>(`/forum/threads/${thread.id}/vote`, {
         method: 'POST',
         body: { value: sendValue },
       });
-      console.log('[Vote] API response:', result);
       setThreadScore(result.score);
       setUserVote(result.userVote as 0 | 1 | -1);
     } catch (err) {
-      console.error('[Vote] Error:', err);
       setUserVote(prevVote);
       setThreadScore(prevScore);
       showToast(err instanceof Error ? err.message : 'Vote failed', 'error');

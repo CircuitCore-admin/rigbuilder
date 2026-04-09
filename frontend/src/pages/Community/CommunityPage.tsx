@@ -95,6 +95,10 @@ export function CommunityPage() {
   return <CommunityDashboard threadSlug={slug} />;
 }
 
+// Simple in-memory cache for the thread list to prevent refetch on back navigation
+const threadListCache: Record<string, { data: PaginatedThreads; timestamp: number }> = {};
+const CACHE_TTL = 30_000; // 30 seconds
+
 // ---------------------------------------------------------------------------
 // Dashboard — two-column layout
 // ---------------------------------------------------------------------------
@@ -128,12 +132,30 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   }, [location.pathname, threadSlug]);
 
   useEffect(() => {
+    const cacheKey = `${activeCategory}-${page}-${sortBy}`;
+    const cached = threadListCache[cacheKey];
+
+    // Use cache if fresh (< 30 seconds old)
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      let items = cached.data.items;
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
+        items = items.filter(t => t.title.toLowerCase().includes(q));
+      }
+      setThreads(items);
+      setTotalPages(cached.data.pagination.totalPages);
+      if (totalPosts === null) setTotalPosts(cached.data.pagination.total);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: '20', sortBy, sortDir: 'desc' });
     if (activeCategory) params.set('category', activeCategory);
 
     api<PaginatedThreads>(`/forum?${params}`)
       .then((data) => {
+        threadListCache[cacheKey] = { data, timestamp: Date.now() };
         let items = data.items;
         if (debouncedSearch) {
           const q = debouncedSearch.toLowerCase();
@@ -693,6 +715,8 @@ function NewThreadForm() {
       });
       showToast('Thread created');
       localStorage.removeItem(DRAFT_KEY);
+      // Clear thread list cache so fresh data loads
+      Object.keys(threadListCache).forEach(k => delete threadListCache[k]);
       navigate(`/community/${thread.slug}`);
     } catch (err) {
       setError(

@@ -12,6 +12,11 @@ import uploadRoutes from './upload.routes';
 
 const router = Router();
 
+// Lightweight CSRF token endpoint — no DB query, just sets the cookie via global CSRF middleware
+router.get('/csrf', (_req, res) => {
+  res.json({ ok: true });
+});
+
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
 router.use('/users', userRoutes);

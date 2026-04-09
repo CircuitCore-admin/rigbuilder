@@ -14,13 +14,11 @@ export class ForumService {
     return ForumRepository.findThreads(params);
   }
 
+  /** Fetch thread by slug — does NOT increment view count.
+   *  View counting is handled by the controller where IP dedup is available. */
   static async getThreadBySlug(slug: string) {
     const thread = await ForumRepository.findThreadBySlug(slug);
     if (!thread) throw new NotFoundError('Thread not found');
-
-    // Fire-and-forget view count increment
-    ForumRepository.incrementViewCount(thread.id).catch(() => {});
-
     return thread;
   }
 

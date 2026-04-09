@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { ForumService, NotFoundError } from '../services/forum.service';
+import { ForumRepository } from '../repositories/forum.repository';
 import type { ForumCategory } from '@prisma/client';
 
 export class ForumController {
@@ -16,17 +17,63 @@ export class ForumController {
       sortDir: (req.query.sortDir as any) || 'desc',
     });
 
+    // Allow browsers to cache the list briefly
+    res.set('Cache-Control', 'public, max-age=10, stale-while-revalidate=30');
     res.json({
       items,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   }
 
+  /** Deduplicate view count increments by IP (in-memory, 5-minute window). */
+  private static maybeIncrementView(req: Request, threadId: string) {
+    const viewKey = `view:${threadId}:${req.ip}`;
+    if (!req.app.locals.recentViews) {
+      req.app.locals.recentViews = new Set<string>();
+    }
+    const recentViews = req.app.locals.recentViews as Set<string>;
+
+    if (!recentViews.has(viewKey)) {
+      ForumRepository.incrementViewCount(threadId).catch(() => {});
+      recentViews.add(viewKey);
+      setTimeout(() => { recentViews.delete(viewKey); }, 5 * 60 * 1000);
+    }
+  }
+
   /** GET /api/v1/forum/:slug */
   static async getThread(req: Request, res: Response) {
     try {
       const thread = await ForumService.getThreadBySlug(req.params.slug);
+      ForumController.maybeIncrementView(req, thread.id);
       res.json(thread);
+    } catch (err) {
+      if (err instanceof NotFoundError) return res.status(404).json({ error: err.message });
+      throw err;
+    }
+  }
+
+  /** GET /api/v1/forum/:slug/full — returns thread + replies + user context in one response. */
+  static async getThreadFull(req: Request, res: Response) {
+    try {
+      const thread = await ForumService.getThreadBySlug(req.params.slug);
+      ForumController.maybeIncrementView(req, thread.id);
+      const replies = await ForumService.getReplies(thread.id);
+
+      // Include user-specific context if authenticated
+      const session = (req as any).session;
+      let userVote = 0;
+      let following = false;
+
+      if (session?.userId) {
+        const [voteResult, followResult] = await Promise.all([
+          ForumService.getThreadVote(thread.id, session.userId).catch(() => ({ userVote: 0 })),
+          ForumService.isFollowing(thread.id, session.userId).catch(() => false),
+        ]);
+        userVote = voteResult.userVote ?? 0;
+        following = followResult as boolean;
+      }
+
+      res.json({ thread, replies, userVote, following });
     } catch (err) {
       if (err instanceof NotFoundError) return res.status(404).json({ error: err.message });
       throw err;

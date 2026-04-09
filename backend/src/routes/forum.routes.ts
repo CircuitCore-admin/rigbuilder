@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ForumController } from '../controllers/forum.controller';
-import { authenticate } from '../middleware/authenticate';
+import { authenticate, optionalAuth } from '../middleware/authenticate';
 import { searchLimiter, writeLimiter } from '../config/rate-limit';
 
 const router = Router();
@@ -8,6 +8,10 @@ const router = Router();
 // Public reads
 router.get('/', searchLimiter, ForumController.listThreads);
 router.get('/related/:productId', searchLimiter, ForumController.relatedDiscussions);
+
+// Combined thread + replies endpoint (must be before /:slug catch-all)
+router.get('/:slug/full', optionalAuth, searchLimiter, ForumController.getThreadFull);
+
 router.get('/:slug', searchLimiter, ForumController.getThread);
 router.get('/:slug/replies', searchLimiter, ForumController.getReplies);
 
