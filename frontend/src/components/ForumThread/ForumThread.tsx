@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import { api } from '../../utils/api';
@@ -180,8 +180,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [replyVotes, setReplyVotes] = useState<Record<string, { score: number; userVote: 0 | 1 | -1 }>>({});
   const [collapsedReplies, setCollapsedReplies] = useState<Set<string>>(new Set());
   const [replySort, setReplySort] = useState<'top' | 'newest' | 'oldest'>('top');
-  const votingRef = useRef(false);
-  const replyVotingRef = useRef<Set<string>>(new Set());
+  const [threadVoting, setThreadVoting] = useState(false);
+  const [replyVotingIds, setReplyVotingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setLoading(true);
@@ -279,8 +279,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
       showToast('Log in to vote', 'error');
       return;
     }
-    if (replyVotingRef.current.has(replyId)) return; // Block concurrent votes on same reply
-    replyVotingRef.current.add(replyId);
+    if (replyVotingIds.has(replyId)) return;
+    setReplyVotingIds(prev => new Set(prev).add(replyId));
 
     const current = replyVotes[replyId] ?? { score: 0, userVote: 0 };
     const newValue = current.userVote === value ? 0 : value;
@@ -301,14 +301,19 @@ export function ForumThread({ slug }: ForumThreadProps) {
         ...prev,
         [replyId]: { score: result.score, userVote: result.userVote as 0 | 1 | -1 },
       }));
-    } catch {
-      // Revert on failure
+    } catch (err) {
       setReplyVotes((prev) => ({
         ...prev,
         [replyId]: current,
       }));
+      const message = err instanceof Error ? err.message : 'Vote failed';
+      showToast(message, 'error');
     } finally {
-      replyVotingRef.current.delete(replyId);
+      setReplyVotingIds(prev => {
+        const next = new Set(prev);
+        next.delete(replyId);
+        return next;
+      });
     }
   };
 
@@ -379,8 +384,8 @@ export function ForumThread({ slug }: ForumThreadProps) {
       showToast('Log in to vote', 'error');
       return;
     }
-    if (votingRef.current) return; // Block concurrent votes
-    votingRef.current = true;
+    if (threadVoting) return;
+    setThreadVoting(true);
 
     // Toggle: if same vote, remove it
     const newValue = userVote === value ? 0 : value;
@@ -398,11 +403,13 @@ export function ForumThread({ slug }: ForumThreadProps) {
       });
       setThreadScore(result.score);
       setUserVote(result.userVote as 1 | -1 | 0);
-    } catch {
+    } catch (err) {
       setUserVote(oldVote);
       setThreadScore(oldScore);
+      const message = err instanceof Error ? err.message : 'Vote failed';
+      showToast(message, 'error');
     } finally {
-      votingRef.current = false;
+      setThreadVoting(false);
     }
   };
 
@@ -461,6 +468,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
             <button
               className={`${styles.voteBtn} ${styles.voteBtnUp} ${userVote === 1 ? styles.voteBtnUpActive : ''}`}
               onClick={() => handleThreadVote(1)}
+              disabled={threadVoting}
               title="Upvote"
             >
               <UpArrowIcon size={18} />
@@ -469,6 +477,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
             <button
               className={`${styles.voteBtn} ${styles.voteBtnDown} ${userVote === -1 ? styles.voteBtnDownActive : ''}`}
               onClick={() => handleThreadVote(-1)}
+              disabled={threadVoting}
               title="Downvote"
             >
               <DownArrowIcon size={18} />
@@ -484,7 +493,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
               <span className={styles.threadMetaText}>
                 Posted by <UserBadge user={thread.user} />
                 {thread.user.pitCred != null && (
-                  <span className={styles.pitCredInline}> · {thread.user.pitCred} PC</span>
+                  <span className={styles.pitCredBadge}>{Math.max(0, thread.user.pitCred)} PC</span>
                 )}
                 <span className={styles.metaDot}>·</span>
                 <time>{new Date(thread.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
@@ -541,6 +550,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
               <button
                 className={`${styles.voteBtn} ${styles.voteBtnUp} ${userVote === 1 ? styles.voteBtnUpActive : ''}`}
                 onClick={() => handleThreadVote(1)}
+                disabled={threadVoting}
               >
                 <UpArrowIcon size={16} />
               </button>
@@ -548,6 +558,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
               <button
                 className={`${styles.voteBtn} ${styles.voteBtnDown} ${userVote === -1 ? styles.voteBtnDownActive : ''}`}
                 onClick={() => handleThreadVote(-1)}
+                disabled={threadVoting}
               >
                 <DownArrowIcon size={16} />
               </button>
@@ -598,6 +609,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
               onVote={handleReplyVote}
               onShareReply={handleShareReply}
               replyVotes={replyVotes}
+              replyVotingIds={replyVotingIds}
               collapsedReplies={collapsedReplies}
               toggleCollapse={toggleCollapseReply}
               inlineReplyId={inlineReplyId}
@@ -649,7 +661,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
 }
 
 function ReplyNode({
-  reply, depth, onReply, onVote, onShareReply, replyVotes, collapsedReplies, toggleCollapse,
+  reply, depth, onReply, onVote, onShareReply, replyVotes, replyVotingIds, collapsedReplies, toggleCollapse,
   inlineReplyId, inlineReplyBody, onInlineReplyBodyChange,
   onInlineReplySubmit, onInlineReplyCancel, submitting,
 }: {
@@ -659,6 +671,7 @@ function ReplyNode({
   onVote: (id: string, value: 1 | -1) => void;
   onShareReply: (id: string) => void;
   replyVotes: Record<string, { score: number; userVote: 0 | 1 | -1 }>;
+  replyVotingIds: Set<string>;
   collapsedReplies: Set<string>;
   toggleCollapse: (id: string) => void;
   inlineReplyId: string | null;
@@ -703,6 +716,9 @@ function ReplyNode({
                   {badges.map((badge) => (
                     <span key={badge} className={styles.badge}>{badge}</span>
                   ))}
+                  {reply.user.pitCred != null && (
+                    <span className={styles.pitCredBadge}>{Math.max(0, reply.user.pitCred)} PC</span>
+                  )}
                   <time className={styles.replyTime}>{timeAgo}</time>
                 </div>
                 <div className={styles.replyBody}>
@@ -712,6 +728,7 @@ function ReplyNode({
                   <button
                     className={`${styles.replyVoteBtn} ${styles.replyVoteBtnUp} ${vote.userVote === 1 ? styles.replyVoteBtnUpActive : ''}`}
                     onClick={() => onVote(reply.id, 1)}
+                    disabled={replyVotingIds.has(reply.id)}
                     title="Upvote"
                   >
                     <UpArrowIcon size={14} />
@@ -720,6 +737,7 @@ function ReplyNode({
                   <button
                     className={`${styles.replyVoteBtn} ${styles.replyVoteBtnDown} ${vote.userVote === -1 ? styles.replyVoteBtnDownActive : ''}`}
                     onClick={() => onVote(reply.id, -1)}
+                    disabled={replyVotingIds.has(reply.id)}
                     title="Downvote"
                   >
                     <DownArrowIcon size={14} />
@@ -763,6 +781,7 @@ function ReplyNode({
                   onVote={onVote}
                   onShareReply={onShareReply}
                   replyVotes={replyVotes}
+                  replyVotingIds={replyVotingIds}
                   collapsedReplies={collapsedReplies}
                   toggleCollapse={toggleCollapse}
                   inlineReplyId={inlineReplyId}
@@ -787,9 +806,6 @@ function UserBadge({ user }: { user: ThreadUser }) {
       {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} />}
       <span className={styles.userName}>{user.username}</span>
       <VerifiedCreatorBadge role={user.role} />
-      {user.pitCred != null && user.pitCred > 0 && (
-        <span className={styles.pitCredBadge}>{user.pitCred} PC</span>
-      )}
     </span>
   );
 }

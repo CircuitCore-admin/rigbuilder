@@ -10,15 +10,23 @@ interface FetchOptions extends Omit<RequestInit, 'body'> {
  */
 export async function api<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
   const { body, headers: extraHeaders, ...rest } = options;
+  const method = (rest.method ?? 'GET').toUpperCase();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...((extraHeaders as Record<string, string>) ?? {}),
   };
 
-  // Read CSRF token from cookie for state-mutating requests
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes((rest.method ?? 'GET').toUpperCase())) {
-    const csrfToken = getCookie('__csrf');
+  // For state-mutating requests, ensure CSRF token exists
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    let csrfToken = getCookie('__csrf');
+
+    // If no CSRF token, refresh it by hitting a GET endpoint
+    if (!csrfToken) {
+      await fetch(`${BASE_URL}/forum?limit=1`, { credentials: 'include' });
+      csrfToken = getCookie('__csrf');
+    }
+
     if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
   }
 
