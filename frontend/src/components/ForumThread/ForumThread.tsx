@@ -274,7 +274,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
     setInlineReplyBody('');
   };
 
-  const handleReplyVote = async (replyId: string, value: 1 | -1) => {
+  const handleReplyVote = async (replyId: string, clickedValue: 1 | -1) => {
     if (!authUser) {
       showToast('Log in to vote', 'error');
       return;
@@ -283,29 +283,36 @@ export function ForumThread({ slug }: ForumThreadProps) {
     setReplyVotingIds(prev => new Set(prev).add(replyId));
 
     const current = replyVotes[replyId] ?? { score: 0, userVote: 0 };
-    const newValue = current.userVote === value ? 0 : value;
-    const delta = newValue - current.userVote;
+    let sendValue: 0 | 1 | -1;
+    if (current.userVote === clickedValue) {
+      sendValue = 0;
+    } else {
+      sendValue = clickedValue;
+    }
+
+    const scoreDelta = sendValue - current.userVote;
 
     // Optimistic update
-    setReplyVotes((prev) => ({
+    setReplyVotes(prev => ({
       ...prev,
-      [replyId]: { score: current.score + delta, userVote: newValue as 0 | 1 | -1 },
+      [replyId]: { score: current.score + scoreDelta, userVote: sendValue as 0 | 1 | -1 },
     }));
+
+    console.log('[ReplyVote]', replyId, 'clicked:', clickedValue, 'prev:', current.userVote, 'sending:', sendValue);
 
     try {
       const result = await api<{ score: number; userVote: number }>(`/forum/replies/${replyId}/vote`, {
         method: 'POST',
-        body: { value: newValue },
+        body: { value: sendValue },
       });
-      setReplyVotes((prev) => ({
+      console.log('[ReplyVote] response:', result);
+      setReplyVotes(prev => ({
         ...prev,
         [replyId]: { score: result.score, userVote: result.userVote as 0 | 1 | -1 },
       }));
     } catch (err) {
-      setReplyVotes((prev) => ({
-        ...prev,
-        [replyId]: current,
-      }));
+      console.error('[ReplyVote] Error:', err);
+      setReplyVotes(prev => ({ ...prev, [replyId]: current }));
       const message = err instanceof Error ? err.message : 'Vote failed';
       showToast(message, 'error');
     } finally {
@@ -378,36 +385,41 @@ export function ForumThread({ slug }: ForumThreadProps) {
     finally { setFollowLoading(false); }
   };
 
-  const handleThreadVote = async (value: 1 | -1) => {
-    if (!thread) return;
-    if (!authUser) {
-      showToast('Log in to vote', 'error');
-      return;
-    }
-    if (threadVoting) return;
+  const handleThreadVote = async (clickedValue: 1 | -1) => {
+    if (!thread || !authUser || threadVoting) return;
     setThreadVoting(true);
 
-    // Toggle: if same vote, remove it
-    const newValue = userVote === value ? 0 : value;
-    const oldScore = threadScore;
-    const oldVote = userVote;
+    // Determine what value to send: toggle off if clicking same direction, otherwise apply
+    let sendValue: 0 | 1 | -1;
+    if (userVote === clickedValue) {
+      sendValue = 0; // Toggle off — user clicked the same arrow
+    } else {
+      sendValue = clickedValue; // Apply new vote
+    }
+
+    const prevScore = threadScore;
+    const prevVote = userVote;
 
     // Optimistic update
-    setUserVote(newValue as 1 | -1 | 0);
-    setThreadScore(oldScore - oldVote + newValue);
+    const scoreDelta = sendValue - prevVote;
+    setUserVote(sendValue as 0 | 1 | -1);
+    setThreadScore(prevScore + scoreDelta);
+
+    console.log('[Vote] clicked:', clickedValue, 'prev:', prevVote, 'sending:', sendValue, 'scoreDelta:', scoreDelta);
 
     try {
       const result = await api<{ score: number; userVote: number }>(`/forum/threads/${thread.id}/vote`, {
         method: 'POST',
-        body: { value: newValue },
+        body: { value: sendValue },
       });
+      console.log('[Vote] API response:', result);
       setThreadScore(result.score);
-      setUserVote(result.userVote as 1 | -1 | 0);
+      setUserVote(result.userVote as 0 | 1 | -1);
     } catch (err) {
-      setUserVote(oldVote);
-      setThreadScore(oldScore);
-      const message = err instanceof Error ? err.message : 'Vote failed';
-      showToast(message, 'error');
+      console.error('[Vote] Error:', err);
+      setUserVote(prevVote);
+      setThreadScore(prevScore);
+      showToast(err instanceof Error ? err.message : 'Vote failed', 'error');
     } finally {
       setThreadVoting(false);
     }

@@ -96,13 +96,19 @@ export class ForumController {
     const session = (req as any).session;
     if (!session?.userId) return res.status(401).json({ error: 'Authentication required' });
 
-    const value = req.body.value ?? 1; // Default to upvote for backward compat
-    if (value !== 1 && value !== -1 && value !== 0) {
+    const rawValue = req.body.value ?? 1; // Default to upvote for backward compat
+    const numValue = typeof rawValue === 'string' ? parseInt(rawValue, 10) : rawValue;
+    if (numValue !== 1 && numValue !== -1 && numValue !== 0) {
       return res.status(400).json({ error: 'value must be 1, -1, or 0' });
     }
 
-    const result = await ForumService.voteReply(req.params.id, session.userId, value);
-    res.json(result);
+    try {
+      const result = await ForumService.voteReply(req.params.id, session.userId, numValue);
+      res.json(result);
+    } catch (err) {
+      console.error('voteReply error:', err);
+      res.status(500).json({ error: 'Failed to process vote' });
+    }
   }
 
   /** PUT /api/v1/forum/:id */
@@ -164,12 +170,18 @@ export class ForumController {
 
     const threadId = req.params.id;
     const { value } = req.body;
-    if (value !== 1 && value !== -1 && value !== 0) {
+    const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+    if (numValue !== 1 && numValue !== -1 && numValue !== 0) {
       return res.status(400).json({ error: 'value must be 1, -1, or 0' });
     }
 
-    const result = await ForumService.voteThread(threadId, session.userId, value);
-    res.json(result);
+    try {
+      const result = await ForumService.voteThread(threadId, session.userId, numValue);
+      res.json(result);
+    } catch (err) {
+      console.error('voteThread error:', err);
+      res.status(500).json({ error: 'Failed to process vote' });
+    }
   }
 
   /** GET /api/v1/forum/threads/:id/vote */
