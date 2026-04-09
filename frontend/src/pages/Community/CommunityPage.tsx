@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../../utils/api';
+import { api, resolveImageUrl } from '../../utils/api';
 import { ForumThread } from '../../components/ForumThread/ForumThread';
 import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import {
-  FolderIcon, SearchIcon, UploadIcon, ImageIcon, ChatIcon, EyeIcon, UpArrowIcon,
+  FolderIcon, SearchIcon, UploadIcon, ImageIcon, ChatIcon, EyeIcon, UpArrowIcon, DownArrowIcon,
 } from '../../components/Icons/ForumIcons';
 import { CATEGORY_ICONS } from '../../components/Icons/ForumIcons';
 import {
@@ -105,6 +105,7 @@ const CACHE_TTL = 30_000; // 30 seconds
 
 function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -121,6 +122,10 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [totalPosts, setTotalPosts] = useState<number | null>(null);
 
+  // Thread list voting state
+  const [listVotes, setListVotes] = useState<Record<string, { score: number; userVote: 0 | 1 | -1 }>>({});
+  const [listVoting, setListVoting] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(timer);
@@ -135,6 +140,14 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
     const cacheKey = `${activeCategory}-${page}-${sortBy}`;
     const cached = threadListCache[cacheKey];
 
+    const initVoteState = (items: ThreadListItem[]) => {
+      const votes: Record<string, { score: number; userVote: 0 | 1 | -1 }> = {};
+      for (const t of items) {
+        votes[t.id] = { score: t.score ?? 0, userVote: 0 };
+      }
+      setListVotes(prev => ({ ...prev, ...votes }));
+    };
+
     // Use cache if fresh (< 30 seconds old)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       let items = cached.data.items;
@@ -143,6 +156,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
         items = items.filter(t => t.title.toLowerCase().includes(q));
       }
       setThreads(items);
+      initVoteState(items);
       setTotalPages(cached.data.pagination.totalPages);
       if (totalPosts === null) setTotalPosts(cached.data.pagination.total);
       setLoading(false);
@@ -162,6 +176,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
           items = items.filter(t => t.title.toLowerCase().includes(q));
         }
         setThreads(items);
+        initVoteState(items);
         setTotalPages(data.pagination.totalPages);
         if (totalPosts === null) setTotalPosts(data.pagination.total);
       })
@@ -195,6 +210,47 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   );
 
   const isShowroom = activeCategory === 'SHOWROOM';
+
+  const handleListVote = async (e: React.MouseEvent, threadId: string, clickedValue: 1 | -1) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      showToast('Log in to vote', 'error');
+      return;
+    }
+    if (listVoting.has(threadId)) return;
+    setListVoting(prev => new Set(prev).add(threadId));
+
+    const current = listVotes[threadId] ?? { score: 0, userVote: 0 };
+    const sendValue = current.userVote === clickedValue ? 0 : clickedValue;
+    const delta = sendValue - current.userVote;
+
+    setListVotes(prev => ({
+      ...prev,
+      [threadId]: { score: current.score + delta, userVote: sendValue as 0 | 1 | -1 },
+    }));
+
+    try {
+      const result = await api<{ score: number; userVote: number }>(`/forum/threads/${threadId}/vote`, {
+        method: 'POST',
+        body: { value: sendValue },
+      });
+      setListVotes(prev => ({
+        ...prev,
+        [threadId]: { score: result.score, userVote: result.userVote as 0 | 1 | -1 },
+      }));
+    } catch {
+      setListVotes(prev => ({ ...prev, [threadId]: current }));
+      showToast('Vote failed', 'error');
+    } finally {
+      setListVoting(prev => {
+        const next = new Set(prev);
+        next.delete(threadId);
+        return next;
+      });
+    }
+  };
 
   return (
     <div className={styles.dashboard}>
@@ -305,7 +361,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                     <div className={styles.showroomImageWrap}>
                       {t.imageUrls?.[0] && (
                         <img
-                          src={t.imageUrls[0]}
+                          src={resolveImageUrl(t.imageUrls[0])}
                           alt={`Showroom photo for ${t.title}`}
                           className={styles.showroomImage}
                         />
@@ -329,12 +385,26 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                   const color = CATEGORY_COLORS[t.category] ?? '#7878A0';
                   const catLabel =
                     CATEGORY_BLUEPRINTS[t.category as BlueprintCategory]?.label ?? t.category;
+                  const vote = listVotes[t.id] ?? { score: t.score ?? 0, userVote: 0 };
 
                   return (
                     <a key={t.id} href={`/community/${t.slug}`} className={styles.threadRow}>
-                      <div className={styles.threadCardScore}>
-                        <UpArrowIcon size={12} />
-                        <span>{t.score ?? 0}</span>
+                      <div className={styles.threadCardVote}>
+                        <button
+                          className={`${styles.threadVoteBtn} ${vote.userVote === 1 ? styles.threadVoteBtnUpActive : ''}`}
+                          onClick={(e) => handleListVote(e, t.id, 1)}
+                          disabled={listVoting.has(t.id)}
+                        >
+                          <UpArrowIcon size={14} />
+                        </button>
+                        <span className={styles.threadVoteScore}>{vote.score}</span>
+                        <button
+                          className={`${styles.threadVoteBtn} ${vote.userVote === -1 ? styles.threadVoteBtnDownActive : ''}`}
+                          onClick={(e) => handleListVote(e, t.id, -1)}
+                          disabled={listVoting.has(t.id)}
+                        >
+                          <DownArrowIcon size={14} />
+                        </button>
                       </div>
                       <div className={styles.threadCardContent}>
                         <div className={styles.threadCardTopLine}>
@@ -357,7 +427,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                           <span className={styles.threadTitle}>{t.title}</span>
                           {t.imageUrls && t.imageUrls.length > 0 && t.imageUrls[0] && (
                             <img
-                              src={t.imageUrls[0]}
+                              src={resolveImageUrl(t.imageUrls[0])}
                               alt=""
                               className={styles.threadThumb}
                             />
@@ -1042,7 +1112,7 @@ function NewThreadForm() {
                     onDragOver={(e) => handleThumbDragOver(e, i)}
                     onDragEnd={handleThumbDragEnd}
                   >
-                    <img src={url} alt={`Image ${i + 1}`} className={styles.thumbImg} />
+                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} />
                     <button
                       type="button"
                       className={styles.thumbRemove}

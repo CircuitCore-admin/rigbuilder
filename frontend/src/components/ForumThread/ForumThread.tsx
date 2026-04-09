@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Markdown from 'react-markdown';
-import { api } from '../../utils/api';
+import { api, resolveImageUrl } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { VerifiedCreatorBadge } from '../VerifiedCreatorBadge/VerifiedCreatorBadge';
 import { EmbedBuildCard } from '../EmbedBuildCard/EmbedBuildCard';
@@ -132,7 +132,7 @@ function LightboxModal({
         </button>
       )}
       <img
-        src={images[index]}
+        src={resolveImageUrl(images[index])}
         alt={`Photo ${index + 1}`}
         className={`${styles.lightboxImage} ${transitioning ? styles.lightboxImageFade : ''}`}
         onClick={(e) => e.stopPropagation()}
@@ -816,7 +816,7 @@ function ImageGallery({
         {imageUrls.map((url, i) => (
           <img
             key={i}
-            src={url}
+            src={resolveImageUrl(url)}
             alt={`Photo ${i + 1}`}
             className={`${styles.galleryImage} ${styles.galleryImageClickable}`}
             onClick={() => onImageClick(i)}

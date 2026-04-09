@@ -64,3 +64,13 @@ function getCookie(name: string): string | undefined {
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match?.[1];
 }
+
+/** Resolve a potentially relative image URL to an absolute one. */
+export function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  // Already absolute
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  // Relative path — prefix with API base URL (strip /api/v1 suffix)
+  const base = BASE_URL.replace(/\/api\/v1\/?$/, '');
+  return `${base}${url}`;
+}

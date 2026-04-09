@@ -25,8 +25,8 @@ export class ForumController {
     });
   }
 
-  /** Deduplicate view count increments by IP (in-memory, 5-minute window). */
-  private static maybeIncrementView(req: Request, threadId: string) {
+  /** Check whether this IP should count as a new view (in-memory, 5-minute window). */
+  private static shouldIncrementView(req: Request, threadId: string): boolean {
     const viewKey = `view:${threadId}:${req.ip}`;
     if (!req.app.locals.recentViews) {
       req.app.locals.recentViews = new Set<string>();
@@ -34,17 +34,21 @@ export class ForumController {
     const recentViews = req.app.locals.recentViews as Set<string>;
 
     if (!recentViews.has(viewKey)) {
-      ForumRepository.incrementViewCount(threadId).catch(() => {});
       recentViews.add(viewKey);
       setTimeout(() => { recentViews.delete(viewKey); }, 5 * 60 * 1000);
+      return true;
     }
+    return false;
   }
 
   /** GET /api/v1/forum/:slug */
   static async getThread(req: Request, res: Response) {
     try {
       const thread = await ForumService.getThreadBySlug(req.params.slug);
-      ForumController.maybeIncrementView(req, thread.id);
+      if (ForumController.shouldIncrementView(req, thread.id)) {
+        await ForumRepository.incrementViewCount(thread.id);
+        thread.viewCount += 1;
+      }
       res.json(thread);
     } catch (err) {
       if (err instanceof NotFoundError) return res.status(404).json({ error: err.message });
@@ -56,7 +60,13 @@ export class ForumController {
   static async getThreadFull(req: Request, res: Response) {
     try {
       const thread = await ForumService.getThreadBySlug(req.params.slug);
-      ForumController.maybeIncrementView(req, thread.id);
+
+      // Increment view count before response so client sees the updated value
+      if (ForumController.shouldIncrementView(req, thread.id)) {
+        await ForumRepository.incrementViewCount(thread.id);
+        thread.viewCount += 1;
+      }
+
       const replies = await ForumService.getReplies(thread.id);
 
       // Include user-specific context if authenticated
