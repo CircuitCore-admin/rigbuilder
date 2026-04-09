@@ -6,9 +6,9 @@
 
 .dashboard {
   display: grid;
-  grid-template-columns: 250px 1fr 300px;
+  grid-template-columns: 220px 1fr 280px;
   gap: 0;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   min-height: calc(100vh - 64px);
 }
@@ -16,8 +16,7 @@
 .sidebar {
   background: var(--bg-primary);
   border-right: 1px solid var(--border-default);
-  padding: 24px 20px;
-  padding-right: 28px;
+  padding: 24px 12px 24px 24px;
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
@@ -28,7 +27,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 8px;
   margin-bottom: 20px;
 }
 
@@ -62,8 +61,8 @@
 .categoryItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
+  gap: 8px;
+  padding: 12px 8px;
   border: none;
   border-left: 3px solid transparent;
   background: none;
@@ -101,7 +100,7 @@
 
 .feed {
   min-width: 0;
-  padding: 24px 32px;
+  padding: 24px 48px;
 }
 
 .loadingState,
@@ -530,7 +529,8 @@
 // ---------- Right sidebar ----------
 
 .rightSidebar {
-  padding: 24px 20px;
+  border-left: 1px solid var(--border-default);
+  padding: 24px 24px 24px 20px;
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
@@ -1057,7 +1057,7 @@
 
 @media (max-width: 1024px) {
   .dashboard {
-    grid-template-columns: 250px 1fr;
+    grid-template-columns: 220px 1fr;
   }
 
   .rightSidebar {
@@ -1065,7 +1065,7 @@
   }
 
   .feed {
-    padding: 20px 20px;
+    padding: 20px 24px;
   }
 
   .showroomGrid {

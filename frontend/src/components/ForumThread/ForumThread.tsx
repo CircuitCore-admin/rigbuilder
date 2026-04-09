@@ -177,6 +177,9 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [inlineReplyBody, setInlineReplyBody] = useState('');
   const [threadScore, setThreadScore] = useState(0);
   const [userVote, setUserVote] = useState<1 | -1 | 0>(0);
+  const [replyVotes, setReplyVotes] = useState<Record<string, { score: number; userVote: 0 | 1 | -1 }>>({});
+  const [collapsedReplies, setCollapsedReplies] = useState<Set<string>>(new Set());
+  const [replySort, setReplySort] = useState<'top' | 'newest' | 'oldest'>('top');
 
   useEffect(() => {
     setLoading(true);
@@ -188,6 +191,12 @@ export function ForumThread({ slug }: ForumThreadProps) {
         setThread(t);
         setReplies(r);
         setThreadScore(t.score ?? 0);
+        // Initialize reply vote state from server data
+        const voteMap: Record<string, { score: number; userVote: 0 | 1 | -1 }> = {};
+        for (const reply of r) {
+          voteMap[reply.id] = { score: reply.upvotes, userVote: 0 };
+        }
+        setReplyVotes(voteMap);
       })
       .catch(() => setThread(null))
       .finally(() => setLoading(false));
@@ -208,7 +217,15 @@ export function ForumThread({ slug }: ForumThreadProps) {
       .catch(() => {});
   }, [thread?.id, authUser]);
 
-  const nestedReplies = useMemo(() => buildReplyTree(replies), [replies]);
+  const nestedReplies = useMemo(() => {
+    // Sort flat replies before building tree
+    const sorted = [...replies].sort((a, b) => {
+      if (replySort === 'top') return b.upvotes - a.upvotes;
+      if (replySort === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+    return buildReplyTree(sorted);
+  }, [replies, replySort]);
 
   const handleSubmitReply = async () => {
     if (!replyBody.trim() || submitting) return;
@@ -255,24 +272,53 @@ export function ForumThread({ slug }: ForumThreadProps) {
     setInlineReplyBody('');
   };
 
-  const handleUpvote = async (replyId: string) => {
-    // Optimistic update: increment immediately
-    setReplies((prev) =>
-      prev.map((r) => (r.id === replyId ? { ...r, upvotes: r.upvotes + 1 } : r))
-    );
+  const handleReplyVote = async (replyId: string, value: 1 | -1) => {
+    const current = replyVotes[replyId] ?? { score: 0, userVote: 0 };
+    const newValue = current.userVote === value ? 0 : value;
+    const delta = newValue - current.userVote;
+
+    // Optimistic update
+    setReplyVotes((prev) => ({
+      ...prev,
+      [replyId]: { score: current.score + delta, userVote: newValue as 0 | 1 | -1 },
+    }));
+
     try {
-      const updated = await api<{ upvotes: number; voted: boolean }>(`/forum/replies/${replyId}/upvote`, { method: 'POST' });
-      // Reconcile with server value
-      setReplies((prev) =>
-        prev.map((r) => (r.id === replyId ? { ...r, upvotes: updated.upvotes } : r))
-      );
+      // TODO: Backend only supports upvote toggle for now; downvotes won't persist until backend is updated
+      if (value === 1 || newValue === 0) {
+        const updated = await api<{ upvotes: number; voted: boolean }>(`/forum/replies/${replyId}/upvote`, { method: 'POST' });
+        setReplyVotes((prev) => ({
+          ...prev,
+          [replyId]: { ...prev[replyId], score: updated.upvotes },
+        }));
+      }
     } catch {
       // Revert on failure
-      setReplies((prev) =>
-        prev.map((r) => (r.id === replyId ? { ...r, upvotes: r.upvotes - 1 } : r))
-      );
+      setReplyVotes((prev) => ({
+        ...prev,
+        [replyId]: current,
+      }));
     }
   };
+
+  const handleShareReply = (replyId: string) => {
+    if (!thread) return;
+    const url = `${window.location.origin}/community/${thread.slug}#reply-${replyId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied to clipboard', 'success');
+    }).catch(() => {
+      showToast('Failed to copy link', 'error');
+    });
+  };
+
+  const toggleCollapseReply = useCallback((replyId: string) => {
+    setCollapsedReplies((prev) => {
+      const next = new Set(prev);
+      if (next.has(replyId)) next.delete(replyId);
+      else next.add(replyId);
+      return next;
+    });
+  }, []);
 
   const handleDelete = async () => {
     if (!thread) return;
@@ -468,7 +514,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
               )}
               {canModify && (
                 <>
-                  <button className={styles.actionBtn} onClick={handleStartEdit}>Edit</button>
+                  <button className={`${styles.actionBtn} ${styles.actionBtnEdit}`} onClick={handleStartEdit}>Edit</button>
                   <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={handleDelete}>Delete</button>
                 </>
               )}
@@ -513,6 +559,19 @@ export function ForumThread({ slug }: ForumThreadProps) {
           {replies.length} {replies.length === 1 ? 'Reply' : 'Replies'}
         </h3>
 
+        <div className={styles.replySortRow}>
+          <span className={styles.replySortLabel}>Sort by:</span>
+          {(['top', 'newest', 'oldest'] as const).map((opt) => (
+            <button
+              key={opt}
+              className={`${styles.replySortBtn} ${replySort === opt ? styles.replySortBtnActive : ''}`}
+              onClick={() => setReplySort(opt)}
+            >
+              {opt === 'top' ? 'Top' : opt === 'newest' ? 'Newest' : 'Oldest'}
+            </button>
+          ))}
+        </div>
+
         <div className={styles.replyList}>
           {nestedReplies.map((reply) => (
             <ReplyNode
@@ -520,7 +579,11 @@ export function ForumThread({ slug }: ForumThreadProps) {
               reply={reply}
               depth={0}
               onReply={handleReplyToComment}
-              onUpvote={handleUpvote}
+              onVote={handleReplyVote}
+              onShareReply={handleShareReply}
+              replyVotes={replyVotes}
+              collapsedReplies={collapsedReplies}
+              toggleCollapse={toggleCollapseReply}
               inlineReplyId={inlineReplyId}
               inlineReplyBody={inlineReplyBody}
               onInlineReplyBodyChange={setInlineReplyBody}
@@ -570,14 +633,18 @@ export function ForumThread({ slug }: ForumThreadProps) {
 }
 
 function ReplyNode({
-  reply, depth, onReply, onUpvote,
+  reply, depth, onReply, onVote, onShareReply, replyVotes, collapsedReplies, toggleCollapse,
   inlineReplyId, inlineReplyBody, onInlineReplyBodyChange,
   onInlineReplySubmit, onInlineReplyCancel, submitting,
 }: {
   reply: Reply & { children?: Reply[] };
   depth: number;
   onReply: (id: string) => void;
-  onUpvote: (id: string) => void;
+  onVote: (id: string, value: 1 | -1) => void;
+  onShareReply: (id: string) => void;
+  replyVotes: Record<string, { score: number; userVote: 0 | 1 | -1 }>;
+  collapsedReplies: Set<string>;
+  toggleCollapse: (id: string) => void;
   inlineReplyId: string | null;
   inlineReplyBody: string;
   onInlineReplyBodyChange: (val: string) => void;
@@ -585,68 +652,115 @@ function ReplyNode({
   onInlineReplyCancel: () => void;
   submitting: boolean;
 }) {
-  const maxDepth = 4;
   const badges = getBadges(reply.user.reputation, reply.user.role);
   const showInlineForm = inlineReplyId === reply.id;
+  const isCollapsed = collapsedReplies.has(reply.id);
+  const vote = replyVotes[reply.id] ?? { score: reply.upvotes, userVote: 0 };
+  const timeAgo = new Date(reply.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <div className={styles.replyNode} style={{ marginLeft: Math.min(depth, maxDepth) * 24 }}>
-      <div className={styles.reply}>
-        <div className={styles.replyHeader}>
-          <UserBadge user={reply.user} />
-          <VerifiedCreatorBadge role={reply.user.role} />
-          {badges.map((badge) => (
-            <span key={badge} className={styles.badge}>{badge}</span>
-          ))}
-          <time className={styles.replyTime}>
-            {new Date(reply.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </time>
+    <div className={styles.replyNode} id={`reply-${reply.id}`}>
+      <div className={styles.replyThreadContainer}>
+        {/* Clickable collapse line */}
+        <div className={styles.replyCollapseColumn}>
+          <div
+            className={styles.replyThreadLine}
+            onClick={() => toggleCollapse(reply.id)}
+            title="Collapse thread"
+          />
         </div>
-        <div className={styles.replyBody}>
-          <Markdown>{reply.body}</Markdown>
-        </div>
-        <div className={styles.replyActions}>
-          <button className={styles.upvoteBtn} onClick={() => onUpvote(reply.id)}>▲ {reply.upvotes}</button>
-          <button className={styles.replyBtn} onClick={() => onReply(reply.id)}>Reply</button>
+
+        {/* Reply content */}
+        <div className={styles.replyContentColumn}>
+          {isCollapsed ? (
+            <div className={styles.replyCollapsed} onClick={() => toggleCollapse(reply.id)}>
+              <UserBadge user={reply.user} />
+              <span className={styles.collapsedMeta}>{vote.score} points · {timeAgo}</span>
+              <span className={styles.collapsedExpand}>[+] expand</span>
+            </div>
+          ) : (
+            <>
+              <div className={styles.reply}>
+                <div className={styles.replyHeader}>
+                  <UserBadge user={reply.user} />
+                  <VerifiedCreatorBadge role={reply.user.role} />
+                  {badges.map((badge) => (
+                    <span key={badge} className={styles.badge}>{badge}</span>
+                  ))}
+                  <time className={styles.replyTime}>{timeAgo}</time>
+                </div>
+                <div className={styles.replyBody}>
+                  <Markdown>{reply.body}</Markdown>
+                </div>
+                <div className={styles.replyActions}>
+                  <button
+                    className={`${styles.replyVoteBtn} ${styles.replyVoteBtnUp} ${vote.userVote === 1 ? styles.replyVoteBtnUpActive : ''}`}
+                    onClick={() => onVote(reply.id, 1)}
+                    title="Upvote"
+                  >
+                    <UpArrowIcon size={14} />
+                  </button>
+                  <span className={styles.replyVoteScore}>{vote.score}</span>
+                  <button
+                    className={`${styles.replyVoteBtn} ${styles.replyVoteBtnDown} ${vote.userVote === -1 ? styles.replyVoteBtnDownActive : ''}`}
+                    onClick={() => onVote(reply.id, -1)}
+                    title="Downvote"
+                  >
+                    <DownArrowIcon size={14} />
+                  </button>
+                  <button className={styles.replyActionBtn} onClick={() => onReply(reply.id)}>
+                    <ChatIcon size={14} /> Reply
+                  </button>
+                  <button className={styles.replyActionBtn} onClick={() => onShareReply(reply.id)}>
+                    <ShareIcon size={14} /> Share
+                  </button>
+                </div>
+              </div>
+              {showInlineForm && (
+                <div className={styles.inlineReplyForm}>
+                  <MarkdownEditor
+                    value={inlineReplyBody}
+                    onChange={onInlineReplyBodyChange}
+                    rows={3}
+                    placeholder="Write your reply…"
+                  />
+                  <div className={styles.inlineReplyActions}>
+                    <button
+                      className={styles.inlineSubmit}
+                      onClick={onInlineReplySubmit}
+                      disabled={submitting || !inlineReplyBody.trim()}
+                    >
+                      {submitting ? 'Posting…' : 'Post Reply'}
+                    </button>
+                    <button className={styles.inlineCancel} onClick={onInlineReplyCancel}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+              {reply.children?.map((child) => (
+                <ReplyNode
+                  key={child.id}
+                  reply={child}
+                  depth={depth + 1}
+                  onReply={onReply}
+                  onVote={onVote}
+                  onShareReply={onShareReply}
+                  replyVotes={replyVotes}
+                  collapsedReplies={collapsedReplies}
+                  toggleCollapse={toggleCollapse}
+                  inlineReplyId={inlineReplyId}
+                  inlineReplyBody={inlineReplyBody}
+                  onInlineReplyBodyChange={onInlineReplyBodyChange}
+                  onInlineReplySubmit={onInlineReplySubmit}
+                  onInlineReplyCancel={onInlineReplyCancel}
+                  submitting={submitting}
+                />
+              ))}
+            </>
+          )}
         </div>
       </div>
-      {showInlineForm && (
-        <div className={styles.inlineReplyForm}>
-          <MarkdownEditor
-            value={inlineReplyBody}
-            onChange={onInlineReplyBodyChange}
-            rows={3}
-            placeholder="Write your reply…"
-          />
-          <div className={styles.inlineReplyActions}>
-            <button
-              className={styles.inlineSubmit}
-              onClick={onInlineReplySubmit}
-              disabled={submitting || !inlineReplyBody.trim()}
-            >
-              {submitting ? 'Posting…' : 'Post Reply'}
-            </button>
-            <button className={styles.inlineCancel} onClick={onInlineReplyCancel}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-      {reply.children?.map((child) => (
-        <ReplyNode
-          key={child.id}
-          reply={child}
-          depth={depth + 1}
-          onReply={onReply}
-          onUpvote={onUpvote}
-          inlineReplyId={inlineReplyId}
-          inlineReplyBody={inlineReplyBody}
-          onInlineReplyBodyChange={onInlineReplyBodyChange}
-          onInlineReplySubmit={onInlineReplySubmit}
-          onInlineReplyCancel={onInlineReplyCancel}
-          submitting={submitting}
-        />
-      ))}
     </div>
   );
 }
