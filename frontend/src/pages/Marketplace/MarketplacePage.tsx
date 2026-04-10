@@ -24,34 +24,36 @@ interface ListingUser {
   username: string;
   avatarUrl: string | null;
   sellerRating: number | null;
-  reviewCount: number;
+  sellerReviewCount: number;
   createdAt?: string;
 }
 
 interface ListingItem {
   id: string;
   title: string;
-  slug?: string;
   type: string;
   status: string;
   price: number | null;
+  minimumOffer: number | null;
   currency: string;
-  condition: string;
+  pricingType: string;
+  condition: string | null;
   category: string;
-  description?: string;
+  description: string;
   imageUrls: string[];
-  location: string | null;
-  country: string | null;
-  shipsNationally: boolean;
-  shipsInternationally: boolean;
-  localPickup: boolean;
+  country: string;
+  region: string | null;
+  shippingOptions: string[];
+  discordUsername: string | null;
+  productId: string | null;
   viewCount: number;
   isPremium: boolean;
-  buildPermalink: string | null;
+  premiumUntil: string | null;
+  expiresAt: string;
   createdAt: string;
   updatedAt: string;
-  bumpedAt: string | null;
   user: ListingUser;
+  product?: { id: string; name: string; slug: string; category: string; images?: string[] } | null;
 }
 
 interface PaginatedListings {
@@ -72,7 +74,7 @@ interface Offer {
 interface Review {
   id: string;
   rating: number;
-  comment: string | null;
+  body: string | null;
   createdAt: string;
   reviewer: { id: string; username: string; avatarUrl: string | null };
 }
@@ -222,10 +224,12 @@ function MarketplaceDashboard() {
     if (priceMax) params.set('priceMax', priceMax);
     if (priceCurrency) params.set('currency', priceCurrency);
     if (countryFilter) params.set('country', countryFilter);
-    if (shipsNationally) params.set('shipsNationally', 'true');
-    if (shipsInternationally) params.set('shipsInternationally', 'true');
-    if (localPickup) params.set('localPickup', 'true');
-    if (showSold) params.set('includeSold', 'true');
+    const shippingArr: string[] = [];
+    if (localPickup) shippingArr.push('LOCAL_PICKUP');
+    if (shipsNationally) shippingArr.push('NATIONAL_SHIPPING');
+    if (shipsInternationally) shippingArr.push('INTERNATIONAL_SHIPPING');
+    if (shippingArr.length > 0) params.set('shippingOptions', shippingArr.join(','));
+    if (showSold) params.set('status', 'SOLD');
     if (debouncedSearch) params.set('search', debouncedSearch);
 
     const cacheKey = params.toString();
@@ -655,7 +659,7 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
           <div className={styles.gridCardPrice}>{formatPrice(listing.price, listing.currency)}</div>
           <div className={styles.gridCardMeta}>
             <span className={styles.conditionTag}>{condLabel}</span>
-            {listing.location && <span className={styles.locationTag}>📍 {listing.location}</span>}
+            {listing.country && <span className={styles.locationTag}>📍 {listing.country}{listing.region ? `, ${listing.region}` : ''}</span>}
           </div>
           <div className={styles.gridCardFooter}>
             <span className={styles.gridCardSeller}>{listing.user.username}</span>
@@ -687,7 +691,7 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
         </div>
         <h3 className={styles.listRowTitle}>{listing.title}</h3>
         <div className={styles.listRowDetails}>
-          {listing.location && <span>📍 {listing.location}</span>}
+          {listing.country && <span>📍 {listing.country}</span>}
           <span>{listing.user.username}</span>
           <span>{relativeTime(listing.createdAt)}</span>
         </div>
@@ -717,12 +721,13 @@ function CreateListingPage() {
   const [category, setCategory] = useState('');
   const [condition, setCondition] = useState('');
   const [price, setPrice] = useState('');
+  const [minimumOffer, setMinimumOffer] = useState('');
   const [currency, setCurrency] = useState('GBP');
-  const [locationVal, setLocationVal] = useState('');
+  const [pricingType, setPricingType] = useState('FIXED');
   const [country, setCountry] = useState('');
-  const [shipsNationally, setShipsNationally] = useState(false);
-  const [shipsInternationally, setShipsInternationally] = useState(false);
-  const [localPickup, setLocalPickup] = useState(true);
+  const [region, setRegion] = useState('');
+  const [shippingOptions, setShippingOptions] = useState<Set<string>>(new Set(['LOCAL_PICKUP']));
+  const [discordUsername, setDiscordUsername] = useState('');
   const [buildPermalink, setBuildPermalink] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -750,12 +755,12 @@ function CreateListingPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (listingType) {
-        const draft = { listingType, title, description, category, condition, price, currency, locationVal, country, shipsNationally, shipsInternationally, localPickup, buildPermalink, imageUrls };
+        const draft = { listingType, title, description, category, condition, price, minimumOffer, currency, pricingType, country, region, shippingOptions: Array.from(shippingOptions), discordUsername, buildPermalink, imageUrls };
         localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [listingType, title, description, category, condition, price, currency, locationVal, country, shipsNationally, shipsInternationally, localPickup, buildPermalink, imageUrls]);
+  }, [listingType, title, description, category, condition, price, minimumOffer, currency, pricingType, country, region, shippingOptions, discordUsername, buildPermalink, imageUrls]);
 
   const restoreDraft = () => {
     try {
@@ -768,12 +773,13 @@ function CreateListingPage() {
       if (d.category) setCategory(d.category);
       if (d.condition) setCondition(d.condition);
       if (d.price) setPrice(d.price);
+      if (d.minimumOffer) setMinimumOffer(d.minimumOffer);
       if (d.currency) setCurrency(d.currency);
-      if (d.locationVal) setLocationVal(d.locationVal);
+      if (d.pricingType) setPricingType(d.pricingType);
       if (d.country) setCountry(d.country);
-      if (d.shipsNationally) setShipsNationally(d.shipsNationally);
-      if (d.shipsInternationally) setShipsInternationally(d.shipsInternationally);
-      if (d.localPickup !== undefined) setLocalPickup(d.localPickup);
+      if (d.region) setRegion(d.region);
+      if (d.shippingOptions) setShippingOptions(new Set(d.shippingOptions));
+      if (d.discordUsername) setDiscordUsername(d.discordUsername);
       if (d.buildPermalink) setBuildPermalink(d.buildPermalink);
       if (d.imageUrls) setImageUrls(d.imageUrls);
     } catch {
@@ -857,7 +863,7 @@ function CreateListingPage() {
   const handleThumbDragEnd = () => setDragIdx(null);
 
   const isPermalinkValid = !buildPermalink || buildPermalink.startsWith('/list/');
-  const canSubmit = title.trim().length > 0 && description.trim().length > 0 && category && condition && termsAccepted && !submitting && isPermalinkValid;
+  const canSubmit = title.trim().length >= 3 && description.trim().length >= 10 && category && (listingType === 'LOOKING_FOR' || condition) && country.trim().length > 0 && shippingOptions.size > 0 && termsAccepted && !submitting && isPermalinkValid;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -874,16 +880,17 @@ function CreateListingPage() {
           title: title.trim(),
           description: description.trim(),
           category,
-          condition,
+          condition: condition || null,
           price: price ? Number(price) : null,
+          minimumOffer: minimumOffer ? Number(minimumOffer) : null,
           currency,
-          location: locationVal.trim() || null,
-          country: country.trim() || null,
-          shipsNationally,
-          shipsInternationally,
-          localPickup,
+          pricingType,
+          country: country.trim(),
+          region: region.trim() || null,
+          shippingOptions: Array.from(shippingOptions),
+          discordUsername: discordUsername.trim() || null,
           buildPermalink: buildPermalink.trim() || null,
-          imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+          imageUrls: imageUrls.length > 0 ? imageUrls : [],
         },
       });
       showToast('Listing created!', 'success');
@@ -1007,21 +1014,23 @@ function CreateListingPage() {
             </select>
           </div>
 
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="listing-condition">Condition</label>
-            <select
-              id="listing-condition"
-              className={styles.fieldSelect}
-              value={condition}
-              onChange={e => setCondition(e.target.value)}
-              required
-            >
-              <option value="">Select…</option>
-              {Object.entries(CONDITION_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-          </div>
+          {listingType !== 'LOOKING_FOR' && (
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel} htmlFor="listing-condition">Condition</label>
+              <select
+                id="listing-condition"
+                className={styles.fieldSelect}
+                value={condition}
+                onChange={e => setCondition(e.target.value)}
+                required
+              >
+                <option value="">Select…</option>
+                {Object.entries(CONDITION_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Price + Currency */}
@@ -1069,18 +1078,7 @@ function CreateListingPage() {
         {/* Location */}
         <div className={styles.fieldRow}>
           <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="listing-location">Location</label>
-            <input
-              id="listing-location"
-              type="text"
-              className={styles.fieldInput}
-              placeholder="City, Region"
-              value={locationVal}
-              onChange={e => setLocationVal(e.target.value)}
-            />
-          </div>
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="listing-country">Country</label>
+            <label className={styles.fieldLabel} htmlFor="listing-country">Country <span className={styles.fieldRequired}>*</span></label>
             <input
               id="listing-country"
               type="text"
@@ -1088,25 +1086,91 @@ function CreateListingPage() {
               placeholder="e.g. United Kingdom"
               value={country}
               onChange={e => setCountry(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel} htmlFor="listing-region">Region <span className={styles.fieldOptional}>(optional)</span></label>
+            <input
+              id="listing-region"
+              type="text"
+              className={styles.fieldInput}
+              placeholder="e.g. London, South East"
+              value={region}
+              onChange={e => setRegion(e.target.value)}
             />
           </div>
         </div>
 
+        {/* Pricing Type */}
+        <div className={styles.fieldGroup}>
+          <span className={styles.fieldLabel}>Pricing</span>
+          <div className={styles.pricingTypeRow}>
+            {['FIXED', 'NEGOTIABLE', 'OPEN_TO_OFFERS', 'AUCTION'].map(pt => (
+              <label key={pt} className={`${styles.radioLabel} ${pricingType === pt ? styles.radioActive : ''}`}>
+                <input
+                  type="radio"
+                  name="pricingType"
+                  value={pt}
+                  checked={pricingType === pt}
+                  onChange={() => setPricingType(pt)}
+                  className={styles.radioInput}
+                />
+                <span>{pt === 'OPEN_TO_OFFERS' ? 'Open to Offers' : pt.charAt(0) + pt.slice(1).toLowerCase()}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Minimum Offer */}
+        {(pricingType === 'NEGOTIABLE' || pricingType === 'OPEN_TO_OFFERS' || pricingType === 'AUCTION') && (
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel} htmlFor="listing-min-offer">
+              Minimum Offer <span className={styles.fieldOptional}>(optional)</span>
+            </label>
+            <input
+              id="listing-min-offer"
+              type="number"
+              min="0"
+              step="0.01"
+              className={styles.fieldInput}
+              placeholder="0.00"
+              value={minimumOffer}
+              onChange={e => setMinimumOffer(e.target.value)}
+            />
+          </div>
+        )}
+
+        {/* Discord Username */}
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel} htmlFor="listing-discord">
+            Discord Username <span className={styles.fieldOptional}>(optional)</span>
+          </label>
+          <input
+            id="listing-discord"
+            type="text"
+            className={styles.fieldInput}
+            placeholder="@username"
+            value={discordUsername}
+            onChange={e => setDiscordUsername(e.target.value)}
+          />
+        </div>
+
         {/* Shipping options */}
         <div className={styles.fieldGroup}>
-          <span className={styles.fieldLabel}>Shipping / Pickup</span>
+          <span className={styles.fieldLabel}>Shipping / Pickup <span className={styles.fieldRequired}>*</span></span>
           <div className={styles.shippingOptions}>
             <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={localPickup} onChange={() => setLocalPickup(!localPickup)} className={styles.checkbox} />
+              <input type="checkbox" checked={shippingOptions.has('LOCAL_PICKUP')} onChange={() => { const n = new Set(shippingOptions); if (n.has('LOCAL_PICKUP')) n.delete('LOCAL_PICKUP'); else n.add('LOCAL_PICKUP'); setShippingOptions(n); }} className={styles.checkbox} />
               <span>Local Pickup</span>
             </label>
             <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={shipsNationally} onChange={() => setShipsNationally(!shipsNationally)} className={styles.checkbox} />
-              <span>Ships Nationally</span>
+              <input type="checkbox" checked={shippingOptions.has('NATIONAL_SHIPPING')} onChange={() => { const n = new Set(shippingOptions); if (n.has('NATIONAL_SHIPPING')) n.delete('NATIONAL_SHIPPING'); else n.add('NATIONAL_SHIPPING'); setShippingOptions(n); }} className={styles.checkbox} />
+              <span>National Shipping</span>
             </label>
             <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={shipsInternationally} onChange={() => setShipsInternationally(!shipsInternationally)} className={styles.checkbox} />
-              <span>Ships Internationally</span>
+              <input type="checkbox" checked={shippingOptions.has('INTERNATIONAL_SHIPPING')} onChange={() => { const n = new Set(shippingOptions); if (n.has('INTERNATIONAL_SHIPPING')) n.delete('INTERNATIONAL_SHIPPING'); else n.add('INTERNATIONAL_SHIPPING'); setShippingOptions(n); }} className={styles.checkbox} />
+              <span>International Shipping</span>
             </label>
           </div>
         </div>
@@ -1287,8 +1351,10 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   // Fetch offers and reviews
   useEffect(() => {
     if (!listing) return;
-    api<{ items: Offer[] }>(`/marketplace/${listingId}/offers`).then(d => setOffers(d.items)).catch(() => {});
-    api<{ items: Review[] }>(`/marketplace/${listingId}/reviews`).then(d => setReviews(d.items)).catch(() => {});
+    api<Offer[]>(`/marketplace/${listingId}/offers`).then(d => setOffers(d)).catch(() => {});
+    if (listing.user?.id) {
+      api<Review[]>(`/marketplace/users/${listing.user.id}/reviews`).then(d => setReviews(d)).catch(() => {});
+    }
   }, [listing, listingId]);
 
   const isOwner = user && listing && user.userId === listing.user.id;
@@ -1299,7 +1365,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
     if (!listing) return;
     setStatusUpdating(true);
     try {
-      await api(`/marketplace/${listing.id}/status`, { method: 'PATCH', body: { status: newStatus } });
+      await api(`/marketplace/${listing.id}/status`, { method: 'POST', body: { status: newStatus } });
       setListing(prev => prev ? { ...prev, status: newStatus } : prev);
       showToast(`Listing marked as ${newStatus.toLowerCase()}`, 'success');
     } catch {
@@ -1344,7 +1410,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
 
   const handleOfferAction = async (offerId: string, action: 'accept' | 'reject') => {
     try {
-      await api(`/marketplace/offers/${offerId}/${action}`, { method: 'POST' });
+      await api(`/marketplace/offers/${offerId}`, { method: 'PUT', body: { status: action === 'accept' ? 'ACCEPTED' : 'REJECTED' } });
       setOffers(prev => prev.map(o => o.id === offerId ? { ...o, status: action === 'accept' ? 'ACCEPTED' : 'REJECTED' } : o));
       showToast(`Offer ${action}ed`, 'success');
     } catch {
@@ -1377,9 +1443,9 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
     if (!contactMessage.trim() || contactSending) return;
     setContactSending(true);
     try {
-      await api(`/marketplace/${listingId}/messages`, {
+      await api('/marketplace/messages', {
         method: 'POST',
-        body: { body: contactMessage.trim() },
+        body: { listingId, recipientId: listing?.user.id, body: contactMessage.trim() },
       });
       setContactMessage('');
       showToast('Message sent!', 'success');
@@ -1462,14 +1528,14 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
 
           {/* Shipping pills */}
           <div className={styles.detailShipping}>
-            {listing.localPickup && <span className={styles.shippingPill}>📍 Local Pickup</span>}
-            {listing.shipsNationally && <span className={styles.shippingPill}>📦 Ships Nationally</span>}
-            {listing.shipsInternationally && <span className={styles.shippingPill}>🌍 Ships Internationally</span>}
+            {listing.shippingOptions?.includes('LOCAL_PICKUP') && <span className={styles.shippingPill}>📍 Local Pickup</span>}
+            {listing.shippingOptions?.includes('NATIONAL_SHIPPING') && <span className={styles.shippingPill}>📦 National Shipping</span>}
+            {listing.shippingOptions?.includes('INTERNATIONAL_SHIPPING') && <span className={styles.shippingPill}>🌍 International Shipping</span>}
           </div>
 
           {/* Location + dates */}
           <div className={styles.detailMeta}>
-            {listing.location && <span>📍 {listing.location}{listing.country ? `, ${listing.country}` : ''}</span>}
+            {listing.country && <span>📍 {listing.country}{listing.region ? `, ${listing.region}` : ''}</span>}
             <span>Listed {relativeTime(listing.createdAt)}</span>
             <span>👁 {listing.viewCount} views</span>
           </div>
@@ -1482,13 +1548,16 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
             </div>
           </div>
 
-          {/* Build link */}
-          {listing.buildPermalink && (
-            <div className={styles.detailBuildLink}>
-              <h3 className={styles.detailSectionTitle}>Linked Build</h3>
-              <EmbedBuildCard permalink={listing.buildPermalink} />
-            </div>
-          )}
+          {/* Build link - detect /list/ permalink from description */}
+          {(() => {
+            const match = listing.description?.match(/\/list\/[a-zA-Z0-9]+/);
+            return match ? (
+              <div className={styles.detailBuildLink}>
+                <h3 className={styles.detailSectionTitle}>Linked Build</h3>
+                <EmbedBuildCard permalink={match[0]} />
+              </div>
+            ) : null;
+          })()}
 
           {/* Seller card */}
           <div className={styles.sellerCard}>
@@ -1504,7 +1573,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                 <div className={styles.sellerName}>{listing.user.username}</div>
                 <div className={styles.sellerRating}>
                   {listing.user.sellerRating !== null ? (
-                    <>{renderStars(listing.user.sellerRating)} ({listing.user.reviewCount})</>
+                    <>{renderStars(listing.user.sellerRating)} ({listing.user.sellerReviewCount})</>
                   ) : (
                     <span className={styles.sellerNoRating}>No ratings yet</span>
                   )}
@@ -1611,13 +1680,13 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                       className={styles.bumpBtn}
                       onClick={async () => {
                         try {
-                          await api(`/marketplace/${listing.id}/bump`, { method: 'POST' });
-                          showToast('Listing bumped!', 'success');
+                          await api(`/marketplace/${listing.id}/extend`, { method: 'POST' });
+                          showToast('Listing extended by 31 days!', 'success');
                         } catch {
-                          showToast('Failed to bump listing', 'error');
+                          showToast('Failed to extend listing', 'error');
                         }
                       }}
-                    >↑ Bump</button>
+                    >⏳ Extend</button>
                   </>
                 )}
                 {isSold && (

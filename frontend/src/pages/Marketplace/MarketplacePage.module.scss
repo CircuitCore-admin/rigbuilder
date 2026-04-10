@@ -1132,6 +1132,44 @@ $bp-desktop: 1280px;
   color: var(--text-muted);
 }
 
+.fieldRequired {
+  color: var(--color-error);
+  font-weight: 400;
+}
+
+.pricingTypeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover { border-color: var(--border-strong); color: var(--text-body); }
+}
+
+.radioActive {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.radioInput {
+  display: none;
+}
+
 .fieldInput,
 .fieldSelect {
   width: 100%;
