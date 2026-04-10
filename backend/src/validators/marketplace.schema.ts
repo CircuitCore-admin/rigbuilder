@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const createListingSchema = z.object({
+const createListingBaseSchema = z.object({
   type: z.enum(['SELLING', 'LOOKING_FOR', 'TRADING']),
   title: z.string().min(3).max(200),
   description: z.string().min(10).max(10000),
@@ -17,14 +17,16 @@ export const createListingSchema = z.object({
   productId: z.string().nullable().optional(),
   imageUrls: z.array(z.string()).max(10).default([]),
   buildPermalink: z.string().nullable().optional(),
-}).refine(data => {
+});
+
+export const createListingSchema = createListingBaseSchema.refine(data => {
   if (data.minimumOffer != null && data.price != null && data.minimumOffer > data.price) {
     return false;
   }
   return true;
 }, { message: 'Minimum offer must be less than or equal to price', path: ['minimumOffer'] });
 
-export const updateListingSchema = createListingSchema.partial();
+export const updateListingSchema = createListingBaseSchema.partial();
 
 export const updateListingStatusSchema = z.object({
   status: z.enum(['ACTIVE', 'RESERVED', 'SOLD', 'FOUND', 'EXPIRED', 'REMOVED_BY_MOD']),

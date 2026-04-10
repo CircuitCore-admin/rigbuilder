@@ -10,9 +10,9 @@ $bp-desktop: 1280px;
 
 .dashboard {
   display: grid;
-  grid-template-columns: 220px 1fr 280px;
+  grid-template-columns: 260px 1fr 300px;
   gap: 0;
-  max-width: 1600px;
+  max-width: 1800px;
   margin: 0 auto;
   min-height: calc(100vh - 64px);
 }
@@ -22,7 +22,7 @@ $bp-desktop: 1280px;
 .sidebar {
   background: var(--bg-primary);
   border-right: 1px solid var(--border-default);
-  padding: 24px 12px 24px 24px;
+  padding: 24px 20px 24px 32px;
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
@@ -64,7 +64,41 @@ $bp-desktop: 1280px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-secondary);
-  margin: 0 0 10px;
+  margin: 0;
+}
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 10px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.filterToggle {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 150ms ease;
+}
+
+.filterBody {
+  animation: filterExpand 150ms ease;
+}
+
+@keyframes filterExpand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
 }
 
 .filterGroup {
@@ -109,20 +143,49 @@ $bp-desktop: 1280px;
   align-items: center;
   gap: 8px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  color: var(--text-body);
+  font-size: 13px;
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 2px 0;
+  padding: 4px 0;
+  transition: color 150ms ease;
 
   &:hover {
     color: var(--text-primary);
   }
+
+  input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 3px;
+    background: var(--bg-elevated);
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 150ms ease;
+
+    &:checked {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    &:checked::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--bg-void);
+      font-weight: 700;
+    }
+  }
 }
 
 .checkbox {
-  width: 14px;
-  height: 14px;
-  accent-color: var(--accent-primary);
+  // Kept for backwards compat but styles now on checkboxLabel input
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -130,21 +193,21 @@ $bp-desktop: 1280px;
 .priceRangeRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
 }
 
 .priceInput {
   flex: 1;
-  padding: 6px 10px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
+  padding: 8px 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   color: var(--text-body);
   background: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   outline: none;
-  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 
   &::placeholder { color: var(--text-muted); }
   &:focus { border-color: var(--accent-primary); }
@@ -157,22 +220,17 @@ $bp-desktop: 1280px;
 }
 
 .currencySelect {
-  width: 100%;
+  margin-top: 8px;
   padding: 6px 10px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   color: var(--text-body);
   background: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   outline: none;
-  appearance: none;
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%237878A0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 8px center;
-  background-repeat: no-repeat;
-  background-size: 14px;
-  padding-right: 28px;
+  width: 100%;
 
   &:focus { border-color: var(--accent-primary); }
 }
@@ -306,8 +364,7 @@ $bp-desktop: 1280px;
   padding: 24px 48px;
 }
 
-.loadingState,
-.emptyState {
+.loadingState {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -318,34 +375,52 @@ $bp-desktop: 1280px;
   color: var(--text-muted);
 }
 
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  gap: 16px;
+}
+
 .emptyIcon {
   font-size: 48px;
-  margin-bottom: 12px;
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 .emptyTitle {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px;
+  margin: 0;
 }
 
 .emptyText {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0 0 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 360px;
+  margin: 0;
 }
 
 .emptyAction {
-  padding: 8px 20px;
+  margin-top: 8px;
+  padding: 10px 24px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
   background: var(--accent-primary);
-  border-radius: var(--radius-sm);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
   text-decoration: none;
+  transition: opacity 200ms ease;
+
   &:hover { opacity: 0.9; }
 }
 
@@ -372,16 +447,18 @@ $bp-desktop: 1280px;
 .searchRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 16px;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 2px 14px;
-  transition: border-color var(--transition-fast);
+  border-radius: var(--radius-lg);
+  padding: 0 16px;
+  height: 48px;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 
   &:focus-within {
     border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-primary-subtle);
   }
 }
 
@@ -393,9 +470,9 @@ $bp-desktop: 1280px;
 
 .searchInput {
   flex: 1;
-  padding: 10px 14px;
+  padding: 10px 0;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text-body);
   background: transparent;
   border: none;
@@ -427,25 +504,26 @@ $bp-desktop: 1280px;
 
 .sortRow {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .sortPill {
-  padding: 6px 14px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 6px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-muted);
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: 16px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 150ms ease;
 
   &:hover {
-    color: var(--text-secondary);
     border-color: var(--border-strong);
+    color: var(--text-secondary);
   }
 }
 
@@ -458,31 +536,33 @@ $bp-desktop: 1280px;
 .viewToggle {
   display: flex;
   gap: 4px;
+  margin-left: auto;
 }
 
 .viewBtn {
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
+  color: var(--text-muted);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  font-size: 16px;
+  transition: all 150ms ease;
 
   &:hover {
-    color: var(--text-secondary);
     border-color: var(--border-strong);
+    color: var(--text-secondary);
   }
 }
 
 .viewBtnActive {
-  color: var(--accent-primary);
   border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
 }
 
 // ============================================================================
@@ -491,33 +571,35 @@ $bp-desktop: 1280px;
 
 .listingGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .gridCard {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     border-color: var(--border-strong);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 
     .gridCardImage {
-      transform: scale(1.03);
+      transform: scale(1.05);
     }
   }
 }
 
 .gridCardPremium {
-  border-left: 3px solid #FFB020;
-  box-shadow: 0 0 12px rgba(255, 176, 32, 0.1);
+  border-color: rgba(255, 176, 32, 0.4);
+  box-shadow: 0 0 16px rgba(255, 176, 32, 0.08);
 }
 
 .gridCardSold {
@@ -528,23 +610,27 @@ $bp-desktop: 1280px;
   overflow: hidden;
   position: relative;
   background: var(--bg-elevated);
+  aspect-ratio: 1 / 1;
 }
 
 .gridCardImage {
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform var(--transition-default);
+  transition: transform 300ms ease;
 }
 
 .gridCardNoImage {
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   color: var(--text-muted);
   background: var(--bg-elevated);
 }
@@ -555,13 +641,14 @@ $bp-desktop: 1280px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 3px 8px;
+  padding: 3px 10px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 10px;
+  left: 10px;
   z-index: 2;
+  backdrop-filter: blur(4px);
 }
 
 .premiumBadge {
@@ -647,42 +734,46 @@ $bp-desktop: 1280px;
 }
 
 .gridCardBody {
-  padding: 12px 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
 }
 
 .gridCardTitle {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 6px;
-  white-space: nowrap;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .gridCardPrice {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--accent-primary);
-  margin-bottom: 8px;
+  color: var(--text-primary);
+  margin: 4px 0 2px;
 }
 
 .gridCardMeta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-top: 4px;
   flex-wrap: wrap;
 }
 
 .conditionTag {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--text-secondary);
   background: var(--bg-elevated);
   padding: 2px 8px;
@@ -705,6 +796,9 @@ $bp-desktop: 1280px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .soldTag {
@@ -721,25 +815,29 @@ $bp-desktop: 1280px;
 .gridCardFooter {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 12px;
   color: var(--text-muted);
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .gridCardSeller {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .gridCardRating {
-  font-size: 10px;
+  font-size: 11px;
   color: #FFB020;
 }
 
 .gridCardTime {
   margin-left: auto;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
 }
 
 // ============================================================================
@@ -753,17 +851,17 @@ $bp-desktop: 1280px;
 
 .listRow {
   display: grid;
-  grid-template-columns: 120px 1fr auto;
-  gap: 0 16px;
+  grid-template-columns: 140px 1fr auto;
+  gap: 0 20px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 0;
   margin-bottom: 8px;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition: border-color 200ms ease, background 200ms ease;
 
   &:hover {
     border-color: var(--border-strong);
@@ -780,17 +878,16 @@ $bp-desktop: 1280px;
 }
 
 .listRowImageWrap {
-  width: 120px;
-  height: 80px;
-  border-radius: var(--radius-sm);
+  width: 140px;
+  height: 100px;
   overflow: hidden;
   flex-shrink: 0;
   background: var(--bg-elevated);
 }
 
 .listRowImage {
-  width: 100%;
-  height: 100%;
+  width: 140px;
+  height: 100px;
   object-fit: cover;
   display: block;
 }
@@ -811,6 +908,7 @@ $bp-desktop: 1280px;
   flex-direction: column;
   justify-content: center;
   gap: 4px;
+  padding: 12px 0;
 }
 
 .listRowTopLine {
@@ -844,12 +942,13 @@ $bp-desktop: 1280px;
 }
 
 .listRowPrice {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--accent-primary);
+  color: var(--text-primary);
   align-self: center;
   white-space: nowrap;
+  padding: 12px 16px;
 }
 
 // ============================================================================
@@ -899,7 +998,7 @@ $bp-desktop: 1280px;
 
 .rightSidebar {
   border-left: 1px solid var(--border-default);
-  padding: 24px 24px 24px 20px;
+  padding: 24px 32px 24px 24px;
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
@@ -912,17 +1011,21 @@ $bp-desktop: 1280px;
 .createListingBtn {
   display: block;
   text-align: center;
-  padding: 10px 16px;
+  padding: 12px 24px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--bg-void);
   background: var(--accent-primary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   text-decoration: none;
-  transition: opacity var(--transition-fast);
+  transition: opacity 200ms ease, transform 200ms ease;
 
-  &:hover { opacity: 0.9; color: var(--bg-void); }
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    color: var(--bg-void);
+  }
 }
 
 .messagesBtn {
@@ -1033,6 +1136,29 @@ $bp-desktop: 1280px;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.popularCategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.popularCategoryBtn {
+  padding: 4px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 // ============================================================================
@@ -2530,29 +2656,34 @@ $bp-desktop: 1280px;
 }
 
 // ============================================================================
+// Responsive — Large desktop: <= 1400px
+// ============================================================================
+
+@media (max-width: 1400px) {
+  .listingGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ============================================================================
 // Responsive — Tablet: <= 1024px
 // ============================================================================
 
 @media (max-width: $bp-tablet) {
   .dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    display: none;
+    grid-template-columns: 260px 1fr;
   }
 
   .rightSidebar {
     display: none;
   }
 
+  .sidebar {
+    padding: 24px 16px 24px 20px;
+  }
+
   .mobileTopBar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-subtle);
-    background: var(--bg-primary);
+    display: none;
   }
 
   .feed {
@@ -2560,8 +2691,8 @@ $bp-desktop: 1280px;
   }
 
   .listingGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 
   .controlsRow {
@@ -2598,6 +2729,19 @@ $bp-desktop: 1280px;
     margin: 0;
   }
 
+  .sidebar {
+    display: none;
+  }
+
+  .mobileTopBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-primary);
+  }
+
   .feed {
     padding: 16px;
   }
@@ -2607,20 +2751,20 @@ $bp-desktop: 1280px;
     gap: 8px;
   }
 
+  .gridCardBody {
+    padding: 10px 12px;
+  }
+
   .gridCardTitle {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .gridCardPrice {
-    font-size: 14px;
-  }
-
-  .gridCardMeta {
-    display: none;
+    font-size: 16px;
   }
 
   .gridCardFooter {
-    font-size: 10px;
+    display: none;
   }
 
   .listRow {

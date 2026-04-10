@@ -195,6 +195,16 @@ function MarketplaceDashboard() {
   // Mobile filter drawer
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+  // Collapsible filter sections
+  const [collapsedFilters, setCollapsedFilters] = useState<Set<string>>(new Set());
+  const toggleFilter = (key: string) => {
+    setCollapsedFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
   const page = parseInt(searchParams.get('page') ?? '1') || 1;
 
   // Debounce search
@@ -300,129 +310,177 @@ function MarketplaceDashboard() {
     <>
       {/* Type filter */}
       <div className={styles.filterSection}>
-        <h4 className={styles.filterTitle}>Listing Type</h4>
-        <div className={styles.filterGroup}>
-          <button
-            className={`${styles.filterChip} ${typeFilter === '' ? styles.filterChipActive : ''}`}
-            onClick={() => setTypeFilter('')}
-          >All</button>
-          {Object.entries(LISTING_TYPE_LABELS).map(([key, { label, color }]) => (
-            <button
-              key={key}
-              className={`${styles.filterChip} ${typeFilter === key ? styles.filterChipActive : ''}`}
-              onClick={() => setTypeFilter(typeFilter === key ? '' : key)}
-              style={typeFilter === key ? { borderColor: color, color } : undefined}
-            >{label}</button>
-          ))}
-        </div>
+        <button className={styles.filterHeader} onClick={() => toggleFilter('type')}>
+          <span className={styles.filterTitle}>Listing Type</span>
+          <span className={styles.filterToggle}>{collapsedFilters.has('type') ? '▸' : '▾'}</span>
+        </button>
+        {!collapsedFilters.has('type') && (
+          <div className={styles.filterBody}>
+            <div className={styles.filterGroup}>
+              <button
+                className={`${styles.filterChip} ${typeFilter === '' ? styles.filterChipActive : ''}`}
+                onClick={() => setTypeFilter('')}
+              >All</button>
+              {Object.entries(LISTING_TYPE_LABELS).map(([key, { label, color }]) => (
+                <button
+                  key={key}
+                  className={`${styles.filterChip} ${typeFilter === key ? styles.filterChipActive : ''}`}
+                  onClick={() => setTypeFilter(typeFilter === key ? '' : key)}
+                  style={typeFilter === key ? { borderColor: color, color } : undefined}
+                >{label}</button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Categories */}
       <div className={styles.filterSection}>
-        <h4 className={styles.filterTitle}>Category</h4>
-        <div className={styles.filterCheckboxes}>
-          {MARKETPLACE_CATEGORIES.map(cat => (
-            <label key={cat} className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={categoryFilters.has(cat)}
-                onChange={() => toggleCategory(cat)}
-                className={styles.checkbox}
-              />
-              <span>{cat}</span>
-            </label>
-          ))}
-        </div>
+        <button className={styles.filterHeader} onClick={() => toggleFilter('category')}>
+          <span className={styles.filterTitle}>Category</span>
+          <span className={styles.filterToggle}>{collapsedFilters.has('category') ? '▸' : '▾'}</span>
+        </button>
+        {!collapsedFilters.has('category') && (
+          <div className={styles.filterBody}>
+            <div className={styles.filterCheckboxes}>
+              {MARKETPLACE_CATEGORIES.map(cat => (
+                <label key={cat} className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={categoryFilters.has(cat)}
+                    onChange={() => toggleCategory(cat)}
+                  />
+                  <span>{cat}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Condition */}
       <div className={styles.filterSection}>
-        <h4 className={styles.filterTitle}>Condition</h4>
-        <div className={styles.filterCheckboxes}>
-          {Object.entries(CONDITION_LABELS).map(([key, label]) => (
-            <label key={key} className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={conditionFilters.has(key)}
-                onChange={() => toggleCondition(key)}
-                className={styles.checkbox}
-              />
-              <span>{label}</span>
-            </label>
-          ))}
-        </div>
+        <button className={styles.filterHeader} onClick={() => toggleFilter('condition')}>
+          <span className={styles.filterTitle}>Condition</span>
+          <span className={styles.filterToggle}>{collapsedFilters.has('condition') ? '▸' : '▾'}</span>
+        </button>
+        {!collapsedFilters.has('condition') && (
+          <div className={styles.filterBody}>
+            <div className={styles.filterCheckboxes}>
+              {Object.entries(CONDITION_LABELS).map(([key, label]) => (
+                <label key={key} className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={conditionFilters.has(key)}
+                    onChange={() => toggleCondition(key)}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Price range */}
       <div className={styles.filterSection}>
-        <h4 className={styles.filterTitle}>Price Range</h4>
-        <div className={styles.priceRangeRow}>
-          <input
-            type="number"
-            className={styles.priceInput}
-            placeholder="Min"
-            value={priceMin}
-            onChange={e => setPriceMin(e.target.value)}
-            min="0"
-          />
-          <span className={styles.priceSep}>–</span>
-          <input
-            type="number"
-            className={styles.priceInput}
-            placeholder="Max"
-            value={priceMax}
-            onChange={e => setPriceMax(e.target.value)}
-            min="0"
-          />
-        </div>
-        <select
-          className={styles.currencySelect}
-          value={priceCurrency}
-          onChange={e => setPriceCurrency(e.target.value)}
-        >
-          <option value="GBP">£ GBP</option>
-          <option value="EUR">€ EUR</option>
-          <option value="USD">$ USD</option>
-        </select>
+        <button className={styles.filterHeader} onClick={() => toggleFilter('price')}>
+          <span className={styles.filterTitle}>Price Range</span>
+          <span className={styles.filterToggle}>{collapsedFilters.has('price') ? '▸' : '▾'}</span>
+        </button>
+        {!collapsedFilters.has('price') && (
+          <div className={styles.filterBody}>
+            <div className={styles.priceRangeRow}>
+              <input
+                type="number"
+                className={styles.priceInput}
+                placeholder="Min"
+                value={priceMin}
+                onChange={e => setPriceMin(e.target.value)}
+                min="0"
+              />
+              <span className={styles.priceSep}>–</span>
+              <input
+                type="number"
+                className={styles.priceInput}
+                placeholder="Max"
+                value={priceMax}
+                onChange={e => setPriceMax(e.target.value)}
+                min="0"
+              />
+            </div>
+            <select
+              className={styles.currencySelect}
+              value={priceCurrency}
+              onChange={e => setPriceCurrency(e.target.value)}
+            >
+              <option value="GBP">£ GBP</option>
+              <option value="EUR">€ EUR</option>
+              <option value="USD">$ USD</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Country */}
       <div className={styles.filterSection}>
-        <h4 className={styles.filterTitle}>Location</h4>
-        <input
-          type="text"
-          className={styles.filterInput}
-          placeholder="Country…"
-          value={countryFilter}
-          onChange={e => setCountryFilter(e.target.value)}
-        />
+        <button className={styles.filterHeader} onClick={() => toggleFilter('location')}>
+          <span className={styles.filterTitle}>Location</span>
+          <span className={styles.filterToggle}>{collapsedFilters.has('location') ? '▸' : '▾'}</span>
+        </button>
+        {!collapsedFilters.has('location') && (
+          <div className={styles.filterBody}>
+            <input
+              type="text"
+              className={styles.filterInput}
+              placeholder="Country…"
+              value={countryFilter}
+              onChange={e => setCountryFilter(e.target.value)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Shipping */}
       <div className={styles.filterSection}>
-        <h4 className={styles.filterTitle}>Shipping</h4>
-        <div className={styles.filterCheckboxes}>
-          <label className={styles.checkboxLabel}>
-            <input type="checkbox" checked={localPickup} onChange={() => setLocalPickup(!localPickup)} className={styles.checkbox} />
-            <span>Local Pickup</span>
-          </label>
-          <label className={styles.checkboxLabel}>
-            <input type="checkbox" checked={shipsNationally} onChange={() => setShipsNationally(!shipsNationally)} className={styles.checkbox} />
-            <span>Ships Nationally</span>
-          </label>
-          <label className={styles.checkboxLabel}>
-            <input type="checkbox" checked={shipsInternationally} onChange={() => setShipsInternationally(!shipsInternationally)} className={styles.checkbox} />
-            <span>Ships Internationally</span>
-          </label>
-        </div>
+        <button className={styles.filterHeader} onClick={() => toggleFilter('shipping')}>
+          <span className={styles.filterTitle}>Shipping</span>
+          <span className={styles.filterToggle}>{collapsedFilters.has('shipping') ? '▸' : '▾'}</span>
+        </button>
+        {!collapsedFilters.has('shipping') && (
+          <div className={styles.filterBody}>
+            <div className={styles.filterCheckboxes}>
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={localPickup} onChange={() => setLocalPickup(!localPickup)} />
+                <span>Local Pickup</span>
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={shipsNationally} onChange={() => setShipsNationally(!shipsNationally)} />
+                <span>Ships Nationally</span>
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={shipsInternationally} onChange={() => setShipsInternationally(!shipsInternationally)} />
+                <span>Ships Internationally</span>
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Show sold */}
       <div className={styles.filterSection}>
-        <label className={styles.checkboxLabel}>
-          <input type="checkbox" checked={showSold} onChange={() => setShowSold(!showSold)} className={styles.checkbox} />
-          <span>Show Sold / Found</span>
-        </label>
+        <button className={styles.filterHeader} onClick={() => toggleFilter('sold')}>
+          <span className={styles.filterTitle}>Status</span>
+          <span className={styles.filterToggle}>{collapsedFilters.has('sold') ? '▸' : '▾'}</span>
+        </button>
+        {!collapsedFilters.has('sold') && (
+          <div className={styles.filterBody}>
+            <label className={styles.checkboxLabel}>
+              <input type="checkbox" checked={showSold} onChange={() => setShowSold(!showSold)} />
+              <span>Show Sold / Found</span>
+            </label>
+          </div>
+        )}
       </div>
 
       {hasFilters && (
@@ -524,9 +582,11 @@ function MarketplaceDashboard() {
           <div className={styles.loadingState}>Loading listings…</div>
         ) : listings.length === 0 ? (
           <div className={styles.emptyState}>
-            <span className={styles.emptyIcon}>📦</span>
+            <div className={styles.emptyIcon}>🏪</div>
             <h3 className={styles.emptyTitle}>No listings found</h3>
-            <p className={styles.emptyText}>Try adjusting your filters or search terms</p>
+            <p className={styles.emptyText}>
+              Try adjusting your filters or search terms, or be the first to list something!
+            </p>
             {user && (
               <a href="/marketplace/new" className={styles.emptyAction}>Create a Listing</a>
             )}
@@ -600,6 +660,27 @@ function MarketplaceDashboard() {
         </div>
 
         <div className={styles.sidebarCard}>
+          <h3 className={styles.sidebarCardTitle}>Popular Categories</h3>
+          <div className={styles.popularCategories}>
+            {['Wheel Base', 'Pedals', 'Rig/Cockpit', 'Monitor', 'Seat'].map((cat) => (
+              <button
+                key={cat}
+                className={styles.popularCategoryBtn}
+                onClick={() => {
+                  setCategoryFilters(prev => {
+                    const next = new Set(prev);
+                    if (next.has(cat)) next.delete(cat); else next.add(cat);
+                    return next;
+                  });
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.sidebarCard}>
           <h3 className={styles.sidebarCardTitle}>Marketplace Rules</h3>
           <ol className={styles.rulesList} style={{ counterReset: 'rule-counter' }}>
             <li className={styles.ruleItem}>All items must be sim-racing related</li>
@@ -615,7 +696,7 @@ function MarketplaceDashboard() {
             <h3 className={styles.sidebarCardTitle}>Stats</h3>
             <div className={styles.statRow}>
               <span className={styles.statValue}>{totalListings.toLocaleString()}</span>
-              <span className={styles.statLabel}>Listings</span>
+              <span className={styles.statLabel}>Active Listings</span>
             </div>
           </div>
         )}
@@ -647,7 +728,7 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
           {listing.imageUrls.length > 0 ? (
             <img src={resolveImageUrl(listing.imageUrls[0])} alt={listing.title} className={styles.gridCardImage} />
           ) : (
-            <div className={styles.gridCardNoImage}>📷</div>
+            <div className={styles.gridCardNoImage}>📷<span>No image</span></div>
           )}
           <span className={styles.typeBadge} style={{ background: typeInfo.color, color: '#05050A' }}>
             {typeInfo.label}
@@ -662,13 +743,15 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
           <h3 className={styles.gridCardTitle}>{listing.title}</h3>
           <div className={styles.gridCardPrice}>{formatPrice(listing.price, listing.currency)}</div>
           <div className={styles.gridCardMeta}>
-            <span className={styles.conditionTag}>{condLabel}</span>
-            {listing.country && <span className={styles.locationTag}>📍 {listing.country}{listing.region ? `, ${listing.region}` : ''}</span>}
+            {condLabel && <span className={styles.conditionTag}>{condLabel}</span>}
+            <span className={styles.locationTag}>
+              {listing.country}{listing.region ? `, ${listing.region}` : ''}
+            </span>
           </div>
           <div className={styles.gridCardFooter}>
-            <span className={styles.gridCardSeller}>{listing.user.username}</span>
-            {listing.user.sellerRating !== null && (
-              <span className={styles.gridCardRating}>{renderStars(listing.user.sellerRating)}</span>
+            <span className={styles.gridCardSeller}>{listing.user?.username}</span>
+            {listing.user?.sellerRating != null && listing.user.sellerRating > 0 && (
+              <span className={styles.gridCardRating}>★ {listing.user.sellerRating.toFixed(1)}</span>
             )}
             <span className={styles.gridCardTime}>{relativeTime(listing.createdAt)}</span>
           </div>
