@@ -31,10 +31,11 @@ export class UploadController {
         .webp({ quality: 80 })
         .toFile(path.join(UPLOAD_DIR, filename));
 
-      // Return absolute URL using configured base or request origin
-      const baseUrl = process.env.PUBLIC_URL
-        ?? `${req.protocol}://${req.get('host') ?? 'localhost:4000'}`;
-      const url = `${baseUrl}/uploads/${filename}`;
+      // Return a relative path — the frontend's resolveImageUrl() will
+      // resolve it to an absolute URL using the API base when needed.
+      // This avoids hard-coding the server origin and ensures images load
+      // correctly through the Vite proxy in dev and via the same domain in prod.
+      const url = `/uploads/${filename}`;
       res.json({ url });
     } catch (err) {
       console.error('Image upload failed:', err);
