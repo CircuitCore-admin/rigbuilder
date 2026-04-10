@@ -9,6 +9,7 @@ import priceHistoryRoutes from './price-history.routes';
 import forumRoutes from './forum.routes';
 import guideRoutes from './guide.routes';
 import uploadRoutes from './upload.routes';
+import marketplaceRoutes from './marketplace.routes';
 
 const router = Router();
 
@@ -27,5 +28,6 @@ router.use('/price-history', priceHistoryRoutes);
 router.use('/forum', forumRoutes);
 router.use('/guides', guideRoutes);
 router.use('/uploads', uploadRoutes);
+router.use('/marketplace', marketplaceRoutes);
 
 export default router;
