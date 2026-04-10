@@ -126,6 +126,34 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const [listVotes, setListVotes] = useState<Record<string, { score: number; userVote: 0 | 1 | -1 }>>({});
   const [listVoting, setListVoting] = useState<Set<string>>(new Set());
 
+  // Hover preview state
+  const [hoveredThread, setHoveredThread] = useState<string | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleThreadHoverStart = useCallback((e: React.MouseEvent, threadId: string) => {
+    const card = e.currentTarget as HTMLElement;
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    hoverTimeout.current = setTimeout(() => {
+      const rect = card.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const showAbove = spaceBelow < 320;
+      setHoverPosition({
+        top: showAbove ? rect.top - 8 : rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+      setHoveredThread(threadId);
+    }, 300);
+  }, []);
+
+  const handleThreadHoverEnd = useCallback(() => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    hoverTimeout.current = null;
+    setHoveredThread(null);
+    setHoverPosition(null);
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(timer);
@@ -388,7 +416,13 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                   const vote = listVotes[t.id] ?? { score: t.score ?? 0, userVote: 0 };
 
                   return (
-                    <a key={t.id} href={`/community/${t.slug}`} className={styles.threadRow}>
+                    <a
+                      key={t.id}
+                      href={`/community/${t.slug}`}
+                      className={styles.threadRow}
+                      onMouseEnter={(e) => handleThreadHoverStart(e, t.id)}
+                      onMouseLeave={handleThreadHoverEnd}
+                    >
                       <div className={styles.threadCardVote}>
                         <button
                           className={`${styles.threadVoteBtn} ${vote.userVote === 1 ? styles.threadVoteBtnUpActive : ''}`}
@@ -423,16 +457,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                             {relativeTime(t.createdAt)}
                           </span>
                         </div>
-                        <div className={styles.threadTitleRow}>
-                          <span className={styles.threadTitle}>{t.title}</span>
-                          {t.imageUrls && t.imageUrls.length > 0 && t.imageUrls[0] && (
-                            <img
-                              src={resolveImageUrl(t.imageUrls[0])}
-                              alt=""
-                              className={styles.threadThumb}
-                            />
-                          )}
-                        </div>
+                        <span className={styles.threadTitle}>{t.title}</span>
                         {t.body && (
                           <span className={styles.threadSnippet}>
                             {t.body.length > SNIPPET_MAX_LENGTH ? t.body.slice(0, SNIPPET_MAX_LENGTH) + '…' : t.body}
@@ -447,6 +472,32 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                           </span>
                         </div>
                       </div>
+                      {t.imageUrls && t.imageUrls.length > 0 && (
+                        <div className={styles.threadCardImages}>
+                          <img
+                            src={resolveImageUrl(t.imageUrls[0])}
+                            alt=""
+                            className={styles.threadCardImageMain}
+                          />
+                          {t.imageUrls.length > 1 && (
+                            <div className={styles.threadCardImageStack}>
+                              {t.imageUrls.slice(1, 3).map((url, i) => (
+                                <img
+                                  key={i}
+                                  src={resolveImageUrl(url)}
+                                  alt=""
+                                  className={styles.threadCardImageSmall}
+                                />
+                              ))}
+                              {t.imageUrls.length > 3 && (
+                                <div className={styles.threadCardImageMore}>
+                                  +{t.imageUrls.length - 3}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </a>
                   );
                 })}
@@ -468,6 +519,59 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             ))}
           </div>
         )}
+
+        {/* Hover preview popup */}
+        {hoveredThread && hoverPosition && (() => {
+          const t = threads.find(th => th.id === hoveredThread);
+          if (!t) return null;
+          const spaceBelow = window.innerHeight - hoverPosition.top;
+          const showAbove = spaceBelow < 320;
+
+          return (
+            <div
+              className={`${styles.threadPreview} ${showAbove ? styles.threadPreviewAbove : ''}`}
+              style={{
+                position: 'fixed',
+                top: showAbove ? undefined : hoverPosition.top,
+                bottom: showAbove ? window.innerHeight - hoverPosition.top + 8 : undefined,
+                left: hoverPosition.left,
+                width: hoverPosition.width,
+              }}
+              onMouseEnter={() => {
+                if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+              }}
+              onMouseLeave={handleThreadHoverEnd}
+            >
+              {t.imageUrls && t.imageUrls.length > 0 && (
+                <div className={styles.previewGallery}>
+                  {t.imageUrls.slice(0, 4).map((url, i) => (
+                    <img
+                      key={i}
+                      src={resolveImageUrl(url)}
+                      alt=""
+                      className={styles.previewGalleryImage}
+                    />
+                  ))}
+                </div>
+              )}
+              <div className={styles.previewContent}>
+                <h4 className={styles.previewTitle}>{t.title}</h4>
+                {t.body && (
+                  <p className={styles.previewBody}>
+                    {t.body.length > 300 ? t.body.slice(0, 300) + '…' : t.body}
+                  </p>
+                )}
+                <div className={styles.previewMeta}>
+                  <span>{t.replyCount} comments</span>
+                  <span>·</span>
+                  <span>{t.viewCount} views</span>
+                  <span>·</span>
+                  <span>by {t.user.username}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </main>
 
       {/* ---------- Right sidebar ---------- */}

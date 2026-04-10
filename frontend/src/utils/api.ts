@@ -71,14 +71,34 @@ export async function ensureCsrfToken(): Promise<string | undefined> {
   return token;
 }
 
-/** Resolve a potentially relative image URL to an absolute one. */
+/**
+ * Resolve a potentially relative image URL for use in <img> tags.
+ *
+ * Upload paths like `/uploads/file.webp` are kept **relative** so the browser
+ * fetches them through the Vite dev-server proxy (same-origin) instead of
+ * hitting the backend directly (cross-origin).  In production the same-origin
+ * server or reverse-proxy serves `/uploads` so relative paths still work.
+ *
+ * Legacy absolute URLs already stored in the DB (e.g.
+ * `http://localhost:4000/uploads/file.webp`) are converted to relative paths
+ * so they also go through the proxy.
+ */
 export function resolveImageUrl(url: string): string {
   if (!url) return url;
-  // Already absolute
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  // Relative path — prefix with API base URL (strip /api/v1 suffix).
-  // If BASE_URL is itself relative (e.g. "/api/v1"), the stripped base is empty
-  // and the path stays relative, which works when the Vite proxy handles /uploads.
+
+  // Absolute URL — extract the /uploads/ path so the request stays same-origin.
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const { pathname } = new URL(url);
+      if (pathname.startsWith('/uploads/')) return pathname;
+    } catch { /* invalid URL, fall through */ }
+    return url;
+  }
+
+  // Relative /uploads/ path — keep it relative (Vite proxy / same-origin).
+  if (url.startsWith('/uploads/')) return url;
+
+  // Any other relative path — resolve against the API base.
   const base = BASE_URL.replace(/\/api\/v1\/?$/, '');
   return `${base}${url}`;
 }
