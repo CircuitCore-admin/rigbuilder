@@ -7,6 +7,7 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   CSRF_SECRET: z.string().min(32),
+  MARKETPLACE_ENCRYPTION_KEY: z.string().min(32).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

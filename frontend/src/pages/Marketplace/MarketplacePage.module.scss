@@ -579,6 +579,43 @@ $bp-desktop: 1280px;
   z-index: 2;
 }
 
+.premiumToggle {
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  opacity: 0.6;
+}
+
+.premiumToggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: not-allowed;
+}
+
+.premiumToggleText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.premiumLockIcon {
+  font-size: 14px;
+}
+
+.premiumComingSoon {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+}
+
 .soldOverlay {
   position: absolute;
   inset: 0;

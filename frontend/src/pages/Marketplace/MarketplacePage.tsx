@@ -1269,6 +1269,20 @@ function CreateListingPage() {
           )}
         </div>
 
+        {/* Premium boost (disabled) */}
+        <div className={styles.fieldGroup}>
+          <div className={styles.premiumToggle}>
+            <label className={styles.premiumToggleLabel}>
+              <input type="checkbox" disabled className={styles.checkbox} />
+              <span className={styles.premiumToggleText}>
+                <span className={styles.premiumLockIcon}>🔒</span>
+                Boost Listing
+                <span className={styles.premiumComingSoon}>Premium feature — coming soon</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
         {/* Terms */}
         <div className={styles.termsSection}>
           <label className={styles.termsLabel}>
