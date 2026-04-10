@@ -19,18 +19,7 @@ export async function api<T = unknown>(path: string, options: FetchOptions = {})
 
   // For state-mutating requests, ensure CSRF token exists
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    let csrfToken = getCookie('__csrf');
-
-    // If no CSRF token, refresh it by hitting the lightweight CSRF endpoint
-    if (!csrfToken) {
-      try {
-        await fetch(`${BASE_URL}/csrf`, { credentials: 'include' });
-        csrfToken = getCookie('__csrf');
-      } catch {
-        // Continue without CSRF token — server will reject if needed
-      }
-    }
-
+    const csrfToken = await ensureCsrfToken();
     if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
   }
 
@@ -63,6 +52,23 @@ export class ApiError extends Error {
 function getCookie(name: string): string | undefined {
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match?.[1];
+}
+
+/**
+ * Ensure a CSRF token is available. If the cookie is missing,
+ * hits the lightweight /csrf endpoint to set it, then re-reads.
+ */
+export async function ensureCsrfToken(): Promise<string | undefined> {
+  let token = getCookie('__csrf');
+  if (!token) {
+    try {
+      await fetch(`${BASE_URL}/csrf`, { credentials: 'include' });
+      token = getCookie('__csrf');
+    } catch {
+      // Continue without token — server will reject if needed
+    }
+  }
+  return token;
 }
 
 /** Resolve a potentially relative image URL to an absolute one. */

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { api, resolveImageUrl } from '../../utils/api';
+import { api, resolveImageUrl, ensureCsrfToken } from '../../utils/api';
 import { ForumThread } from '../../components/ForumThread/ForumThread';
 import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
@@ -613,15 +613,8 @@ function NewThreadForm() {
         formData.append('image', file);
         const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1';
 
-        // Ensure CSRF token exists — refresh if missing (mirrors api() logic)
-        let csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
-        if (!csrfToken) {
-          try {
-            await fetch(`${baseUrl}/csrf`, { credentials: 'include' });
-            csrfToken = document.cookie.match(/(?:^|; )__csrf=([^;]*)/)?.[1];
-          } catch { /* proceed without token — server will reject if needed */ }
-        }
-
+        // Ensure CSRF token exists before upload
+        const csrfToken = await ensureCsrfToken();
         const headers: Record<string, string> = {};
         if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
         const res = await fetch(`${baseUrl}/uploads`, {
