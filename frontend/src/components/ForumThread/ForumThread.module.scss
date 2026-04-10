@@ -626,20 +626,62 @@
   }
 }
 
-// ----- Showroom gallery -----
+// ----- Inline image gallery (in post body) -----
 
-.imageGallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.threadInlineGallery {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  margin: 12px 0 4px;
 }
 
-.galleryImage {
-  width: 100%;
-  aspect-ratio: 16 / 10;
+.threadInlineImage {
+  max-height: 280px;
   object-fit: cover;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 150ms ease;
   border: 1px solid var(--border-subtle);
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+// Single image — large, contained
+.gallerySingle .threadInlineImage {
+  width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  background: var(--bg-surface);
+}
+
+// Two images — side by side
+.galleryDouble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.galleryDouble .threadInlineImage {
+  width: 100%;
+  max-width: 100%;
+}
+
+// Three or more — first image full width, rest in grid
+.galleryMulti {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.galleryMulti .threadInlineImage:first-child {
+  grid-column: 1 / -1;
+  max-height: 320px;
+  max-width: 100%;
+}
+
+.galleryMulti .threadInlineImage {
+  width: 100%;
+  max-width: 100%;
 }
 
 // ----- Telemetry -----
@@ -855,14 +897,6 @@
   z-index: 2;
 }
 
-// ---------- Gallery clickable ----------
-
-.galleryImageClickable {
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
-  &:hover { opacity: 0.85; }
-}
-
 // ---------- Inline reply ----------
 
 .inlineReplyForm {
@@ -966,8 +1000,21 @@
     font-size: 11px;
   }
 
-  .imageGallery {
-    grid-template-columns: repeat(2, 1fr);
+  .threadInlineGallery {
+    gap: 4px;
+  }
+
+  .gallerySingle .threadInlineImage {
+    max-height: 300px;
+  }
+
+  .galleryMulti,
+  .galleryDouble {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .galleryMulti .threadInlineImage:first-child {
+    max-height: 200px;
   }
 
   .replyCollapseColumn {

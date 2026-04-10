@@ -505,6 +505,25 @@ export function ForumThread({ slug }: ForumThreadProps) {
               <Markdown>{thread.body}</Markdown>
             </div>
 
+            {/* Images inline — part of the post content */}
+            {thread.imageUrls && thread.imageUrls.length > 0 && (
+              <div className={`${styles.threadInlineGallery} ${
+                thread.imageUrls.length === 1 ? styles.gallerySingle :
+                thread.imageUrls.length === 2 ? styles.galleryDouble :
+                styles.galleryMulti
+              }`}>
+                {thread.imageUrls.map((url, i) => (
+                  <img
+                    key={i}
+                    src={resolveImageUrl(url)}
+                    alt={`Photo ${i + 1}`}
+                    className={styles.threadInlineImage}
+                    onClick={() => setLightboxIndex(i)}
+                  />
+                ))}
+              </div>
+            )}
+
             {/* Actions bar (Reddit-style) */}
             <div className={styles.threadActionsBar}>
               <span className={styles.actionItem}>
@@ -555,11 +574,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
         </div>
       )}
 
-      <ThreadMetadata
-        thread={thread}
-        lightboxIndex={lightboxIndex}
-        setLightboxIndex={setLightboxIndex}
-      />
+      <ThreadMetadata thread={thread} />
 
       {lightboxIndex !== null && thread.imageUrls && thread.imageUrls.length > 0 && (
         <LightboxModal
@@ -799,56 +814,18 @@ function UserBadge({ user }: { user: ThreadUser }) {
 }
 
 // ---------------------------------------------------------------------------
-// Thread Metadata renderer
+// Thread Metadata renderer (category-specific data only — no images)
 // ---------------------------------------------------------------------------
 
-function ImageGallery({
-  imageUrls,
-  onImageClick,
-}: {
-  imageUrls: string[];
-  onImageClick: (index: number) => void;
-}) {
-  return (
-    <div className={styles.metadataSection}>
-      <h4 className={styles.metadataTitle}>Gallery</h4>
-      <div className={styles.imageGallery}>
-        {imageUrls.map((url, i) => (
-          <img
-            key={i}
-            src={resolveImageUrl(url)}
-            alt={`Photo ${i + 1}`}
-            className={`${styles.galleryImage} ${styles.galleryImageClickable}`}
-            onClick={() => onImageClick(i)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ThreadMetadata({
-  thread,
-  lightboxIndex: _lightboxIndex,
-  setLightboxIndex,
-}: {
-  thread: Thread;
-  lightboxIndex: number | null;
-  setLightboxIndex: (index: number | null) => void;
-}) {
-  const { metadata, imageUrls, category } = thread;
+function ThreadMetadata({ thread }: { thread: Thread }) {
+  const { metadata, category } = thread;
 
   if (category === 'BUILD_ADVICE' && metadata?.buildPermalink) {
     return (
-      <>
-        <div className={styles.metadataSection}>
-          <h4 className={styles.metadataTitle}>Linked Build</h4>
-          <EmbedBuildCard permalink={String(metadata.buildPermalink)} />
-        </div>
-        {imageUrls && imageUrls.length > 0 && (
-          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
-        )}
-      </>
+      <div className={styles.metadataSection}>
+        <h4 className={styles.metadataTitle}>Linked Build</h4>
+        <EmbedBuildCard permalink={String(metadata.buildPermalink)} />
+      </div>
     );
   }
 
@@ -858,75 +835,54 @@ function ThreadMetadata({
       ? (metadata.billOfMaterials as { item: string; quantity: string }[])
       : [];
 
-    if (tools.length === 0 && bom.length === 0) {
-      if (imageUrls && imageUrls.length > 0) {
-        return <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />;
-      }
-      return null;
-    }
+    if (tools.length === 0 && bom.length === 0) return null;
 
     return (
-      <>
-        <div className={styles.metadataSection}>
-          {tools.length > 0 && (
-            <>
-              <h4 className={styles.metadataTitle}>Tools Required</h4>
-              <ul className={styles.toolsList}>
-                {tools.map((t, i) => (
-                  <li key={i}>{t}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          {bom.length > 0 && (
-            <>
-              <h4 className={styles.metadataTitle}>Bill of Materials</h4>
-              <table className={styles.bomTable}>
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Qty</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bom.map((row, i) => (
-                    <tr key={i}>
-                      <td>{row.item}</td>
-                      <td>{row.quantity}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-        </div>
-        {imageUrls && imageUrls.length > 0 && (
-          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
+      <div className={styles.metadataSection}>
+        {tools.length > 0 && (
+          <>
+            <h4 className={styles.metadataTitle}>Tools Required</h4>
+            <ul className={styles.toolsList}>
+              {tools.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </>
         )}
-      </>
-    );
-  }
-
-  if (category === 'SHOWROOM' && imageUrls && imageUrls.length > 0) {
-    return (
-      <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
+        {bom.length > 0 && (
+          <>
+            <h4 className={styles.metadataTitle}>Bill of Materials</h4>
+            <table className={styles.bomTable}>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bom.map((row, i) => (
+                  <tr key={i}>
+                    <td>{row.item}</td>
+                    <td>{row.quantity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+      </div>
     );
   }
 
   if (category === 'TELEMETRY' && metadata?.codeSnippet) {
     return (
-      <>
-        <div className={styles.metadataSection}>
-          {!!metadata.profileType && (
-            <span className={styles.profileBadge}>{String(metadata.profileType)}</span>
-          )}
-          <h4 className={styles.metadataTitle}>Configuration</h4>
-          <pre className={styles.codeBlock}>{String(metadata.codeSnippet)}</pre>
-        </div>
-        {imageUrls && imageUrls.length > 0 && (
-          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
+      <div className={styles.metadataSection}>
+        {!!metadata.profileType && (
+          <span className={styles.profileBadge}>{String(metadata.profileType)}</span>
         )}
-      </>
+        <h4 className={styles.metadataTitle}>Configuration</h4>
+        <pre className={styles.codeBlock}>{String(metadata.codeSnippet)}</pre>
+      </div>
     );
   }
 
@@ -935,43 +891,28 @@ function ThreadMetadata({
     const price = metadata.price != null ? Number(metadata.price) : null;
     const currency = metadata.currency ? String(metadata.currency) : 'USD';
 
-    if (!status && price == null) {
-      if (imageUrls && imageUrls.length > 0) {
-        return <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />;
-      }
-      return null;
-    }
+    if (!status && price == null) return null;
 
     return (
-      <>
-        <div className={styles.metadataSection}>
-          <div className={styles.dealInfo}>
-            {status && (
-              <span
-                className={`${styles.dealBadge} ${
-                  status === 'Active' ? styles.dealActive : styles.dealExpired
-                }`}
-              >
-                {status}
-              </span>
-            )}
-            {price != null && (
-              <span className={styles.dealPrice}>
-                {currency} {price.toFixed(2)}
-              </span>
-            )}
-          </div>
+      <div className={styles.metadataSection}>
+        <div className={styles.dealInfo}>
+          {status && (
+            <span
+              className={`${styles.dealBadge} ${
+                status === 'Active' ? styles.dealActive : styles.dealExpired
+              }`}
+            >
+              {status}
+            </span>
+          )}
+          {price != null && (
+            <span className={styles.dealPrice}>
+              {currency} {price.toFixed(2)}
+            </span>
+          )}
         </div>
-        {imageUrls && imageUrls.length > 0 && (
-          <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />
-        )}
-      </>
+      </div>
     );
-  }
-
-  // Fallback: show gallery for any category with images
-  if (imageUrls && imageUrls.length > 0) {
-    return <ImageGallery imageUrls={imageUrls} onImageClick={setLightboxIndex} />;
   }
 
   return null;
