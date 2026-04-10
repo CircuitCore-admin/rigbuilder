@@ -8,8 +8,14 @@ import searchRoutes from './search.routes';
 import priceHistoryRoutes from './price-history.routes';
 import forumRoutes from './forum.routes';
 import guideRoutes from './guide.routes';
+import uploadRoutes from './upload.routes';
 
 const router = Router();
+
+// Lightweight CSRF token endpoint — no DB query, just sets the cookie via global CSRF middleware
+router.get('/csrf', (_req, res) => {
+  res.json({ ok: true });
+});
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
@@ -20,5 +26,6 @@ router.use('/search', searchRoutes);
 router.use('/price-history', priceHistoryRoutes);
 router.use('/forum', forumRoutes);
 router.use('/guides', guideRoutes);
+router.use('/uploads', uploadRoutes);
 
 export default router;

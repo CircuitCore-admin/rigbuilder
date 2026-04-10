@@ -3,6 +3,7 @@
 // view modes in the ProductSelectionView sub-header.
 // ============================================================================
 
+import type { ReactElement } from 'react';
 import styles from './ViewSwitcher.module.scss';
 
 export type ViewMode = 'list' | 'compact' | 'standard';
@@ -10,7 +11,7 @@ export type ViewMode = 'list' | 'compact' | 'standard';
 interface ViewOption {
   mode: ViewMode;
   label: string;
-  icon: JSX.Element;
+  icon: ReactElement;
 }
 
 const VIEW_OPTIONS: ViewOption[] = [

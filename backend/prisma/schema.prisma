@@ -96,6 +96,7 @@ enum UserRole {
   MODERATOR
   ADMIN
   MANUFACTURER
+  CREATOR
 }
 
 // ---------------------------------------------------------------------------
@@ -113,6 +114,7 @@ model User {
   role         UserRole @default(USER)
   isPro        Boolean  @default(false) @map("is_pro")
   reputation   Int      @default(0)
+  pitCred      Int      @default(0) @map("pit_cred")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -125,8 +127,12 @@ model User {
   wishlistItems      WishlistItem[]
   forumThreads       ForumThread[]
   forumReplies       ForumReply[]
+  forumVotes         ForumVote[]
+  threadVotes        ThreadVote[]
   guides             Guide[]
   badges             UserBadge[]
+  threadFollows      ThreadFollower[]
+  notifications      Notification[]
 
   @@index([username])
   @@index([email])
@@ -365,10 +371,13 @@ model WishlistItem {
 // ---------------------------------------------------------------------------
 
 enum ForumCategory {
-  TROUBLESHOOTING
   BUILD_ADVICE
+  DIY_MODS
+  SHOWROOM
+  TELEMETRY
   DEALS
   GENERAL
+  TROUBLESHOOTING // legacy — kept for backward compatibility with existing threads
 }
 
 enum GuideCategory {
@@ -412,6 +421,7 @@ model ForumThread {
   title      String
   slug       String        @unique
   body       String // sanitised markdown
+  link       String?       // optional external link
   category   ForumCategory
   userId     String        @map("user_id")
   productId  String?       @map("product_id") // optional link to a product
@@ -419,12 +429,19 @@ model ForumThread {
   isLocked   Boolean       @default(false) @map("is_locked")
   viewCount  Int           @default(0) @map("view_count")
   replyCount Int           @default(0) @map("reply_count")
+  upvotes    Int           @default(0)
+  downvotes  Int           @default(0)
+  score      Int           @default(0)
+  metadata   Json?         // category-specific blueprint data (BOM, tools, deal status, etc.)
+  imageUrls  String[]      @default([]) @map("image_urls") // gallery images for SHOWROOM
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
-  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
-  replies ForumReply[]
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  replies     ForumReply[]
+  followers   ThreadFollower[]
+  threadVotes ThreadVote[]
 
   @@index([category, createdAt(sort: Desc)])
   @@index([productId])
@@ -447,10 +464,40 @@ model ForumReply {
   user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent   ForumReply?  @relation("NestedReplies", fields: [parentId], references: [id])
   children ForumReply[] @relation("NestedReplies")
+  votes    ForumVote[]
 
   @@index([threadId, createdAt])
   @@index([userId])
   @@map("forum_replies")
+}
+
+model ForumVote {
+  id      String @id @default(cuid())
+  userId  String @map("user_id")
+  replyId String @map("reply_id")
+  value   Int    @default(1)
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reply ForumReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, replyId])
+  @@map("forum_votes")
+}
+
+model ThreadVote {
+  id        String   @id @default(cuid())
+  threadId  String   @map("thread_id")
+  userId    String   @map("user_id")
+  value     Int      // 1 for upvote, -1 for downvote
+  createdAt DateTime @default(now()) @map("created_at")
+
+  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+  @@index([threadId])
+  @@index([userId])
+  @@map("thread_votes")
 }
 
 // ---------------------------------------------------------------------------
@@ -498,4 +545,45 @@ model UserBadge {
   @@unique([userId, badge])
   @@index([userId])
   @@map("user_badges")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7: Thread Following & Notifications
+// ---------------------------------------------------------------------------
+
+model ThreadFollower {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  threadId  String   @map("thread_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, threadId])
+  @@index([threadId])
+  @@map("thread_followers")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  threadId  String?          @map("thread_id")
+  replyId   String?          @map("reply_id")
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  REPLY
+  MENTION
+  FOLLOW
 }
