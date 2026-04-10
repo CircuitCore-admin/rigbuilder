@@ -49,6 +49,7 @@ export class MarketplaceController {
       country: req.query.country as string | undefined,
       shippingOptions,
       status: req.query.status as ListingStatus | undefined,
+      includeSold: req.query.includeSold === 'true',
       search: req.query.search as string | undefined,
       sortBy: (req.query.sortBy as any) || 'createdAt',
       sortDir: (req.query.sortDir as any) || 'desc',

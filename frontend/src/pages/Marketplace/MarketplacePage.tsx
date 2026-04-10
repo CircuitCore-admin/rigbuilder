@@ -208,6 +208,10 @@ function MarketplaceDashboard() {
     setRefreshKey(k => k + 1);
   }, [location.pathname]);
 
+  // Serialized filter keys for stable useEffect deps
+  const categoryKey = Array.from(categoryFilters).sort().join(',');
+  const conditionKey = Array.from(conditionFilters).sort().join(',');
+
   // Fetch listings
   useEffect(() => {
     const params = new URLSearchParams();
@@ -229,7 +233,7 @@ function MarketplaceDashboard() {
     if (shipsNationally) shippingArr.push('NATIONAL_SHIPPING');
     if (shipsInternationally) shippingArr.push('INTERNATIONAL_SHIPPING');
     if (shippingArr.length > 0) params.set('shippingOptions', shippingArr.join(','));
-    if (showSold) params.set('status', 'SOLD');
+    if (showSold) params.set('includeSold', 'true');
     if (debouncedSearch) params.set('search', debouncedSearch);
 
     const cacheKey = params.toString();
@@ -252,7 +256,7 @@ function MarketplaceDashboard() {
       })
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
-  }, [page, sortBy, typeFilter, categoryFilters, conditionFilters, priceMin, priceMax, priceCurrency, countryFilter, shipsNationally, shipsInternationally, localPickup, showSold, debouncedSearch, refreshKey]);
+  }, [page, sortBy, typeFilter, categoryKey, conditionKey, priceMin, priceMax, priceCurrency, countryFilter, shipsNationally, shipsInternationally, localPickup, showSold, debouncedSearch, refreshKey]);
 
   const setPage = useCallback((p: number) => {
     const next = new URLSearchParams(searchParams);
@@ -1726,7 +1730,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                     <span className={styles.reviewStars}>{renderStars(review.rating)}</span>
                     <span className={styles.reviewTime}>{relativeTime(review.createdAt)}</span>
                   </div>
-                  {review.comment && <p className={styles.reviewComment}>{review.comment}</p>}
+                  {review.body && <p className={styles.reviewComment}>{review.body}</p>}
                 </div>
               ))}
             </div>

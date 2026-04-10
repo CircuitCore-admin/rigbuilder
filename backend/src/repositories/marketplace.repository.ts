@@ -27,6 +27,7 @@ export interface ListingListParams {
   country?: string;
   shippingOptions?: ShippingOption[];
   status?: ListingStatus;
+  includeSold?: boolean;
   search?: string;
   sortBy?: 'createdAt' | 'price' | 'viewCount';
   sortDir?: 'asc' | 'desc';
@@ -65,12 +66,15 @@ export class MarketplaceRepository {
       country,
       shippingOptions,
       status,
+      includeSold,
       search,
       sortBy = 'createdAt',
       sortDir = 'desc',
     } = params;
 
-    const excludedStatuses: ListingStatus[] = ['SOLD', 'FOUND', 'EXPIRED', 'REMOVED_BY_MOD'];
+    const excludedStatuses: ListingStatus[] = includeSold
+      ? ['EXPIRED', 'REMOVED_BY_MOD']
+      : ['SOLD', 'FOUND', 'EXPIRED', 'REMOVED_BY_MOD'];
 
     const where: Prisma.MarketplaceListingWhereInput = {
       ...(status ? { status } : { status: { notIn: excludedStatuses } }),

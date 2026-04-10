@@ -13,6 +13,7 @@ const LISTING_EXPIRY_MS = LISTING_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 const OFFER_EXPIRY_DAYS = 7;
 const OFFER_EXPIRY_MS = OFFER_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 const MIN_ACCOUNT_AGE_MS = 5 * 60 * 1000; // 5 minutes
+const MESSAGE_PREVIEW_MAX_LENGTH = 100;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -330,8 +331,8 @@ export class MarketplaceService {
       let lastMessagePreview = '';
       try {
         lastMessagePreview = decryptMessage(conv.conversationId, conv.lastMessage.body);
-        if (lastMessagePreview.length > 100) {
-          lastMessagePreview = lastMessagePreview.substring(0, 100) + '...';
+        if (lastMessagePreview.length > MESSAGE_PREVIEW_MAX_LENGTH) {
+          lastMessagePreview = lastMessagePreview.substring(0, MESSAGE_PREVIEW_MAX_LENGTH) + '...';
         }
       } catch {
         lastMessagePreview = '[Encrypted message]';
