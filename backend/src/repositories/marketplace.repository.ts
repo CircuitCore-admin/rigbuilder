@@ -299,7 +299,7 @@ export class MarketplaceRepository {
       include: {
         sender: { select: userSelect },
         recipient: { select: userSelect },
-        listing: { select: { id: true, title: true, status: true, imageUrls: true } },
+        listing: { select: { id: true, title: true, status: true, price: true, currency: true, imageUrls: true } },
       },
     });
 
@@ -334,6 +334,7 @@ export class MarketplaceRepository {
       include: {
         sender: { select: userSelect },
         recipient: { select: userSelect },
+        listing: { select: { id: true, title: true, price: true, currency: true, imageUrls: true, status: true } },
       },
     });
   }
@@ -344,6 +345,7 @@ export class MarketplaceRepository {
       include: {
         sender: { select: userSelect },
         recipient: { select: userSelect },
+        listing: { select: { id: true, title: true, price: true, currency: true, imageUrls: true, status: true } },
       },
     });
   }

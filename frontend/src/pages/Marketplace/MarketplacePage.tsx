@@ -1710,6 +1710,38 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
             </form>
           )}
 
+          {/* Offers/Bids — visible to all, in sidebar like Marktplaats */}
+          <div className={styles.sidebarBidsSection}>
+            <h3 className={styles.sidebarBidsTitle}>
+              Offers ({offers.filter(o => o.status === 'PENDING').length})
+            </h3>
+            {offers.length === 0 ? (
+              <p className={styles.sidebarBidsEmpty}>No offers placed</p>
+            ) : (
+              <div className={styles.sidebarBidsList}>
+                {offers.map(offer => (
+                  <div key={offer.id} className={styles.sidebarBidItem}>
+                    <div className={styles.sidebarBidTop}>
+                      <a href={`/profile/${offer.user.username}`} className={styles.bidUser}>{offer.user.username}</a>
+                      <span className={styles.bidAmount}>{formatPrice(offer.amount, offer.currency)}</span>
+                      <span className={`${styles.bidStatus} ${offer.status === 'PENDING' ? styles.bidStatusPending : offer.status === 'ACCEPTED' ? styles.bidStatusAccepted : styles.bidStatusRejected}`}>
+                        {offer.status}
+                      </span>
+                    </div>
+                    {offer.message && <p className={styles.sidebarBidMessage}>{offer.message}</p>}
+                    <span className={styles.bidTime}>{relativeTime(offer.createdAt)}</span>
+                    {isOwner && offer.status === 'PENDING' && (
+                      <div className={styles.bidActions}>
+                        <button className={styles.acceptBtn} onClick={() => handleOfferAction(offer.id, 'accept')}>Accept</button>
+                        <button className={styles.rejectBtn} onClick={() => handleOfferAction(offer.id, 'reject')}>Reject</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Shipping */}
           <div className={styles.shippingSection}>
             {listing.shippingOptions?.includes('LOCAL_PICKUP') && <span className={styles.shippingPill}>Local Pickup</span>}
@@ -1764,33 +1796,6 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
             </div>
           ) : null;
         })()}
-
-        {/* Offers/Bids — visible to all */}
-        {offers.length > 0 && (
-          <div className={styles.bidsSection}>
-            <h3 className={styles.sectionTitle}>
-              Offers ({offers.filter(o => o.status === 'PENDING').length} pending)
-            </h3>
-            <div className={styles.bidsList}>
-              {offers.map(offer => (
-                <div key={offer.id} className={styles.bidCard}>
-                  <a href={`/profile/${offer.user.username}`} className={styles.bidUser}>{offer.user.username}</a>
-                  <span className={styles.bidAmount}>{formatPrice(offer.amount, offer.currency)}</span>
-                  <span className={`${styles.bidStatus} ${offer.status === 'PENDING' ? styles.bidStatusPending : offer.status === 'ACCEPTED' ? styles.bidStatusAccepted : styles.bidStatusRejected}`}>
-                    {offer.status}
-                  </span>
-                  <span className={styles.bidTime}>{relativeTime(offer.createdAt)}</span>
-                  {isOwner && offer.status === 'PENDING' && (
-                    <div className={styles.bidActions}>
-                      <button className={styles.acceptBtn} onClick={() => handleOfferAction(offer.id, 'accept')}>Accept</button>
-                      <button className={styles.rejectBtn} onClick={() => handleOfferAction(offer.id, 'reject')}>Reject</button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Reviews */}
         {reviews.length > 0 && (

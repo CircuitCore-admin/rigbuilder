@@ -17,7 +17,7 @@ interface ConversationPreview {
     senderId: string;
     sender: { id: string; username: string; avatarUrl: string | null };
     recipient: { id: string; username: string; avatarUrl: string | null };
-    listing: { id: string; title: string; imageUrls?: string[] };
+    listing: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[]; status?: string };
     preview: string;
     createdAt: string;
     readAt: string | null;
@@ -35,7 +35,7 @@ interface Message {
   createdAt: string;
   sender: { id: string; username: string; avatarUrl: string | null };
   recipient?: { id: string; username: string; avatarUrl: string | null };
-  listing?: { id: string; title: string };
+  listing?: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[]; status?: string };
 }
 
 // ---------------------------------------------------------------------------
@@ -312,9 +312,23 @@ export function MarketplaceMessages() {
               {listingInfo && (
                 <a
                   href={`/marketplace/${listingInfo.id}`}
-                  className={styles.messageHeaderListing}
+                  className={styles.messageHeaderListingCard}
                 >
-                  <span className={styles.messageHeaderListingTitle}>{listingInfo.title}</span>
+                  {listingInfo.imageUrls?.[0] && (
+                    <img
+                      src={resolveImageUrl(listingInfo.imageUrls[0])}
+                      alt=""
+                      className={styles.messageHeaderListingImage}
+                    />
+                  )}
+                  <div className={styles.messageHeaderListingInfo}>
+                    <span className={styles.messageHeaderListingTitle}>{listingInfo.title}</span>
+                    {listingInfo.price != null && listingInfo.currency && (
+                      <span className={styles.messageHeaderListingPrice}>
+                        {new Intl.NumberFormat('en-GB', { style: 'currency', currency: listingInfo.currency }).format(listingInfo.price)}
+                      </span>
+                    )}
+                  </div>
                 </a>
               )}
             </div>

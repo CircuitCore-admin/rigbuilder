@@ -393,6 +393,7 @@ export class MarketplaceService {
         recipientId: msg.recipientId,
         sender: msg.sender,
         recipient: msg.recipient,
+        listing: msg.listing,
         body: decryptedBody,
         readAt: msg.readAt,
         createdAt: msg.createdAt,
@@ -439,6 +440,7 @@ export class MarketplaceService {
       recipientId: message.recipientId,
       sender: message.sender,
       recipient: message.recipient,
+      listing: message.listing,
       body: data.body, // Return the plain text body
       readAt: message.readAt,
       createdAt: message.createdAt,
