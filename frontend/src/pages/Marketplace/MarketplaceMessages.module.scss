@@ -223,7 +223,7 @@
 }
 
 .conversationItemTime {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   flex-shrink: 0;
@@ -251,7 +251,7 @@
 .unreadBadge {
   background: var(--accent-primary);
   color: var(--bg-void);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 700;
   min-width: 20px;
@@ -428,7 +428,7 @@
 }
 
 .messageBubbleTime {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   color: var(--text-muted);
   text-align: right;
