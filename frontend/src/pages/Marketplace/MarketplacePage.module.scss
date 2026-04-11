@@ -382,24 +382,18 @@ $bp-desktop: 1280px;
   justify-content: center;
   min-height: 400px;
   text-align: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-.emptyIcon {
-  font-size: 48px;
-  color: var(--text-muted);
-  opacity: 0.5;
-}
-
-.emptyTitle {
+.emptyStateTitle {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   margin: 0;
 }
 
-.emptyText {
+.emptyStateText {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-muted);
@@ -407,7 +401,7 @@ $bp-desktop: 1280px;
   margin: 0;
 }
 
-.emptyAction {
+.emptyStateCta {
   margin-top: 8px;
   padding: 10px 24px;
   font-family: 'Space Grotesk', sans-serif;
@@ -417,11 +411,9 @@ $bp-desktop: 1280px;
   background: var(--accent-primary);
   border: none;
   border-radius: var(--radius-md);
-  cursor: pointer;
   text-decoration: none;
-  transition: opacity 200ms ease;
 
-  &:hover { opacity: 0.9; }
+  &:hover { opacity: 0.9; color: var(--bg-void); }
 }
 
 .errorState {
@@ -1166,9 +1158,9 @@ $bp-desktop: 1280px;
 // ============================================================================
 
 .formContainer {
-  max-width: 720px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 32px;
 }
 
 .formHeader {
@@ -1255,6 +1247,16 @@ $bp-desktop: 1280px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 24px;
+}
+
+.formGridFull {
+  grid-column: 1 / -1;
 }
 
 .formError {
@@ -2817,7 +2819,7 @@ $bp-desktop: 1280px;
   }
 
   .formContainer {
-    padding: 20px 12px;
+    padding: 20px 16px;
   }
 
   .formTitle {
@@ -2827,6 +2829,14 @@ $bp-desktop: 1280px;
   .typeGrid {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formGridFull {
+    grid-column: 1;
   }
 
   .fieldRow {

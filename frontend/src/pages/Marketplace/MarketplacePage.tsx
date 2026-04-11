@@ -4,6 +4,7 @@ import Markdown from 'react-markdown';
 import { api, resolveImageUrl, ensureCsrfToken } from '../../utils/api';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
+import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
 import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -409,15 +410,16 @@ function MarketplaceDashboard() {
                 min="0"
               />
             </div>
-            <select
-              className={styles.currencySelect}
+            <CustomSelect
               value={priceCurrency}
-              onChange={e => setPriceCurrency(e.target.value)}
-            >
-              <option value="GBP">£ GBP</option>
-              <option value="EUR">€ EUR</option>
-              <option value="USD">$ USD</option>
-            </select>
+              onChange={setPriceCurrency}
+              options={[
+                { value: 'GBP', label: '£ GBP' },
+                { value: 'EUR', label: '€ EUR' },
+                { value: 'USD', label: '$ USD' },
+              ]}
+              placeholder="Currency"
+            />
           </div>
         )}
       </div>
@@ -582,13 +584,12 @@ function MarketplaceDashboard() {
           <div className={styles.loadingState}>Loading listings…</div>
         ) : listings.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🏪</div>
-            <h3 className={styles.emptyTitle}>No listings found</h3>
-            <p className={styles.emptyText}>
+            <h3 className={styles.emptyStateTitle}>No listings found</h3>
+            <p className={styles.emptyStateText}>
               Try adjusting your filters or search terms, or be the first to list something!
             </p>
             {user && (
-              <a href="/marketplace/new" className={styles.emptyAction}>Create a Listing</a>
+              <a href="/marketplace/new" className={styles.emptyStateCta}>Create a Listing</a>
             )}
           </div>
         ) : viewMode === 'grid' ? (
@@ -718,7 +719,7 @@ function MarketplaceDashboard() {
 
 function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | 'list' }) {
   const typeInfo = LISTING_TYPE_LABELS[listing.type] ?? { label: listing.type, color: '#7878A0' };
-  const condLabel = CONDITION_LABELS[listing.condition] ?? listing.condition;
+  const condLabel = listing.condition ? CONDITION_LABELS[listing.condition] ?? listing.condition : null;
   const isSold = listing.status === 'SOLD' || listing.status === 'FOUND';
 
   if (mode === 'grid') {
@@ -1068,102 +1069,63 @@ function CreateListingPage() {
       <form className={styles.listingForm} onSubmit={handleSubmit}>
         {error && <div className={styles.formError}>{error}</div>}
 
-        {/* Title */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel} htmlFor="listing-title">Title</label>
-          <input
-            id="listing-title"
-            type="text"
-            className={styles.fieldInput}
-            placeholder="e.g. Fanatec CSL DD 8Nm"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            maxLength={200}
-            required
-          />
-        </div>
-
-        {/* Category + Condition row */}
-        <div className={styles.fieldRow}>
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="listing-category">Category</label>
-            <select
-              id="listing-category"
-              className={styles.fieldSelect}
-              value={category}
-              onChange={e => setCategory(e.target.value)}
+        <div className={styles.formGrid}>
+          {/* Title — full width */}
+          <div className={`${styles.fieldGroup} ${styles.formGridFull}`}>
+            <label className={styles.fieldLabel} htmlFor="listing-title">Title</label>
+            <input
+              id="listing-title"
+              type="text"
+              className={styles.fieldInput}
+              placeholder="e.g. Fanatec CSL DD 8Nm"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              maxLength={200}
               required
-            >
-              <option value="">Select…</option>
-              {MARKETPLACE_CATEGORIES.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+            />
           </div>
 
+          {/* Category */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel} htmlFor="listing-category">Category</label>
+            <CustomSelect
+              id="listing-category"
+              value={category}
+              onChange={setCategory}
+              options={MARKETPLACE_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
+              placeholder="Select…"
+            />
+          </div>
+
+          {/* Condition */}
           {listingType !== 'LOOKING_FOR' && (
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel} htmlFor="listing-condition">Condition</label>
-              <select
+              <CustomSelect
                 id="listing-condition"
-                className={styles.fieldSelect}
                 value={condition}
-                onChange={e => setCondition(e.target.value)}
-                required
-              >
-                <option value="">Select…</option>
-                {Object.entries(CONDITION_LABELS).map(([key, label]) => (
-                  <option key={key} value={key}>{label}</option>
-                ))}
-              </select>
+                onChange={setCondition}
+                options={Object.entries(CONDITION_LABELS).map(([key, label]) => ({ value: key, label: label as string }))}
+                placeholder="Select…"
+              />
             </div>
           )}
-        </div>
 
-        {/* Price + Currency */}
-        {listingType !== 'LOOKING_FOR' && (
-          <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="listing-price">Price</label>
-            <div className={styles.priceRow}>
-              <input
-                id="listing-price"
-                type="number"
-                min="0"
-                step="0.01"
-                className={styles.fieldInput}
-                placeholder="0.00"
-                value={price}
-                onChange={e => setPrice(e.target.value)}
-              />
-              <select
-                className={`${styles.fieldSelect} ${styles.currencyInput}`}
-                value={currency}
-                onChange={e => setCurrency(e.target.value)}
-              >
-                <option value="GBP">£ GBP</option>
-                <option value="EUR">€ EUR</option>
-                <option value="USD">$ USD</option>
-              </select>
-            </div>
+          {/* Description — full width */}
+          <div className={`${styles.fieldGroup} ${styles.formGridFull}`}>
+            <label className={styles.fieldLabel} htmlFor="listing-desc">Description</label>
+            <MarkdownEditor
+              id="listing-desc"
+              value={description}
+              onChange={setDescription}
+              placeholder="Describe the item, its condition, any accessories included…"
+              rows={8}
+              required
+              maxLength={10000}
+            />
           </div>
-        )}
 
-        {/* Description */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel} htmlFor="listing-desc">Description</label>
-          <MarkdownEditor
-            id="listing-desc"
-            value={description}
-            onChange={setDescription}
-            placeholder="Describe the item, its condition, any accessories included…"
-            rows={8}
-            required
-            maxLength={10000}
-          />
-        </div>
-
-        {/* Location */}
-        <div className={styles.fieldRow}>
+          {/* Country */}
           <div className={styles.fieldGroup}>
             <label className={styles.fieldLabel} htmlFor="listing-country">Country <span className={styles.fieldRequired}>*</span></label>
             <input
@@ -1176,6 +1138,8 @@ function CreateListingPage() {
               required
             />
           </div>
+
+          {/* Region */}
           <div className={styles.fieldGroup}>
             <label className={styles.fieldLabel} htmlFor="listing-region">Region <span className={styles.fieldOptional}>(optional)</span></label>
             <input
@@ -1187,173 +1151,202 @@ function CreateListingPage() {
               onChange={e => setRegion(e.target.value)}
             />
           </div>
-        </div>
 
-        {/* Pricing Type */}
-        <div className={styles.fieldGroup}>
-          <span className={styles.fieldLabel}>Pricing</span>
-          <div className={styles.pricingTypeRow}>
-            {['FIXED', 'NEGOTIABLE', 'OPEN_TO_OFFERS', 'AUCTION'].map(pt => (
-              <label key={pt} className={`${styles.radioLabel} ${pricingType === pt ? styles.radioActive : ''}`}>
+          {/* Price + Currency — full width */}
+          {listingType !== 'LOOKING_FOR' && (
+            <div className={`${styles.fieldGroup} ${styles.formGridFull}`}>
+              <label className={styles.fieldLabel} htmlFor="listing-price">Price</label>
+              <div className={styles.priceRow}>
                 <input
-                  type="radio"
-                  name="pricingType"
-                  value={pt}
-                  checked={pricingType === pt}
-                  onChange={() => setPricingType(pt)}
-                  className={styles.radioInput}
+                  id="listing-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className={styles.fieldInput}
+                  placeholder="0.00"
+                  value={price}
+                  onChange={e => setPrice(e.target.value)}
                 />
-                <span>{pt === 'OPEN_TO_OFFERS' ? 'Open to Offers' : pt.charAt(0) + pt.slice(1).toLowerCase()}</span>
+                <CustomSelect
+                  value={currency}
+                  onChange={setCurrency}
+                  options={[
+                    { value: 'GBP', label: '£ GBP' },
+                    { value: 'EUR', label: '€ EUR' },
+                    { value: 'USD', label: '$ USD' },
+                  ]}
+                  placeholder="Currency"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Pricing Type — full width */}
+          <div className={`${styles.fieldGroup} ${styles.formGridFull}`}>
+            <span className={styles.fieldLabel}>Pricing</span>
+            <div className={styles.pricingTypeRow}>
+              {['FIXED', 'NEGOTIABLE', 'OPEN_TO_OFFERS', 'AUCTION'].map(pt => (
+                <label key={pt} className={`${styles.radioLabel} ${pricingType === pt ? styles.radioActive : ''}`}>
+                  <input
+                    type="radio"
+                    name="pricingType"
+                    value={pt}
+                    checked={pricingType === pt}
+                    onChange={() => setPricingType(pt)}
+                    className={styles.radioInput}
+                  />
+                  <span>{pt === 'OPEN_TO_OFFERS' ? 'Open to Offers' : pt.charAt(0) + pt.slice(1).toLowerCase()}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Minimum Offer */}
+          {(pricingType === 'NEGOTIABLE' || pricingType === 'OPEN_TO_OFFERS' || pricingType === 'AUCTION') && (
+            <div className={`${styles.fieldGroup} ${styles.formGridFull}`}>
+              <label className={styles.fieldLabel} htmlFor="listing-min-offer">
+                Minimum Offer <span className={styles.fieldOptional}>(optional)</span>
               </label>
-            ))}
-          </div>
-        </div>
+              <input
+                id="listing-min-offer"
+                type="number"
+                min="0"
+                step="0.01"
+                className={styles.fieldInput}
+                placeholder="0.00"
+                value={minimumOffer}
+                onChange={e => setMinimumOffer(e.target.value)}
+              />
+            </div>
+          )}
 
-        {/* Minimum Offer */}
-        {(pricingType === 'NEGOTIABLE' || pricingType === 'OPEN_TO_OFFERS' || pricingType === 'AUCTION') && (
+          {/* Discord Username */}
           <div className={styles.fieldGroup}>
-            <label className={styles.fieldLabel} htmlFor="listing-min-offer">
-              Minimum Offer <span className={styles.fieldOptional}>(optional)</span>
+            <label className={styles.fieldLabel} htmlFor="listing-discord">
+              Discord Username <span className={styles.fieldOptional}>(optional)</span>
             </label>
             <input
-              id="listing-min-offer"
-              type="number"
-              min="0"
-              step="0.01"
+              id="listing-discord"
+              type="text"
               className={styles.fieldInput}
-              placeholder="0.00"
-              value={minimumOffer}
-              onChange={e => setMinimumOffer(e.target.value)}
+              placeholder="@username"
+              value={discordUsername}
+              onChange={e => setDiscordUsername(e.target.value)}
             />
           </div>
-        )}
 
-        {/* Discord Username */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel} htmlFor="listing-discord">
-            Discord Username <span className={styles.fieldOptional}>(optional)</span>
-          </label>
-          <input
-            id="listing-discord"
-            type="text"
-            className={styles.fieldInput}
-            placeholder="@username"
-            value={discordUsername}
-            onChange={e => setDiscordUsername(e.target.value)}
-          />
-        </div>
-
-        {/* Shipping options */}
-        <div className={styles.fieldGroup}>
-          <span className={styles.fieldLabel}>Shipping / Pickup <span className={styles.fieldRequired}>*</span></span>
-          <div className={styles.shippingOptions}>
-            <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={shippingOptions.has('LOCAL_PICKUP')} onChange={() => { const n = new Set(shippingOptions); if (n.has('LOCAL_PICKUP')) n.delete('LOCAL_PICKUP'); else n.add('LOCAL_PICKUP'); setShippingOptions(n); }} className={styles.checkbox} />
-              <span>Local Pickup</span>
+          {/* Build permalink */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel} htmlFor="listing-permalink">
+              RigBuilder Permalink <span className={styles.fieldOptional}>(optional)</span>
             </label>
-            <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={shippingOptions.has('NATIONAL_SHIPPING')} onChange={() => { const n = new Set(shippingOptions); if (n.has('NATIONAL_SHIPPING')) n.delete('NATIONAL_SHIPPING'); else n.add('NATIONAL_SHIPPING'); setShippingOptions(n); }} className={styles.checkbox} />
-              <span>National Shipping</span>
-            </label>
-            <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={shippingOptions.has('INTERNATIONAL_SHIPPING')} onChange={() => { const n = new Set(shippingOptions); if (n.has('INTERNATIONAL_SHIPPING')) n.delete('INTERNATIONAL_SHIPPING'); else n.add('INTERNATIONAL_SHIPPING'); setShippingOptions(n); }} className={styles.checkbox} />
-              <span>International Shipping</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Build permalink */}
-        <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel} htmlFor="listing-permalink">
-            RigBuilder Permalink <span className={styles.fieldOptional}>(optional)</span>
-          </label>
-          <input
-            id="listing-permalink"
-            type="text"
-            className={`${styles.fieldInput} ${buildPermalink && !isPermalinkValid ? styles.fieldInvalid : ''}`}
-            placeholder="/list/abc123"
-            value={buildPermalink}
-            onChange={e => setBuildPermalink(e.target.value)}
-          />
-          {buildPermalink && !isPermalinkValid && (
-            <span className={styles.fieldHint}>Must start with /list/</span>
-          )}
-          {buildPermalink && isPermalinkValid && buildPermalink.trim() && (
-            <EmbedBuildCard permalink={buildPermalink} />
-          )}
-        </div>
-
-        {/* Images */}
-        <div className={styles.fieldGroup}>
-          <span className={styles.fieldLabel}>Images <span className={styles.fieldOptional}>(recommended)</span></span>
-
-          <div
-            className={`${styles.dropZone} ${dragActive ? styles.dropZoneActive : ''}`}
-            onDragOver={handleDragOver}
-            onDragEnter={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <span className={styles.dropZoneIcon}>📤</span>
-            <span className={styles.dropZoneText}>Drop images here or click to upload</span>
             <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              style={{ display: 'none' }}
-              onChange={e => e.target.files && handleImageFiles(e.target.files)}
+              id="listing-permalink"
+              type="text"
+              className={`${styles.fieldInput} ${buildPermalink && !isPermalinkValid ? styles.fieldInvalid : ''}`}
+              placeholder="/list/abc123"
+              value={buildPermalink}
+              onChange={e => setBuildPermalink(e.target.value)}
             />
+            {buildPermalink && !isPermalinkValid && (
+              <span className={styles.fieldHint}>Must start with /list/</span>
+            )}
+            {buildPermalink && isPermalinkValid && buildPermalink.trim() && (
+              <EmbedBuildCard permalink={buildPermalink} />
+            )}
           </div>
 
-          {/* URL input */}
-          <div className={styles.urlAddRow}>
-            <input
-              type="url"
-              className={styles.fieldInput}
-              placeholder="Or add image by URL…"
-              value={addUrlValue}
-              onChange={e => setAddUrlValue(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddUrl())}
-            />
-            <button type="button" className={styles.addBtn} onClick={handleAddUrl}>Add</button>
+          {/* Shipping options — full width */}
+          <div className={`${styles.fieldGroup} ${styles.formGridFull}`}>
+            <span className={styles.fieldLabel}>Shipping / Pickup <span className={styles.fieldRequired}>*</span></span>
+            <div className={styles.shippingOptions}>
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={shippingOptions.has('LOCAL_PICKUP')} onChange={() => { const n = new Set(shippingOptions); if (n.has('LOCAL_PICKUP')) n.delete('LOCAL_PICKUP'); else n.add('LOCAL_PICKUP'); setShippingOptions(n); }} className={styles.checkbox} />
+                <span>Local Pickup</span>
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={shippingOptions.has('NATIONAL_SHIPPING')} onChange={() => { const n = new Set(shippingOptions); if (n.has('NATIONAL_SHIPPING')) n.delete('NATIONAL_SHIPPING'); else n.add('NATIONAL_SHIPPING'); setShippingOptions(n); }} className={styles.checkbox} />
+                <span>National Shipping</span>
+              </label>
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={shippingOptions.has('INTERNATIONAL_SHIPPING')} onChange={() => { const n = new Set(shippingOptions); if (n.has('INTERNATIONAL_SHIPPING')) n.delete('INTERNATIONAL_SHIPPING'); else n.add('INTERNATIONAL_SHIPPING'); setShippingOptions(n); }} className={styles.checkbox} />
+                <span>International Shipping</span>
+              </label>
+            </div>
           </div>
 
-          {uploadErrors.length > 0 && (
-            <div className={styles.uploadErrorList}>
-              {uploadErrors.map((err, i) => (
-                <div key={i} className={styles.uploadError}>{err}</div>
-              ))}
-            </div>
-          )}
+          {/* Images — full width */}
+          <div className={`${styles.fieldGroup} ${styles.formGridFull}`}>
+            <span className={styles.fieldLabel}>Images <span className={styles.fieldOptional}>(recommended)</span></span>
 
-          {(imageUrls.length > 0 || uploadingCount > 0) && (
-            <div className={styles.thumbRow}>
-              {imageUrls.map((url, i) => (
-                <div
-                  key={`${url}-${i}`}
-                  className={`${styles.thumbCard} ${dragIdx === i ? styles.thumbDragging : ''}`}
-                  draggable
-                  onDragStart={() => handleThumbDragStart(i)}
-                  onDragOver={e => handleThumbDragOver(e, i)}
-                  onDragEnd={handleThumbDragEnd}
-                >
-                  <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} />
-                  <button
-                    type="button"
-                    className={styles.thumbRemove}
-                    onClick={() => setImageUrls(imageUrls.filter((_, j) => j !== i))}
-                  >×</button>
-                </div>
-              ))}
-              {Array.from({ length: uploadingCount }).map((_, i) => (
-                <div key={`uploading-${i}`} className={styles.thumbCard}>
-                  <div className={styles.thumbLoading}>⏳</div>
-                </div>
-              ))}
+            <div
+              className={`${styles.dropZone} ${dragActive ? styles.dropZoneActive : ''}`}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <span className={styles.dropZoneIcon}>📤</span>
+              <span className={styles.dropZoneText}>Drop images here or click to upload</span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={e => e.target.files && handleImageFiles(e.target.files)}
+              />
             </div>
-          )}
+
+            {/* URL input */}
+            <div className={styles.urlAddRow}>
+              <input
+                type="url"
+                className={styles.fieldInput}
+                placeholder="Or add image by URL…"
+                value={addUrlValue}
+                onChange={e => setAddUrlValue(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddUrl())}
+              />
+              <button type="button" className={styles.addBtn} onClick={handleAddUrl}>Add</button>
+            </div>
+
+            {uploadErrors.length > 0 && (
+              <div className={styles.uploadErrorList}>
+                {uploadErrors.map((err, i) => (
+                  <div key={i} className={styles.uploadError}>{err}</div>
+                ))}
+              </div>
+            )}
+
+            {(imageUrls.length > 0 || uploadingCount > 0) && (
+              <div className={styles.thumbRow}>
+                {imageUrls.map((url, i) => (
+                  <div
+                    key={`${url}-${i}`}
+                    className={`${styles.thumbCard} ${dragIdx === i ? styles.thumbDragging : ''}`}
+                    draggable
+                    onDragStart={() => handleThumbDragStart(i)}
+                    onDragOver={e => handleThumbDragOver(e, i)}
+                    onDragEnd={handleThumbDragEnd}
+                  >
+                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} />
+                    <button
+                      type="button"
+                      className={styles.thumbRemove}
+                      onClick={() => setImageUrls(imageUrls.filter((_, j) => j !== i))}
+                    >×</button>
+                  </div>
+                ))}
+                {Array.from({ length: uploadingCount }).map((_, i) => (
+                  <div key={`uploading-${i}`} className={styles.thumbCard}>
+                    <div className={styles.thumbLoading}>⏳</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Premium boost (disabled) */}
@@ -1615,7 +1608,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                 {typeInfo.label}
               </span>
             )}
-            <span className={styles.conditionTag}>{CONDITION_LABELS[listing.condition] ?? listing.condition}</span>
+            <span className={styles.conditionTag}>{listing.condition ? (CONDITION_LABELS[listing.condition] ?? listing.condition) : '—'}</span>
             <span className={styles.categoryTag}>{listing.category}</span>
             {listing.isPremium && <span className={styles.premiumBadge}>⚡ Boosted</span>}
             {isSold && <span className={styles.soldTag}>{listing.status}</span>}
