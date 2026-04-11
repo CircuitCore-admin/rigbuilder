@@ -196,12 +196,13 @@ export class MarketplaceRepository {
     });
   }
 
-  /** Get similar active listings in the same category, excluding the current listing */
-  static async findSimilarListings(category: string, excludeListingId: string, limit = 6) {
+  /** Get similar active listings in the same category, excluding the current listing and same seller */
+  static async findSimilarListings(category: string, excludeListingId: string, excludeSellerId: string, limit = 6) {
     return prisma.marketplaceListing.findMany({
       where: {
         category,
         id: { not: excludeListingId },
+        userId: { not: excludeSellerId },
         status: 'ACTIVE',
       },
       orderBy: { createdAt: 'desc' },

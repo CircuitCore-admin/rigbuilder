@@ -1688,23 +1688,23 @@ $bp-desktop: 1280px;
 // ============================================================================
 
 .detailContainer {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 24px 32px 48px;
 }
 
-.detailLayout {
+// Top section: images left (60%), info right (40%)
+.detailTop {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 3fr 2fr;
   gap: 32px;
   margin-top: 16px;
+  margin-bottom: 32px;
 }
 
 // ----- Gallery -----
 
 .detailGallery {
-  position: sticky;
-  top: 80px;
   align-self: start;
 }
 
@@ -1838,18 +1838,21 @@ $bp-desktop: 1280px;
   }
 }
 
-// ----- Detail info -----
+// ----- Detail sidebar (sticky right panel) -----
 
-.detailInfo {
+.detailSidebar {
+  position: sticky;
+  top: 80px;
+  align-self: start;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .detailBadges {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 
   .typeBadge {
@@ -1859,24 +1862,216 @@ $bp-desktop: 1280px;
 
 .detailTitle {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .detailPrice {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detailPriceOpen {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--accent-primary);
 }
 
-.detailShipping {
+.minimumOfferHint {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.detailMeta {
   display: flex;
   flex-wrap: wrap;
+  gap: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+// Compact seller card in sidebar
+.sellerCardCompact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.sellerAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.sellerDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sellerNameLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); }
+}
+
+.sellerRating {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sellerNoRating {
+  color: var(--text-muted);
+}
+
+// Action buttons — prominent like Marktplaats
+.actionButtons {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+}
+
+.messageSellerBtnPrimary {
+  width: 100%;
+  padding: 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 150ms ease;
+  &:hover { opacity: 0.9; }
+}
+
+.makeOfferBtnPrimary {
+  width: 100%;
+  padding: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+// Inline offer form in sidebar
+.offerFormInline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.offerInputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.offerCurrencyLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.offerInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.offerMessageInput {
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  resize: none;
+  &::placeholder { color: var(--text-muted); }
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.offerFormBtns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.submitOfferBtn {
+  padding: 8px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+// Shipping pills
+.shippingSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .shippingPill {
@@ -1884,52 +2079,116 @@ $bp-desktop: 1280px;
   font-size: 12px;
   color: var(--text-body);
   background: var(--bg-surface);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-subtle);
   padding: 4px 12px;
   border-radius: 16px;
 }
 
-.detailMeta {
+// Owner controls — compact in sidebar
+.ownerControlsCompact {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  color: var(--text-secondary);
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
 }
 
-.detailDescription {
-  padding-top: 8px;
-}
-
-.detailSectionTitle {
+.statusBtn {
+  padding: 8px 16px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
-  text-transform: none;
-  letter-spacing: normal;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.4; }
+}
+
+.extendBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { border-color: var(--border-strong); color: var(--text-primary); }
+}
+
+.deleteBtnSmall {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-error);
+  background: none;
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { background: rgba(255, 68, 85, 0.08); }
+}
+
+.reportLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  &:hover { color: var(--color-error); text-decoration: underline; }
+}
+
+// --- Bottom section (full width below the image+sidebar) ---
+
+.detailBottom {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
   margin: 0 0 12px;
+}
+
+.descriptionSection {
+  max-width: 800px;
+}
+
+.buildLinkSection {
+  padding-top: 8px;
 }
 
 .markdownContent {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  color: var(--text-body);
+  font-size: 15px;
   line-height: 1.7;
+  color: var(--text-body);
 
   p { margin: 0 0 12px; }
   h1, h2, h3, h4 {
     color: var(--text-primary);
     margin: 16px 0 8px;
   }
-  a { color: var(--accent-primary); }
+  a { color: var(--accent-secondary); }
   code {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
     background: var(--bg-elevated);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
+    padding: 2px 5px;
+    border-radius: 3px;
   }
   pre {
     background: var(--bg-elevated);
@@ -1947,343 +2206,103 @@ $bp-desktop: 1280px;
   }
 }
 
-.detailBuildLink {
-  padding-top: 8px;
+// Bids/offers section (full width)
+.bidsSection {
+  max-width: 800px;
 }
 
-// ----- Seller card -----
-
-.sellerCard {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 16px;
-}
-
-.sellerInfo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.sellerAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--bg-elevated);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  span {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-}
-
-.sellerName {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.sellerRating {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  color: #FFB020;
-}
-
-.sellerNoRating {
-  color: var(--text-muted);
-}
-
-// ----- Contact form -----
-
-.contactForm {
+.bidsList {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.contactTextarea {
-  width: 100%;
-  padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  color: var(--text-body);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  outline: none;
-  resize: vertical;
-  box-sizing: border-box;
-
-  &::placeholder { color: var(--text-muted); }
-  &:focus { border-color: var(--accent-primary); }
-}
-
-.contactBtn {
-  align-self: flex-end;
-  padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--bg-void);
-  background: var(--accent-primary);
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
-
-  &:hover { opacity: 0.9; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-}
-
-.messageSellerBtn {
-  width: 100%;
-  padding: 12px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
-  margin-top: 8px;
-
-  &:hover {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-  }
-}
-
-// ----- Offers -----
-
-.offerSection {
-  padding-top: 4px;
-}
-
-.makeOfferBtn {
-  width: 100%;
-  padding: 10px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent-primary);
-  background: none;
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-
-  &:hover { background: var(--accent-primary-subtle); }
-}
-
-.offerForm {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 16px;
+.bidCard {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
 }
 
-.offerFormTitle {
+.bidUser {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0;
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); }
 }
 
-.offerCurrency {
+.bidAmount {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  align-self: center;
-}
-
-.offerFormActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.offersSection {
-  padding-top: 4px;
-}
-
-.offerCard {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  margin-bottom: 8px;
-}
-
-.offerCardHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 4px;
-}
-
-.offerUser {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.offerAmount {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
   font-weight: 700;
   color: var(--accent-primary);
 }
 
-.offerStatus {
+.bidStatus {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
   padding: 2px 8px;
   border-radius: var(--radius-sm);
+  text-transform: uppercase;
 }
 
-.offerStatusPENDING {
-  color: var(--color-warning);
+.bidStatusPending {
+  color: #FFB020;
   background: rgba(255, 176, 32, 0.1);
 }
 
-.offerStatusACCEPTED {
+.bidStatusAccepted {
   color: var(--accent-primary);
   background: rgba(0, 255, 163, 0.1);
 }
 
-.offerStatusREJECTED {
+.bidStatusRejected {
   color: var(--color-error);
   background: rgba(255, 68, 85, 0.1);
 }
 
-.offerMessage {
+.bidTime {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  color: var(--text-body);
-  margin: 4px 0;
-}
-
-.offerTime {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
+  margin-left: auto;
 }
 
-.offerActions {
+.bidActions {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .acceptBtn {
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--bg-void);
   background: var(--accent-primary);
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-
   &:hover { opacity: 0.9; }
 }
 
 .rejectBtn {
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-error);
   background: none;
   border: 1px solid var(--color-error);
   border-radius: var(--radius-sm);
   cursor: pointer;
-
-  &:hover { background: rgba(255, 68, 85, 0.08); }
-}
-
-// ----- Owner controls -----
-
-.ownerControls {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 16px;
-}
-
-.ownerActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.statusBtn {
-  padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--bg-void);
-  background: var(--accent-primary);
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-
-  &:hover { opacity: 0.9; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-}
-
-.bumpBtn {
-  padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-secondary);
-  background: none;
-  border: 1px solid var(--accent-secondary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-
-  &:hover { background: rgba(110, 86, 255, 0.08); }
-}
-
-.deleteBtn {
-  padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-error);
-  background: none;
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-
   &:hover { background: rgba(255, 68, 85, 0.08); }
 }
 
@@ -2333,32 +2352,6 @@ $bp-desktop: 1280px;
   color: var(--text-body);
   line-height: 1.5;
   margin: 4px 0 0;
-}
-
-// ----- Report -----
-
-.reportSection {
-  padding-top: 8px;
-}
-
-.reportBtn {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover { color: var(--color-error); }
-}
-
-.reportDisclaimer {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin: 8px 0 16px;
 }
 
 // ============================================================================
@@ -2422,6 +2415,14 @@ $bp-desktop: 1280px;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.reportDisclaimer {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 8px 0 16px;
 }
 
 // ============================================================================
@@ -2728,21 +2729,10 @@ $bp-desktop: 1280px;
 .pageBtn:focus-visible,
 .convoItem:focus-visible,
 .sendBtn:focus-visible,
-.contactBtn:focus-visible,
-.makeOfferBtn:focus-visible {
+.messageSellerBtnPrimary:focus-visible,
+.makeOfferBtnPrimary:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
-}
-
-// ----- Clickable username link -----
-
-.sellerNameLink {
-  color: var(--text-primary);
-  text-decoration: none;
-  font-weight: 600;
-  &:hover {
-    color: var(--accent-primary);
-  }
 }
 
 // ----- Related listings -----
@@ -2894,8 +2884,8 @@ $bp-desktop: 1280px;
     }
   }
 
-  .detailLayout {
-    grid-template-columns: 1fr;
+  .detailTop {
+    grid-template-columns: 1fr 1fr;
     gap: 24px;
   }
 
@@ -3039,12 +3029,21 @@ $bp-desktop: 1280px;
     padding: 16px;
   }
 
+  .detailTop {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .detailSidebar {
+    position: static;
+  }
+
   .detailTitle {
     font-size: 22px;
   }
 
   .detailPrice {
-    font-size: 22px;
+    font-size: 26px;
   }
 
   .messagesContainer {

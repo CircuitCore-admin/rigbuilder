@@ -1409,10 +1409,6 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   // Owner controls
   const [statusUpdating, setStatusUpdating] = useState(false);
 
-  // Contact seller
-  const [contactMessage, setContactMessage] = useState('');
-  const [contactSending, setContactSending] = useState(false);
-
   // Related listings
   const [sellerListings, setSellerListings] = useState<ListingItem[]>([]);
   const [similarListings, setSimilarListings] = useState<ListingItem[]>([]);
@@ -1529,24 +1525,6 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
     }
   };
 
-  const handleContactSeller = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactMessage.trim() || contactSending) return;
-    setContactSending(true);
-    try {
-      await api('/marketplace/messages', {
-        method: 'POST',
-        body: { listingId, recipientId: listing?.user.id, body: contactMessage.trim() },
-      });
-      setContactMessage('');
-      showToast('Message sent!', 'success');
-    } catch {
-      showToast('Failed to send message', 'error');
-    } finally {
-      setContactSending(false);
-    }
-  };
-
   if (loading) return <div className={styles.loadingState}>Loading listing…</div>;
   if (error || !listing) {
     return (
@@ -1562,7 +1540,8 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
     <div className={styles.detailContainer}>
       <a href="/marketplace" className={styles.backLink}>← Back to Marketplace</a>
 
-      <div className={styles.detailLayout}>
+      {/* TOP SECTION — Image + Sidebar */}
+      <div className={styles.detailTop}>
         {/* Left: Images */}
         <div className={styles.detailGallery}>
           {listing.imageUrls.length > 0 ? (
@@ -1609,15 +1588,15 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               )}
             </>
           ) : (
-            <div className={styles.galleryNoImage}>
-              <span>📷</span>
-              <span>No images</span>
+            <div className={styles.galleryEmpty}>
+              <span className={styles.galleryEmptyText}>No images</span>
             </div>
           )}
         </div>
 
-        {/* Right: Info */}
-        <div className={styles.detailInfo}>
+        {/* Right: Key info (sticky) */}
+        <div className={styles.detailSidebar}>
+          {/* Badges */}
           <div className={styles.detailBadges}>
             {typeInfo && (
               <span className={styles.typeBadge} style={{ background: typeInfo.color, color: '#05050A' }}>
@@ -1630,155 +1609,179 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
             {isSold && <span className={styles.soldTag}>{listing.status}</span>}
           </div>
 
+          {/* Title */}
           <h1 className={styles.detailTitle}>{listing.title}</h1>
 
-          {listing.price !== null && (
+          {/* Price */}
+          {listing.price !== null ? (
             <div className={styles.detailPrice}>{formatPrice(listing.price, listing.currency)}</div>
+          ) : (
+            <div className={styles.detailPriceOpen}>Open to Offers</div>
+          )}
+          {listing.minimumOffer != null && (
+            <div className={styles.minimumOfferHint}>
+              Minimum offer: {formatPrice(listing.minimumOffer, listing.currency)}
+            </div>
           )}
 
-          {/* Shipping pills */}
-          <div className={styles.detailShipping}>
-            {listing.shippingOptions?.includes('LOCAL_PICKUP') && <span className={styles.shippingPill}>📍 Local Pickup</span>}
-            {listing.shippingOptions?.includes('NATIONAL_SHIPPING') && <span className={styles.shippingPill}>📦 National Shipping</span>}
-            {listing.shippingOptions?.includes('INTERNATIONAL_SHIPPING') && <span className={styles.shippingPill}>🌍 International Shipping</span>}
-          </div>
-
-          {/* Location + dates */}
+          {/* Location + meta */}
           <div className={styles.detailMeta}>
-            {listing.country && <span>📍 {listing.country}{listing.region ? `, ${listing.region}` : ''}</span>}
+            {listing.country && <span>{listing.country}{listing.region ? `, ${listing.region}` : ''}</span>}
             <span>Listed {relativeTime(listing.createdAt)}</span>
-            <span>👁 {listing.viewCount} views</span>
+            <span>{listing.viewCount} views</span>
           </div>
 
-          {/* Description */}
-          <div className={styles.detailDescription}>
-            <h3 className={styles.detailSectionTitle}>Description</h3>
-            <div className={styles.markdownContent}>
-              <Markdown>{listing.description ?? ''}</Markdown>
+          {/* Seller card — compact */}
+          <div className={styles.sellerCardCompact}>
+            <div className={styles.sellerAvatar}>
+              {listing.user.avatarUrl ? (
+                <img src={resolveImageUrl(listing.user.avatarUrl)} alt="" />
+              ) : (
+                <span>{listing.user.username[0].toUpperCase()}</span>
+              )}
             </div>
-          </div>
-
-          {/* Build link - detect /list/ permalink from description */}
-          {(() => {
-            const match = listing.description?.match(/\/list\/[a-zA-Z0-9]+/);
-            return match ? (
-              <div className={styles.detailBuildLink}>
-                <h3 className={styles.detailSectionTitle}>Linked Build</h3>
-                <EmbedBuildCard permalink={match[0]} />
-              </div>
-            ) : null;
-          })()}
-
-          {/* Seller card */}
-          <div className={styles.sellerCard}>
-            <div className={styles.sellerInfo}>
-              <div className={styles.sellerAvatar}>
-                {listing.user.avatarUrl ? (
-                  <img src={resolveImageUrl(listing.user.avatarUrl)} alt={listing.user.username} />
+            <div className={styles.sellerDetails}>
+              <a href={`/profile/${listing.user.username}`} className={styles.sellerNameLink}>
+                {listing.user.username}
+              </a>
+              <div className={styles.sellerRating}>
+                {listing.user.sellerRating !== null ? (
+                  <>{renderStars(listing.user.sellerRating)} ({listing.user.sellerReviewCount})</>
                 ) : (
-                  <span>{listing.user.username[0].toUpperCase()}</span>
+                  <span className={styles.sellerNoRating}>No ratings yet</span>
                 )}
               </div>
-              <div>
-                <a href={`/profile/${listing.user.username}`} className={styles.sellerNameLink}>{listing.user.username}</a>
-                <div className={styles.sellerRating}>
-                  {listing.user.sellerRating !== null ? (
-                    <>{renderStars(listing.user.sellerRating)} ({listing.user.sellerReviewCount})</>
-                  ) : (
-                    <span className={styles.sellerNoRating}>No ratings yet</span>
-                  )}
-                </div>
-              </div>
             </div>
+          </div>
 
-            {/* Contact form */}
-            {user && !isOwner && !isSold && (
-              <form className={styles.contactForm} onSubmit={handleContactSeller}>
-                <textarea
-                  className={styles.contactTextarea}
-                  placeholder="Send a message to the seller…"
-                  value={contactMessage}
-                  onChange={e => setContactMessage(e.target.value)}
-                  rows={3}
-                  maxLength={2000}
-                />
-                <button type="submit" className={styles.contactBtn} disabled={!contactMessage.trim() || contactSending}>
-                  {contactSending ? 'Sending…' : 'Send Message'}
-                </button>
-              </form>
-            )}
-
-            {/* Message Seller button */}
-            {user && !isOwner && (
+          {/* Action buttons — prominent */}
+          {user && !isOwner && !isSold && (
+            <div className={styles.actionButtons}>
               <button
-                className={styles.messageSellerBtn}
+                className={styles.messageSellerBtnPrimary}
                 onClick={() => {
                   const ids = [user.userId, listing.user.id].sort();
                   const convId = `${ids[0]}_${ids[1]}_${listing.id}`;
                   navigate(`/marketplace/messages/${convId}`);
                 }}
               >
-                ✉ Message Seller
+                Message Seller
               </button>
-            )}
-          </div>
-
-          {/* Make offer (non-owner, not sold) */}
-          {user && !isOwner && !isSold && listing.type === 'SELLING' && (
-            <div className={styles.offerSection}>
-              {!showOfferForm ? (
-                <button className={styles.makeOfferBtn} onClick={() => setShowOfferForm(true)}>
-                  💰 Make an Offer
+              {listing.type === 'SELLING' && (
+                <button
+                  className={styles.makeOfferBtnPrimary}
+                  onClick={() => setShowOfferForm(true)}
+                >
+                  Make an Offer
                 </button>
-              ) : (
-                <form className={styles.offerForm} onSubmit={handleOfferSubmit}>
-                  <h4 className={styles.offerFormTitle}>Make an Offer</h4>
-                  <div className={styles.priceRow}>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className={styles.fieldInput}
-                      placeholder="Your offer"
-                      value={offerAmount}
-                      onChange={e => setOfferAmount(e.target.value)}
-                      required
-                    />
-                    <span className={styles.offerCurrency}>{CURRENCY_SYMBOLS[listing.currency] ?? listing.currency}</span>
-                  </div>
-                  <textarea
-                    className={styles.contactTextarea}
-                    placeholder="Optional message…"
-                    value={offerMessage}
-                    onChange={e => setOfferMessage(e.target.value)}
-                    rows={2}
-                  />
-                  <div className={styles.offerFormActions}>
-                    <button type="button" className={styles.cancelBtn} onClick={() => setShowOfferForm(false)}>Cancel</button>
-                    <button type="submit" className={styles.submitBtn} disabled={offerSubmitting}>
-                      {offerSubmitting ? 'Sending…' : 'Send Offer'}
-                    </button>
-                  </div>
-                </form>
               )}
             </div>
           )}
 
-          {/* Offers list (owner view) */}
-          {isOwner && offers.length > 0 && (
-            <div className={styles.offersSection}>
-              <h3 className={styles.detailSectionTitle}>Offers ({offers.length})</h3>
+          {/* Inline offer form */}
+          {showOfferForm && user && !isOwner && !isSold && (
+            <form className={styles.offerFormInline} onSubmit={handleOfferSubmit}>
+              <div className={styles.offerInputRow}>
+                <span className={styles.offerCurrencyLabel}>{CURRENCY_SYMBOLS[listing.currency] ?? listing.currency}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className={styles.offerInput}
+                  placeholder="Your offer"
+                  value={offerAmount}
+                  onChange={e => setOfferAmount(e.target.value)}
+                  required
+                />
+              </div>
+              <textarea
+                className={styles.offerMessageInput}
+                placeholder="Optional message…"
+                value={offerMessage}
+                onChange={e => setOfferMessage(e.target.value)}
+                rows={2}
+              />
+              <div className={styles.offerFormBtns}>
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowOfferForm(false)}>Cancel</button>
+                <button type="submit" className={styles.submitOfferBtn} disabled={offerSubmitting}>
+                  {offerSubmitting ? 'Sending…' : 'Submit Offer'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Shipping */}
+          <div className={styles.shippingSection}>
+            {listing.shippingOptions?.includes('LOCAL_PICKUP') && <span className={styles.shippingPill}>Local Pickup</span>}
+            {listing.shippingOptions?.includes('NATIONAL_SHIPPING') && <span className={styles.shippingPill}>National Shipping</span>}
+            {listing.shippingOptions?.includes('INTERNATIONAL_SHIPPING') && <span className={styles.shippingPill}>International</span>}
+          </div>
+
+          {/* Owner controls */}
+          {isOwner && (
+            <div className={styles.ownerControlsCompact}>
+              {!isSold && (
+                <>
+                  <button className={styles.statusBtn} onClick={() => handleStatusUpdate('SOLD')} disabled={statusUpdating}>Mark as Sold</button>
+                  <button className={styles.extendBtn} onClick={async () => {
+                    try { await api(`/marketplace/${listing.id}/extend`, { method: 'POST' }); showToast('Listing extended!', 'success'); } catch { showToast('Failed to extend listing', 'error'); }
+                  }}>Extend</button>
+                </>
+              )}
+              {isSold && (
+                <button className={styles.statusBtn} onClick={() => handleStatusUpdate('ACTIVE')} disabled={statusUpdating}>Reactivate</button>
+              )}
+              <button className={styles.deleteBtnSmall} onClick={handleDelete}>Delete</button>
+            </div>
+          )}
+
+          {/* Report */}
+          {user && !isOwner && (
+            <button className={styles.reportLink} onClick={() => setShowReport(true)}>
+              Report this listing
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* BOTTOM SECTION — Full width content */}
+      <div className={styles.detailBottom}>
+        {/* Description */}
+        <div className={styles.descriptionSection}>
+          <h3 className={styles.sectionTitle}>Description</h3>
+          <div className={styles.markdownContent}>
+            <Markdown>{listing.description ?? ''}</Markdown>
+          </div>
+        </div>
+
+        {/* Build link */}
+        {(() => {
+          const match = listing.description?.match(/\/list\/[a-zA-Z0-9]+/);
+          return match ? (
+            <div className={styles.buildLinkSection}>
+              <h3 className={styles.sectionTitle}>Linked Build</h3>
+              <EmbedBuildCard permalink={match[0]} />
+            </div>
+          ) : null;
+        })()}
+
+        {/* Offers/Bids — visible to all */}
+        {offers.length > 0 && (
+          <div className={styles.bidsSection}>
+            <h3 className={styles.sectionTitle}>
+              Offers ({offers.filter(o => o.status === 'PENDING').length} pending)
+            </h3>
+            <div className={styles.bidsList}>
               {offers.map(offer => (
-                <div key={offer.id} className={styles.offerCard}>
-                  <div className={styles.offerCardHeader}>
-                    <a href={`/profile/${offer.user.username}`} className={styles.sellerNameLink}>{offer.user.username}</a>
-                    <span className={styles.offerAmount}>{formatPrice(offer.amount, offer.currency)}</span>
-                    <span className={`${styles.offerStatus} ${styles[`offerStatus${offer.status}`]}`}>{offer.status}</span>
-                  </div>
-                  {offer.message && <p className={styles.offerMessage}>{offer.message}</p>}
-                  <span className={styles.offerTime}>{relativeTime(offer.createdAt)}</span>
-                  {offer.status === 'PENDING' && (
-                    <div className={styles.offerActions}>
+                <div key={offer.id} className={styles.bidCard}>
+                  <a href={`/profile/${offer.user.username}`} className={styles.bidUser}>{offer.user.username}</a>
+                  <span className={styles.bidAmount}>{formatPrice(offer.amount, offer.currency)}</span>
+                  <span className={`${styles.bidStatus} ${offer.status === 'PENDING' ? styles.bidStatusPending : offer.status === 'ACCEPTED' ? styles.bidStatusAccepted : styles.bidStatusRejected}`}>
+                    {offer.status}
+                  </span>
+                  <span className={styles.bidTime}>{relativeTime(offer.createdAt)}</span>
+                  {isOwner && offer.status === 'PENDING' && (
+                    <div className={styles.bidActions}>
                       <button className={styles.acceptBtn} onClick={() => handleOfferAction(offer.id, 'accept')}>Accept</button>
                       <button className={styles.rejectBtn} onClick={() => handleOfferAction(offer.id, 'reject')}>Reject</button>
                     </div>
@@ -1786,74 +1789,28 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                 </div>
               ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Owner controls */}
-          {isOwner && (
-            <div className={styles.ownerControls}>
-              <h3 className={styles.detailSectionTitle}>Manage Listing</h3>
-              <div className={styles.ownerActions}>
-                {!isSold && (
-                  <>
-                    <button
-                      className={styles.statusBtn}
-                      onClick={() => handleStatusUpdate('SOLD')}
-                      disabled={statusUpdating}
-                    >Mark as Sold</button>
-                    <button
-                      className={styles.bumpBtn}
-                      onClick={async () => {
-                        try {
-                          await api(`/marketplace/${listing.id}/extend`, { method: 'POST' });
-                          showToast('Listing extended by 31 days!', 'success');
-                        } catch {
-                          showToast('Failed to extend listing', 'error');
-                        }
-                      }}
-                    >⏳ Extend</button>
-                  </>
-                )}
-                {isSold && (
-                  <button
-                    className={styles.statusBtn}
-                    onClick={() => handleStatusUpdate('ACTIVE')}
-                    disabled={statusUpdating}
-                  >Reactivate</button>
-                )}
-                <button className={styles.deleteBtn} onClick={handleDelete}>Delete</button>
-              </div>
-            </div>
-          )}
-
-          {/* Reviews */}
-          {reviews.length > 0 && (
-            <div className={styles.reviewsSection}>
-              <h3 className={styles.detailSectionTitle}>Reviews ({reviews.length})</h3>
-              {reviews.map(review => (
-                <div key={review.id} className={styles.reviewCard}>
-                  <div className={styles.reviewHeader}>
-                    <a href={`/profile/${review.reviewer.username}`} className={styles.sellerNameLink}>{review.reviewer.username}</a>
-                    <span className={styles.reviewStars}>{renderStars(review.rating)}</span>
-                    <span className={styles.reviewTime}>{relativeTime(review.createdAt)}</span>
-                  </div>
-                  {review.body && <p className={styles.reviewComment}>{review.body}</p>}
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <div className={styles.reviewsSection}>
+            <h3 className={styles.sectionTitle}>Reviews ({reviews.length})</h3>
+            {reviews.map(review => (
+              <div key={review.id} className={styles.reviewCard}>
+                <div className={styles.reviewHeader}>
+                  <a href={`/profile/${review.reviewer.username}`} className={styles.sellerNameLink}>{review.reviewer.username}</a>
+                  <span className={styles.reviewStars}>{renderStars(review.rating)}</span>
+                  <span className={styles.reviewTime}>{relativeTime(review.createdAt)}</span>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Report */}
-          {user && !isOwner && (
-            <div className={styles.reportSection}>
-              <button className={styles.reportBtn} onClick={() => setShowReport(true)}>
-                ⚑ Report this listing
-              </button>
-            </div>
-          )}
-        </div>
+                {review.body && <p className={styles.reviewComment}>{review.body}</p>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Seller's other listings */}
+      {/* RELATED SECTIONS — Full width */}
       {sellerListings.length > 0 && (
         <div className={styles.relatedSection}>
           <h3 className={styles.relatedTitle}>
@@ -1881,7 +1838,6 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
         </div>
       )}
 
-      {/* Similar listings */}
       {similarListings.length > 0 && (
         <div className={styles.relatedSection}>
           <h3 className={styles.relatedTitle}>Similar listings</h3>
@@ -1937,7 +1893,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Details (optional)</label>
                 <textarea
-                  className={styles.contactTextarea}
+                  className={styles.offerMessageInput}
                   placeholder="Provide additional context…"
                   value={reportDetails}
                   onChange={e => setReportDetails(e.target.value)}

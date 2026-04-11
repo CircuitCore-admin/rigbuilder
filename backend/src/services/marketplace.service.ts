@@ -208,8 +208,8 @@ export class MarketplaceService {
     return MarketplaceRepository.findSellerOtherListings(sellerId, excludeListingId);
   }
 
-  static async getSimilarListings(category: string, excludeListingId: string) {
-    return MarketplaceRepository.findSimilarListings(category, excludeListingId);
+  static async getSimilarListings(category: string, excludeListingId: string, excludeSellerId: string) {
+    return MarketplaceRepository.findSimilarListings(category, excludeListingId, excludeSellerId);
   }
 
   // -------------------------------------------------------------------------

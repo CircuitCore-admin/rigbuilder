@@ -384,7 +384,7 @@ export class MarketplaceController {
 
       const [sellerListings, similarListings] = await Promise.all([
         MarketplaceService.getSellerOtherListings(listing.userId, listing.id),
-        MarketplaceService.getSimilarListings(listing.category, listing.id),
+        MarketplaceService.getSimilarListings(listing.category, listing.id, listing.userId),
       ]);
 
       res.json({ sellerListings, similarListings });
