@@ -49,7 +49,6 @@ export function App() {
 
         {/* Marketplace */}
         <Route path="/marketplace" element={<MarketplacePage />} />
-        <Route path="/marketplace/new" element={<MarketplacePage />} />
         <Route path="/marketplace/messages" element={<MarketplaceMessages />} />
         <Route path="/marketplace/messages/:conversationId" element={<MarketplaceMessages />} />
         <Route path="/marketplace/:id" element={<MarketplacePage />} />

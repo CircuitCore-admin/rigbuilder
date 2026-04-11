@@ -1,5 +1,5 @@
 // ============================================================================
-// Marketplace — Engineering Console Aesthetic
+// Marketplace — Clean Modern Aesthetic
 // ============================================================================
 
 $bp-mobile: 768px;
@@ -10,19 +10,20 @@ $bp-desktop: 1280px;
 
 .dashboard {
   display: grid;
-  grid-template-columns: 260px 1fr 300px;
+  grid-template-columns: 280px 1fr 300px;
   gap: 0;
-  max-width: 1800px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   min-height: calc(100vh - 64px);
+  padding: 0 24px;
 }
 
 // ---------- Left sidebar (filters) ----------
 
 .sidebar {
-  background: var(--bg-primary);
-  border-right: 1px solid var(--border-default);
-  padding: 24px 20px 24px 32px;
+  background: none;
+  border-right: 1px solid var(--border-subtle);
+  padding: 24px 24px 24px 0;
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
@@ -33,13 +34,12 @@ $bp-desktop: 1280px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .sidebarTitle {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -48,9 +48,9 @@ $bp-desktop: 1280px;
 // ---------- Filter sections ----------
 
 .filterSection {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
+  padding-bottom: 0;
+  border-bottom: none;
 
   &:last-of-type {
     border-bottom: none;
@@ -58,12 +58,12 @@ $bp-desktop: 1280px;
 }
 
 .filterTitle {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -74,16 +74,16 @@ $bp-desktop: 1280px;
   width: 100%;
   background: none;
   border: none;
-  padding: 0;
-  margin-bottom: 10px;
+  padding: 10px 0;
   cursor: pointer;
   color: inherit;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
 }
 
 .filterToggle {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-muted);
-  transition: transform 150ms ease;
 }
 
 .filterBody {
@@ -105,23 +105,24 @@ $bp-desktop: 1280px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  padding: 4px 0;
 }
 
 .filterChip {
-  padding: 5px 12px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 6px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-surface);
+  background: none;
   border: 1px solid var(--border-default);
-  border-radius: 16px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 150ms ease;
   white-space: nowrap;
 
   &:hover {
-    border-color: var(--border-strong);
+    border-color: var(--text-secondary);
     color: var(--text-primary);
   }
 }
@@ -141,12 +142,12 @@ $bp-desktop: 1280px;
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  color: var(--text-secondary);
+  gap: 10px;
+  padding: 6px 0;
   cursor: pointer;
-  padding: 4px 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
   transition: color 150ms ease;
 
   &:hover {
@@ -155,11 +156,11 @@ $bp-desktop: 1280px;
 
   input[type="checkbox"] {
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border: 1.5px solid var(--border-strong);
-    border-radius: 3px;
-    background: var(--bg-elevated);
+    border-radius: 4px;
+    background: transparent;
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
@@ -177,7 +178,7 @@ $bp-desktop: 1280px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 12px;
       color: var(--bg-void);
       font-weight: 700;
     }
@@ -198,13 +199,13 @@ $bp-desktop: 1280px;
 
 .priceInput {
   flex: 1;
-  padding: 8px 10px;
+  padding: 8px 12px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-body);
-  background: var(--bg-elevated);
+  background: transparent;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   outline: none;
   width: 100%;
   box-sizing: border-box;
@@ -215,19 +216,19 @@ $bp-desktop: 1280px;
 
 .priceSep {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
 .currencySelect {
   margin-top: 8px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-body);
-  background: var(--bg-elevated);
+  background: transparent;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   outline: none;
   cursor: pointer;
   width: 100%;
@@ -237,15 +238,16 @@ $bp-desktop: 1280px;
 
 .filterInput {
   width: 100%;
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-body);
-  background: var(--bg-elevated);
+  background: transparent;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   outline: none;
   box-sizing: border-box;
+  margin-top: 4px;
 
   &::placeholder { color: var(--text-muted); }
   &:focus { border-color: var(--accent-primary); }
@@ -254,19 +256,20 @@ $bp-desktop: 1280px;
 .clearFiltersBtn {
   width: 100%;
   padding: 8px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-error);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
   background: none;
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-fast);
-  margin-top: 8px;
+  transition: all 150ms ease;
+  margin-top: 12px;
 
   &:hover {
-    background: rgba(255, 68, 85, 0.08);
+    color: var(--text-secondary);
+    border-color: var(--border-strong);
   }
 }
 
@@ -278,17 +281,17 @@ $bp-desktop: 1280px;
 
 .mobileFilterBtn {
   padding: 8px 16px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-secondary);
-  background: var(--bg-surface);
+  background: none;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
 
   &:hover {
-    border-color: var(--border-strong);
+    border-color: var(--text-secondary);
   }
 }
 
@@ -361,7 +364,7 @@ $bp-desktop: 1280px;
 
 .feed {
   min-width: 0;
-  padding: 24px 48px;
+  padding: 24px 40px;
 }
 
 .loadingState {
@@ -441,16 +444,15 @@ $bp-desktop: 1280px;
   align-items: center;
   gap: 10px;
   margin-bottom: 16px;
-  background: var(--bg-surface);
+  background: transparent;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   padding: 0 16px;
   height: 48px;
-  transition: border-color 200ms ease, box-shadow 200ms ease;
+  transition: border-color 200ms ease;
 
   &:focus-within {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px var(--accent-primary-subtle);
   }
 }
 
@@ -502,19 +504,19 @@ $bp-desktop: 1280px;
 }
 
 .sortPill {
-  padding: 6px 16px;
+  padding: 7px 18px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
-  background: var(--bg-surface);
+  background: none;
   border: 1px solid var(--border-default);
   border-radius: 20px;
   cursor: pointer;
   transition: all 150ms ease;
 
   &:hover {
-    border-color: var(--border-strong);
+    border-color: var(--text-secondary);
     color: var(--text-secondary);
   }
 }
@@ -535,9 +537,9 @@ $bp-desktop: 1280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: var(--bg-surface);
+  width: 38px;
+  height: 38px;
+  background: none;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
@@ -546,7 +548,7 @@ $bp-desktop: 1280px;
   transition: all 150ms ease;
 
   &:hover {
-    border-color: var(--border-strong);
+    border-color: var(--text-secondary);
     color: var(--text-secondary);
   }
 }
@@ -628,7 +630,7 @@ $bp-desktop: 1280px;
 }
 
 .typeBadge {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -647,7 +649,7 @@ $bp-desktop: 1280px;
   position: absolute;
   top: 8px;
   right: 8px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   color: #FFB020;
@@ -687,7 +689,7 @@ $bp-desktop: 1280px;
 }
 
 .premiumComingSoon {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   padding: 2px 8px;
@@ -714,7 +716,7 @@ $bp-desktop: 1280px;
   position: absolute;
   bottom: 8px;
   right: 8px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: #fff;
@@ -773,7 +775,7 @@ $bp-desktop: 1280px;
 }
 
 .categoryTag {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -794,7 +796,7 @@ $bp-desktop: 1280px;
 }
 
 .soldTag {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -961,7 +963,7 @@ $bp-desktop: 1280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
   background: var(--bg-surface);
@@ -978,7 +980,7 @@ $bp-desktop: 1280px;
 }
 
 .pageEllipsis {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
   padding: 0 4px;
@@ -989,8 +991,8 @@ $bp-desktop: 1280px;
 // ============================================================================
 
 .rightSidebar {
-  border-left: 1px solid var(--border-default);
-  padding: 24px 32px 24px 24px;
+  border-left: 1px solid var(--border-subtle);
+  padding: 24px 0 24px 24px;
   position: sticky;
   top: 64px;
   height: calc(100vh - 64px);
@@ -1009,48 +1011,52 @@ $bp-desktop: 1280px;
   font-weight: 600;
   color: var(--bg-void);
   background: var(--accent-primary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   text-decoration: none;
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition: opacity 200ms ease;
 
   &:hover {
     opacity: 0.9;
-    transform: translateY(-1px);
     color: var(--bg-void);
   }
 }
 
 .messagesBtn {
-  display: block;
-  text-align: center;
-  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  background: var(--bg-surface);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   text-decoration: none;
-  transition: border-color var(--transition-fast);
+  transition: all 150ms ease;
 
-  &:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+  &:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+  }
 }
 
 .sidebarCard {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   padding: 20px;
 }
 
 .sidebarCardTitle {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-primary);
   margin: 0 0 12px;
 }
 
@@ -1065,9 +1071,9 @@ $bp-desktop: 1280px;
 
 .safetyItem {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-body);
-  line-height: 1.4;
+  line-height: 1.5;
   padding-left: 18px;
   position: relative;
 
@@ -1090,9 +1096,9 @@ $bp-desktop: 1280px;
 
 .ruleItem {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-body);
-  line-height: 1.4;
+  line-height: 1.5;
   padding-left: 16px;
   position: relative;
 
@@ -1101,7 +1107,7 @@ $bp-desktop: 1280px;
     counter-increment: rule-counter;
     position: absolute;
     left: 0;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 10px;
     font-weight: 600;
     color: var(--text-muted);
@@ -1112,21 +1118,21 @@ $bp-desktop: 1280px;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border-subtle);
   &:last-child { border-bottom: none; }
 }
 
 .statValue {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
-  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 .statLabel {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -1137,13 +1143,13 @@ $bp-desktop: 1280px;
 }
 
 .popularCategoryBtn {
-  padding: 4px 12px;
+  padding: 5px 14px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
-  color: var(--text-secondary);
-  background: var(--bg-elevated);
+  font-size: 13px;
+  color: var(--text-body);
+  background: none;
   border: 1px solid var(--border-default);
-  border-radius: 16px;
+  border-radius: 20px;
   cursor: pointer;
   transition: all 150ms ease;
 
@@ -1158,9 +1164,9 @@ $bp-desktop: 1280px;
 // ============================================================================
 
 .formContainer {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 40px 32px;
+  padding: 40px 24px;
 }
 
 .formHeader {
@@ -1282,11 +1288,11 @@ $bp-desktop: 1280px;
 }
 
 .fieldLabel {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  letter-spacing: normal;
   color: var(--text-secondary);
 }
 
@@ -1342,7 +1348,7 @@ $bp-desktop: 1280px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
-  background: var(--bg-elevated);
+  background: transparent;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   outline: none;
@@ -1432,7 +1438,7 @@ $bp-desktop: 1280px;
 .addBtn {
   align-self: flex-start;
   padding: 4px 12px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--accent-primary);
   background: none;
@@ -1453,7 +1459,7 @@ $bp-desktop: 1280px;
 }
 
 .uploadError {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--color-error);
   padding: 4px 10px;
@@ -1554,8 +1560,8 @@ $bp-desktop: 1280px;
 }
 
 .termsSummary {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
   color: var(--accent-primary);
   cursor: pointer;
 
@@ -1652,7 +1658,7 @@ $bp-desktop: 1280px;
 
 .draftRestore {
   padding: 4px 12px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--bg-void);
@@ -1666,7 +1672,7 @@ $bp-desktop: 1280px;
 
 .draftDiscard {
   padding: 4px 12px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-secondary);
   background: none;
@@ -1810,7 +1816,7 @@ $bp-desktop: 1280px;
 }
 
 .detailPrice {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--accent-primary);
@@ -1846,11 +1852,11 @@ $bp-desktop: 1280px;
 }
 
 .detailSectionTitle {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  text-transform: none;
+  letter-spacing: normal;
   color: var(--text-secondary);
   margin: 0 0 12px;
 }
@@ -2055,7 +2061,7 @@ $bp-desktop: 1280px;
 }
 
 .offerCurrency {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -2095,14 +2101,14 @@ $bp-desktop: 1280px;
 }
 
 .offerAmount {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--accent-primary);
 }
 
 .offerStatus {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -2133,7 +2139,7 @@ $bp-desktop: 1280px;
 }
 
 .offerTime {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -2146,7 +2152,7 @@ $bp-desktop: 1280px;
 
 .acceptBtn {
   padding: 5px 14px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: var(--bg-void);
@@ -2160,7 +2166,7 @@ $bp-desktop: 1280px;
 
 .rejectBtn {
   padding: 5px 14px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: var(--color-error);
@@ -2264,7 +2270,7 @@ $bp-desktop: 1280px;
 }
 
 .reviewTime {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   margin-left: auto;
@@ -2492,7 +2498,7 @@ $bp-desktop: 1280px;
 }
 
 .convoTime {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   color: var(--text-muted);
   flex-shrink: 0;
@@ -2520,7 +2526,7 @@ $bp-desktop: 1280px;
 .unreadBadge {
   background: var(--accent-primary);
   color: var(--bg-void);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 700;
   min-width: 18px;
@@ -2599,7 +2605,7 @@ $bp-desktop: 1280px;
 }
 
 .messageTime {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   opacity: 0.6;
   margin-top: 4px;
@@ -2694,6 +2700,7 @@ $bp-desktop: 1280px;
 @media (max-width: $bp-tablet) {
   .dashboard {
     grid-template-columns: 260px 1fr;
+    padding: 0 16px;
   }
 
   .rightSidebar {
@@ -2701,7 +2708,7 @@ $bp-desktop: 1280px;
   }
 
   .sidebar {
-    padding: 24px 16px 24px 20px;
+    padding: 24px 16px 24px 0;
   }
 
   .mobileTopBar {
@@ -2748,7 +2755,7 @@ $bp-desktop: 1280px;
 @media (max-width: $bp-mobile) {
   .dashboard {
     grid-template-columns: 1fr;
-    margin: 0;
+    padding: 0 12px;
   }
 
   .sidebar {
