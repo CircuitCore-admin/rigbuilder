@@ -80,24 +80,6 @@ interface Review {
   reviewer: { id: string; username: string; avatarUrl: string | null };
 }
 
-interface Conversation {
-  id: string;
-  listingId: string;
-  listingTitle: string;
-  listingImageUrl: string | null;
-  otherUser: { id: string; username: string; avatarUrl: string | null };
-  lastMessage: string | null;
-  lastMessageAt: string | null;
-  unreadCount: number;
-}
-
-interface Message {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  body: string;
-  createdAt: string;
-}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -139,15 +121,8 @@ const CACHE_TTL = 30_000;
 
 export function MarketplacePage() {
   const { id } = useParams<{ id: string }>();
-  const { conversationId } = useParams<{ conversationId: string }>();
-  const location = useLocation();
 
-  // /marketplace/messages/:conversationId
-  if (location.pathname.startsWith('/marketplace/messages')) {
-    return <MarketplaceMessages conversationId={conversationId} />;
-  }
   if (id === 'new') return <CreateListingPage />;
-  if (id === 'messages') return <MarketplaceMessages />;
   if (id) return <ListingDetailPage listingId={id} />;
   return <MarketplaceDashboard />;
 }
@@ -1691,6 +1666,20 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                 </button>
               </form>
             )}
+
+            {/* Message Seller button */}
+            {user && !isOwner && (
+              <button
+                className={styles.messageSellerBtn}
+                onClick={() => {
+                  const ids = [user.userId, listing.user.id].sort();
+                  const convId = `${ids[0]}_${ids[1]}_${listing.id}`;
+                  navigate(`/marketplace/messages/${convId}`);
+                }}
+              >
+                ✉ Message Seller
+              </button>
+            )}
           </div>
 
           {/* Make offer (non-owner, not sold) */}
@@ -1874,204 +1863,3 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Messages
-// ---------------------------------------------------------------------------
-
-function MarketplaceMessages({ conversationId }: { conversationId?: string }) {
-  const { user } = useAuth();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loadingConvos, setLoadingConvos] = useState(true);
-
-  const [activeConvo, setActiveConvo] = useState<string | null>(conversationId ?? null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loadingMessages, setLoadingMessages] = useState(false);
-
-  const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
-
-  // Fetch conversations
-  useEffect(() => {
-    if (!user) return;
-    setLoadingConvos(true);
-    api<{ items: Conversation[] }>('/marketplace/conversations')
-      .then(d => setConversations(d.items))
-      .catch(() => {})
-      .finally(() => setLoadingConvos(false));
-  }, [user]);
-
-  // Fetch messages for active conversation
-  useEffect(() => {
-    if (!activeConvo) { setMessages([]); return; }
-    setLoadingMessages(true);
-    api<{ items: Message[] }>(`/marketplace/conversations/${activeConvo}/messages`)
-      .then(d => {
-        setMessages(d.items);
-        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-      })
-      .catch(() => {})
-      .finally(() => setLoadingMessages(false));
-  }, [activeConvo]);
-
-  // Poll for new messages every 10 seconds
-  useEffect(() => {
-    if (!activeConvo) return;
-    const interval = setInterval(() => {
-      api<{ items: Message[] }>(`/marketplace/conversations/${activeConvo}/messages`)
-        .then(d => {
-          setMessages(prev => {
-            if (d.items.length !== prev.length) {
-              setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-              return d.items;
-            }
-            return prev;
-          });
-        })
-        .catch(() => {});
-    }, 10_000);
-    return () => clearInterval(interval);
-  }, [activeConvo]);
-
-  // Also poll conversations for unread counts
-  useEffect(() => {
-    if (!user) return;
-    const interval = setInterval(() => {
-      api<{ items: Conversation[] }>('/marketplace/conversations')
-        .then(d => setConversations(d.items))
-        .catch(() => {});
-    }, 30_000);
-    return () => clearInterval(interval);
-  }, [user]);
-
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !activeConvo || sending) return;
-    setSending(true);
-    try {
-      const msg = await api<Message>(`/marketplace/conversations/${activeConvo}/messages`, {
-        method: 'POST',
-        body: { body: newMessage.trim() },
-      });
-      setMessages(prev => [...prev, msg]);
-      setNewMessage('');
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-    } catch {
-      showToast('Failed to send message', 'error');
-    } finally {
-      setSending(false);
-    }
-  };
-
-  if (!user) {
-    return (
-      <div className={styles.formContainer}>
-        <div className={styles.loginRequired}>
-          <h2 className={styles.formTitle}>Messages</h2>
-          <p className={styles.loginMessage}>You must be logged in to view messages.</p>
-          <a href="/login" className={styles.loginLink}>Log In</a>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.messagesContainer}>
-      <header className={styles.messagesHeader}>
-        <a href="/marketplace" className={styles.backLink}>← Marketplace</a>
-        <h1 className={styles.messagesTitle}>Messages</h1>
-      </header>
-
-      <div className={styles.messagesLayout}>
-        {/* Conversation list */}
-        <aside className={styles.convoList}>
-          {loadingConvos ? (
-            <div className={styles.loadingState}>Loading…</div>
-          ) : conversations.length === 0 ? (
-            <div className={styles.emptyConvos}>No conversations yet</div>
-          ) : (
-            conversations.map(convo => (
-              <button
-                key={convo.id}
-                className={`${styles.convoItem} ${activeConvo === convo.id ? styles.convoItemActive : ''}`}
-                onClick={() => {
-                  setActiveConvo(convo.id);
-                  navigate(`/marketplace/messages/${convo.id}`, { replace: true });
-                }}
-              >
-                <div className={styles.convoAvatar}>
-                  {convo.otherUser.avatarUrl ? (
-                    <img src={resolveImageUrl(convo.otherUser.avatarUrl)} alt="" />
-                  ) : (
-                    <span>{convo.otherUser.username[0].toUpperCase()}</span>
-                  )}
-                </div>
-                <div className={styles.convoDetails}>
-                  <div className={styles.convoTopLine}>
-                    <span className={styles.convoUsername}>{convo.otherUser.username}</span>
-                    {convo.lastMessageAt && (
-                      <span className={styles.convoTime}>{relativeTime(convo.lastMessageAt)}</span>
-                    )}
-                  </div>
-                  <div className={styles.convoListing}>{convo.listingTitle}</div>
-                  {convo.lastMessage && (
-                    <div className={styles.convoPreview}>
-                      {convo.lastMessage.length > 60 ? convo.lastMessage.slice(0, 60) + '…' : convo.lastMessage}
-                    </div>
-                  )}
-                </div>
-                {convo.unreadCount > 0 && (
-                  <span className={styles.unreadBadge}>{convo.unreadCount}</span>
-                )}
-              </button>
-            ))
-          )}
-        </aside>
-
-        {/* Message view */}
-        <div className={styles.messageView}>
-          {!activeConvo ? (
-            <div className={styles.noConvoSelected}>
-              <span>✉</span>
-              <p>Select a conversation to view messages</p>
-            </div>
-          ) : loadingMessages ? (
-            <div className={styles.loadingState}>Loading messages…</div>
-          ) : (
-            <>
-              <div className={styles.messagesList}>
-                {messages.map(msg => {
-                  const isMine = msg.senderId === user.userId;
-                  return (
-                    <div key={msg.id} className={`${styles.messageBubble} ${isMine ? styles.messageMine : styles.messageTheirs}`}>
-                      <div className={styles.messageBody}>{msg.body}</div>
-                      <div className={styles.messageTime}>{relativeTime(msg.createdAt)}</div>
-                    </div>
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <form className={styles.messageInputForm} onSubmit={handleSend}>
-                <input
-                  type="text"
-                  className={styles.messageInput}
-                  placeholder="Type a message…"
-                  value={newMessage}
-                  onChange={e => setNewMessage(e.target.value)}
-                  maxLength={2000}
-                />
-                <button type="submit" className={styles.sendBtn} disabled={!newMessage.trim() || sending}>
-                  {sending ? '…' : '➤'}
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}

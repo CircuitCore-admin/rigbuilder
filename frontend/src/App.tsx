@@ -9,6 +9,7 @@ import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { MarketplacePage } from './pages/Marketplace/MarketplacePage';
+import { MarketplaceMessages } from './pages/Marketplace/MarketplaceMessages';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
@@ -48,8 +49,10 @@ export function App() {
 
         {/* Marketplace */}
         <Route path="/marketplace" element={<MarketplacePage />} />
+        <Route path="/marketplace/new" element={<MarketplacePage />} />
+        <Route path="/marketplace/messages" element={<MarketplaceMessages />} />
+        <Route path="/marketplace/messages/:conversationId" element={<MarketplaceMessages />} />
         <Route path="/marketplace/:id" element={<MarketplacePage />} />
-        <Route path="/marketplace/messages/:conversationId" element={<MarketplacePage />} />
 
         {/* Configurator (moved from / to /build) */}
         <Route path="/build" element={<RigBuilderPage />} />
