@@ -45,6 +45,7 @@ router.put('/reports/:reportId', authenticate, writeLimiter, validate(reviewRepo
 router.get('/users/:userId/reviews', searchLimiter, MarketplaceController.getSellerReviews);
 
 // Single listing routes
+router.get('/:id/related', searchLimiter, MarketplaceController.getRelatedListings);
 router.get('/:id', optionalAuth, searchLimiter, MarketplaceController.getListingById);
 router.post('/', authenticate, writeLimiter, validate(createListingSchema), MarketplaceController.createListing);
 router.put('/:id', authenticate, writeLimiter, validate(updateListingSchema), MarketplaceController.updateListing);

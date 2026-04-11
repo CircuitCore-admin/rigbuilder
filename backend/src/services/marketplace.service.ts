@@ -204,6 +204,14 @@ export class MarketplaceService {
     return MarketplaceRepository.findUserListings(userId);
   }
 
+  static async getSellerOtherListings(sellerId: string, excludeListingId: string) {
+    return MarketplaceRepository.findSellerOtherListings(sellerId, excludeListingId);
+  }
+
+  static async getSimilarListings(category: string, excludeListingId: string) {
+    return MarketplaceRepository.findSimilarListings(category, excludeListingId);
+  }
+
   // -------------------------------------------------------------------------
   // Offers
   // -------------------------------------------------------------------------

@@ -860,15 +860,19 @@ function CreateListingPage() {
   const uploadImage = async (file: File): Promise<string | null> => {
     const csrfToken = await ensureCsrfToken();
     const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/v1/uploads', {
+    form.append('image', file);
+    const baseUrl = import.meta.env.VITE_API_URL ?? '/api/v1';
+    const headers: Record<string, string> = {};
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+    const res = await fetch(`${baseUrl}/uploads`, {
       method: 'POST',
       credentials: 'include',
-      headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+      headers,
       body: form,
     });
-    if (!res.ok) return null;
-    const data = await res.json();
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json() as { url: string };
     return data.url;
   };
 
@@ -876,22 +880,25 @@ function CreateListingPage() {
     const fileArr = Array.from(files);
     if (fileArr.length === 0) return;
 
-    for (const file of fileArr) {
-      setUploadingCount(c => c + 1);
-      try {
+    setUploadingCount(prev => prev + fileArr.length);
+
+    const results = await Promise.allSettled(
+      fileArr.map(async (file) => {
         const url = await uploadImage(file);
         if (url) {
           setImageUrls(prev => [...prev, url]);
           showToast('Image uploaded');
-        } else {
-          setUploadErrors(prev => [...prev, `Failed to upload ${file.name}`]);
         }
-      } catch {
-        setUploadErrors(prev => [...prev, `Failed to upload ${file.name}`]);
-      } finally {
-        setUploadingCount(c => c - 1);
-      }
+        return url;
+      })
+    );
+
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      setUploadErrors(prev => [...prev, `Failed to upload ${failures.length} image(s)`]);
     }
+
+    setUploadingCount(prev => prev - fileArr.length);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -1406,6 +1413,10 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   const [contactMessage, setContactMessage] = useState('');
   const [contactSending, setContactSending] = useState(false);
 
+  // Related listings
+  const [sellerListings, setSellerListings] = useState<ListingItem[]>([]);
+  const [similarListings, setSimilarListings] = useState<ListingItem[]>([]);
+
   useEffect(() => {
     setLoading(true);
     api<ListingItem>(`/marketplace/${listingId}`)
@@ -1424,6 +1435,17 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
     if (listing.user?.id) {
       api<Review[]>(`/marketplace/users/${listing.user.id}/reviews`).then(d => setReviews(d)).catch(() => {});
     }
+  }, [listing, listingId]);
+
+  // Fetch related listings
+  useEffect(() => {
+    if (!listing) return;
+    api<{ sellerListings: ListingItem[]; similarListings: ListingItem[] }>(`/marketplace/${listingId}/related`)
+      .then(data => {
+        setSellerListings(data.sellerListings);
+        setSimilarListings(data.similarListings);
+      })
+      .catch(() => {});
   }, [listing, listingId]);
 
   const isOwner = user && listing && user.userId === listing.user.id;
@@ -1551,6 +1573,25 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                   alt={listing.title}
                   className={styles.galleryMainImage}
                 />
+                {listing.imageUrls.length > 1 && (
+                  <>
+                    <button
+                      className={`${styles.galleryArrow} ${styles.galleryArrowLeft}`}
+                      onClick={() => setActiveImageIdx(i => i > 0 ? i - 1 : listing.imageUrls.length - 1)}
+                    >
+                      ‹
+                    </button>
+                    <button
+                      className={`${styles.galleryArrow} ${styles.galleryArrowRight}`}
+                      onClick={() => setActiveImageIdx(i => i < listing.imageUrls.length - 1 ? i + 1 : 0)}
+                    >
+                      ›
+                    </button>
+                    <span className={styles.galleryCounter}>
+                      {activeImageIdx + 1} / {listing.imageUrls.length}
+                    </span>
+                  </>
+                )}
                 {isSold && <div className={styles.gallerySoldOverlay}>SOLD</div>}
               </div>
               {listing.imageUrls.length > 1 && (
@@ -1561,7 +1602,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                       className={`${styles.galleryThumb} ${i === activeImageIdx ? styles.galleryThumbActive : ''}`}
                       onClick={() => setActiveImageIdx(i)}
                     >
-                      <img src={resolveImageUrl(url)} alt={`${listing.title} ${i + 1}`} />
+                      <img src={resolveImageUrl(url)} alt="" />
                     </button>
                   ))}
                 </div>
@@ -1639,7 +1680,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                 )}
               </div>
               <div>
-                <div className={styles.sellerName}>{listing.user.username}</div>
+                <a href={`/profile/${listing.user.username}`} className={styles.sellerNameLink}>{listing.user.username}</a>
                 <div className={styles.sellerRating}>
                   {listing.user.sellerRating !== null ? (
                     <>{renderStars(listing.user.sellerRating)} ({listing.user.sellerReviewCount})</>
@@ -1730,7 +1771,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               {offers.map(offer => (
                 <div key={offer.id} className={styles.offerCard}>
                   <div className={styles.offerCardHeader}>
-                    <span className={styles.offerUser}>{offer.user.username}</span>
+                    <a href={`/profile/${offer.user.username}`} className={styles.sellerNameLink}>{offer.user.username}</a>
                     <span className={styles.offerAmount}>{formatPrice(offer.amount, offer.currency)}</span>
                     <span className={`${styles.offerStatus} ${styles[`offerStatus${offer.status}`]}`}>{offer.status}</span>
                   </div>
@@ -1791,7 +1832,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               {reviews.map(review => (
                 <div key={review.id} className={styles.reviewCard}>
                   <div className={styles.reviewHeader}>
-                    <span className={styles.reviewUser}>{review.reviewer.username}</span>
+                    <a href={`/profile/${review.reviewer.username}`} className={styles.sellerNameLink}>{review.reviewer.username}</a>
                     <span className={styles.reviewStars}>{renderStars(review.rating)}</span>
                     <span className={styles.reviewTime}>{relativeTime(review.createdAt)}</span>
                   </div>
@@ -1811,6 +1852,61 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
           )}
         </div>
       </div>
+
+      {/* Seller's other listings */}
+      {sellerListings.length > 0 && (
+        <div className={styles.relatedSection}>
+          <h3 className={styles.relatedTitle}>
+            More from {listing.user.username}
+          </h3>
+          <div className={styles.relatedScroll}>
+            {sellerListings.map(item => (
+              <a key={item.id} href={`/marketplace/${item.id}`} className={styles.relatedCard}>
+                <div className={styles.relatedCardImage}>
+                  {item.imageUrls?.[0] ? (
+                    <img src={resolveImageUrl(item.imageUrls[0])} alt="" />
+                  ) : (
+                    <div className={styles.relatedCardNoImage}>No image</div>
+                  )}
+                </div>
+                <div className={styles.relatedCardBody}>
+                  <span className={styles.relatedCardTitle}>{item.title}</span>
+                  <span className={styles.relatedCardPrice}>
+                    {item.price != null ? formatPrice(item.price, item.currency) : 'Open to Offers'}
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Similar listings */}
+      {similarListings.length > 0 && (
+        <div className={styles.relatedSection}>
+          <h3 className={styles.relatedTitle}>Similar listings</h3>
+          <div className={styles.relatedScroll}>
+            {similarListings.map(item => (
+              <a key={item.id} href={`/marketplace/${item.id}`} className={styles.relatedCard}>
+                <div className={styles.relatedCardImage}>
+                  {item.imageUrls?.[0] ? (
+                    <img src={resolveImageUrl(item.imageUrls[0])} alt="" />
+                  ) : (
+                    <div className={styles.relatedCardNoImage}>No image</div>
+                  )}
+                </div>
+                <div className={styles.relatedCardBody}>
+                  <span className={styles.relatedCardTitle}>{item.title}</span>
+                  <span className={styles.relatedCardPrice}>
+                    {item.price != null ? formatPrice(item.price, item.currency) : 'Open to Offers'}
+                  </span>
+                  <span className={styles.relatedCardSeller}>{item.user?.username}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Report modal */}
       {showReport && (

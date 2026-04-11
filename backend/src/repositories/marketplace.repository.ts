@@ -180,6 +180,38 @@ export class MarketplaceRepository {
     });
   }
 
+  /** Get other active listings by the same seller, excluding the current listing */
+  static async findSellerOtherListings(sellerId: string, excludeListingId: string, limit = 6) {
+    return prisma.marketplaceListing.findMany({
+      where: {
+        userId: sellerId,
+        id: { not: excludeListingId },
+        status: 'ACTIVE',
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        user: { select: userSelect },
+      },
+    });
+  }
+
+  /** Get similar active listings in the same category, excluding the current listing */
+  static async findSimilarListings(category: string, excludeListingId: string, limit = 6) {
+    return prisma.marketplaceListing.findMany({
+      where: {
+        category,
+        id: { not: excludeListingId },
+        status: 'ACTIVE',
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        user: { select: userSelect },
+      },
+    });
+  }
+
   // -------------------------------------------------------------------------
   // Offers
   // -------------------------------------------------------------------------

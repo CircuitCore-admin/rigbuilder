@@ -807,7 +807,7 @@ function UserBadge({ user }: { user: ThreadUser }) {
   return (
     <span className={styles.userBadge}>
       {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} />}
-      <span className={styles.userName}>{user.username}</span>
+      <a href={`/profile/${user.username}`} className={styles.userName}>{user.username}</a>
       <VerifiedCreatorBadge role={user.role} />
     </span>
   );

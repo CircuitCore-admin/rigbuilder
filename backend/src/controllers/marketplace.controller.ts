@@ -375,4 +375,21 @@ export class MarketplaceController {
 
     res.json({ success: true });
   }
+
+  /** GET /api/v1/marketplace/:id/related */
+  static async getRelatedListings(req: Request, res: Response) {
+    try {
+      const listing = await MarketplaceService.getListingById(req.params.id);
+      if (!listing) return res.status(404).json({ error: 'Listing not found' });
+
+      const [sellerListings, similarListings] = await Promise.all([
+        MarketplaceService.getSellerOtherListings(listing.userId, listing.id),
+        MarketplaceService.getSimilarListings(listing.category, listing.id),
+      ]);
+
+      res.json({ sellerListings, similarListings });
+    } catch {
+      res.status(500).json({ error: 'Failed to fetch related listings' });
+    }
+  }
 }

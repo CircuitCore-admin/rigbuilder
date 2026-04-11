@@ -518,7 +518,7 @@
 
 .userAvatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 
-.userName { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.userName { font-size: 13px; font-weight: 600; color: var(--text-primary); text-decoration: none; &:hover { color: var(--accent-primary); } }
 
 .replyForm {
   margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-default);
