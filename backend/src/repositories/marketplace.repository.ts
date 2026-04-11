@@ -41,6 +41,16 @@ const userSelect = {
   sellerReviewCount: true,
 } as const;
 
+/** Listing fields included when returning message data. */
+const listingMessageSelect = {
+  id: true,
+  title: true,
+  price: true,
+  currency: true,
+  imageUrls: true,
+  status: true,
+} as const;
+
 /** Window in ms for detecting recently-expired items (to avoid re-notification). */
 const RECENT_EXPIRY_WINDOW_MS = 60_000;
 
@@ -299,7 +309,7 @@ export class MarketplaceRepository {
       include: {
         sender: { select: userSelect },
         recipient: { select: userSelect },
-        listing: { select: { id: true, title: true, status: true, price: true, currency: true, imageUrls: true } },
+        listing: { select: listingMessageSelect },
       },
     });
 
@@ -334,7 +344,7 @@ export class MarketplaceRepository {
       include: {
         sender: { select: userSelect },
         recipient: { select: userSelect },
-        listing: { select: { id: true, title: true, price: true, currency: true, imageUrls: true, status: true } },
+        listing: { select: listingMessageSelect },
       },
     });
   }
@@ -345,7 +355,7 @@ export class MarketplaceRepository {
       include: {
         sender: { select: userSelect },
         recipient: { select: userSelect },
-        listing: { select: { id: true, title: true, price: true, currency: true, imageUrls: true, status: true } },
+        listing: { select: listingMessageSelect },
       },
     });
   }
