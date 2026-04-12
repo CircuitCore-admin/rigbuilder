@@ -725,9 +725,13 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
             </span>
           </div>
           <div className={styles.gridCardFooter}>
-            <a href={`/profile/${listing.user?.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>
-              {listing.user?.username}
-            </a>
+            {listing.user?.username ? (
+              <a href={`/profile/${listing.user.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>
+                {listing.user.username}
+              </a>
+            ) : (
+              <span className={styles.gridCardSeller}>Unknown</span>
+            )}
             {listing.user?.sellerRating != null && listing.user.sellerRating > 0 && (
               <span className={styles.gridCardRating}>★ {listing.user.sellerRating.toFixed(1)}</span>
             )}
@@ -757,7 +761,11 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
         <h3 className={styles.listRowTitle}>{listing.title}</h3>
         <div className={styles.listRowDetails}>
           {listing.country && <span>📍 {listing.country}</span>}
-          <a href={`/profile/${listing.user.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>{listing.user.username}</a>
+          {listing.user?.username ? (
+            <a href={`/profile/${listing.user.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>{listing.user.username}</a>
+          ) : (
+            <span>{listing.user?.username ?? 'Unknown'}</span>
+          )}
           <span>{relativeTime(listing.createdAt)}</span>
         </div>
       </div>
@@ -1863,7 +1871,11 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                   <span className={styles.relatedCardPrice}>
                     {item.price != null ? formatPrice(item.price, item.currency) : 'Open to Offers'}
                   </span>
-                  <a href={`/profile/${item.user?.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>{item.user?.username}</a>
+                  {item.user?.username ? (
+                    <a href={`/profile/${item.user.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>{item.user.username}</a>
+                  ) : (
+                    <span className={styles.relatedCardSeller}>Unknown</span>
+                  )}
                 </div>
               </a>
             ))}
