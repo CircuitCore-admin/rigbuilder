@@ -109,8 +109,12 @@ model User {
   email             String   @unique
   passwordHash      String   @map("password_hash")
   avatarUrl         String?  @map("avatar_url")
-  bio               String?
+  bio               String?  @db.Text
   location          String?
+  bannerUrl         String?  @map("banner_url")
+  bannerColor       String?  @map("banner_color") @default("#1a1a2e")
+  discordUsername   String?  @map("discord_username")
+  profileVisibility String   @default("PUBLIC") @map("profile_visibility")
   role              UserRole @default(USER)
   isPro             Boolean  @default(false) @map("is_pro")
   reputation        Int      @default(0)

@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
-import { authenticate } from '../middleware/authenticate';
+import { authenticate, optionalAuth } from '../middleware/authenticate';
 import { sanitize } from '../middleware/sanitize';
 
 const router = Router();
 
 router.get('/id/:id', UserController.getById);
-router.get('/:username', UserController.getByUsername);
 router.put('/profile', authenticate, sanitize, UserController.updateProfile);
+router.get('/:username', optionalAuth, UserController.getByUsername);
+router.get('/:username/threads', UserController.getUserThreads);
+router.get('/:username/listings', UserController.getUserListings);
+router.get('/:username/reviews', UserController.getUserReviews);
 
 export default router;
