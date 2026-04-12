@@ -1662,7 +1662,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                 onClick={() => {
                   const ids = [user.userId, listing.user.id].sort();
                   const convId = `${ids[0]}_${ids[1]}_${listing.id}`;
-                  navigate(`/marketplace/messages/${convId}`);
+                  navigate(`/marketplace/messages/${convId}?listingId=${listing.id}&recipientId=${listing.user.id}`);
                 }}
               >
                 Message Seller
@@ -1728,7 +1728,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                         {offer.status}
                       </span>
                     </div>
-                    {offer.message && <p className={styles.sidebarBidMessage}>{offer.message}</p>}
+                    {isOwner && offer.message && <p className={styles.sidebarBidMessage}>{offer.message}</p>}
                     <span className={styles.bidTime}>{relativeTime(offer.createdAt)}</span>
                     {isOwner && offer.status === 'PENDING' && (
                       <div className={styles.bidActions}>

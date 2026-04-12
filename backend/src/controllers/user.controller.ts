@@ -3,6 +3,12 @@ import { UserService } from '../services/user.service';
 import { ZodError } from 'zod';
 
 export class UserController {
+  static async getById(req: Request, res: Response) {
+    try {
+      res.json(await UserService.getById(req.params.id));
+    } catch { res.status(404).json({ error: 'User not found' }); }
+  }
+
   static async getByUsername(req: Request, res: Response) {
     try {
       res.json(await UserService.getByUsername(req.params.username));

@@ -480,11 +480,66 @@
 // Input area
 .messageInputArea {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 16px 24px;
+  flex-direction: column;
+  padding: 12px 24px 16px;
   border-top: 1px solid var(--border-default);
   background: var(--bg-primary);
+}
+
+.inputListingBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 150ms ease;
+
+  &:hover {
+    border-color: var(--border-strong, var(--accent-primary));
+  }
+}
+
+.inputListingImage {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.inputListingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.inputListingTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inputListingPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .messageTextarea {

@@ -102,6 +102,7 @@ export class ForumController {
       link: req.body.link,
       metadata: req.body.metadata,
       imageUrls: req.body.imageUrls,
+      isAnonymous: req.body.isAnonymous === true,
     });
     res.status(201).json(thread);
   }

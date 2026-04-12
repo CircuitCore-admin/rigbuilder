@@ -520,6 +520,8 @@
 
 .userName { font-size: 13px; font-weight: 600; color: var(--text-primary); text-decoration: none; &:hover { color: var(--accent-primary); } }
 
+.userNameAnon { font-size: 13px; font-weight: 500; color: var(--text-muted); font-style: italic; }
+
 .replyForm {
   margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-default);
 }

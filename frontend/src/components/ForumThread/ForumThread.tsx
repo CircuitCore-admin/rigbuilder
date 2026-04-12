@@ -56,6 +56,7 @@ interface Thread {
   metadata?: Record<string, unknown>;
   imageUrls?: string[];
   link?: string | null;
+  isAnonymous?: boolean;
 }
 
 interface ForumThreadProps {
@@ -480,7 +481,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
               </span>
               <span className={styles.threadMetaText}>
                 Posted by <UserBadge user={thread.user} />
-                {thread.user.pitCred != null && (
+                {thread.user.id !== 'anonymous' && thread.user.pitCred != null && (
                   <span className={styles.pitCredBadge}>{Math.max(0, thread.user.pitCred)} PC</span>
                 )}
                 <span className={styles.metaDot}>·</span>
@@ -804,11 +805,16 @@ function ReplyNode({
 }
 
 function UserBadge({ user }: { user: ThreadUser }) {
+  const isAnon = user.id === 'anonymous' || user.username === 'Anonymous';
   return (
     <span className={styles.userBadge}>
       {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} />}
-      <a href={`/profile/${user.username}`} className={styles.userName}>{user.username}</a>
-      <VerifiedCreatorBadge role={user.role} />
+      {isAnon ? (
+        <span className={styles.userNameAnon}>{user.username}</span>
+      ) : (
+        <a href={`/profile/${user.username}`} className={styles.userName}>{user.username}</a>
+      )}
+      {!isAnon && <VerifiedCreatorBadge role={user.role} />}
     </span>
   );
 }

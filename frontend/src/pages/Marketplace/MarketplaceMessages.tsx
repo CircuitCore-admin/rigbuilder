@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import { api, resolveImageUrl } from '../../utils/api';
 import { useToast } from '../../components/Toast/Toast';
@@ -81,6 +81,17 @@ export function MarketplaceMessages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Query params for new conversation context
+  const [searchParams] = useSearchParams();
+  const listingIdParam = searchParams.get('listingId');
+  const recipientIdParam = searchParams.get('recipientId');
+
+  // Context for new conversations (no messages yet)
+  const [newConvoContext, setNewConvoContext] = useState<{
+    otherUser: { id: string; username: string; avatarUrl: string | null };
+    listing: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[] };
+  } | null>(null);
+
   // Derived: get the other user and listing info from conversations or messages
   const activeConvo = conversations.find(c => c.conversationId === activeConvoId);
   const otherUser = activeConvo
@@ -91,8 +102,11 @@ export function MarketplaceMessages() {
         ? (messages[0].senderId === user.userId
             ? messages[0].recipient ?? messages[0].sender
             : messages[0].sender)
-        : null);
-  const listingInfo = activeConvo?.lastMessage.listing ?? (messages.length > 0 ? messages[0].listing : null);
+        : newConvoContext?.otherUser ?? null);
+  const listingInfo = activeConvo?.lastMessage.listing
+    ?? (messages.length > 0 ? messages[0].listing : null)
+    ?? newConvoContext?.listing
+    ?? null;
 
   // Sync activeConvoId with URL param
   useEffect(() => {
@@ -124,6 +138,32 @@ export function MarketplaceMessages() {
     }, CONV_POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [user]);
+
+  // Fetch context for new conversations from URL params
+  useEffect(() => {
+    if (!listingIdParam || !recipientIdParam) return;
+    if (messages.length > 0 || activeConvo) return; // Already have context
+
+    Promise.all([
+      api<any>(`/marketplace/${listingIdParam}`),
+      api<any>(`/users/id/${recipientIdParam}`).catch(() => null),
+    ]).then(([listing, recipient]) => {
+      if (listing) {
+        setNewConvoContext({
+          otherUser: recipient
+            ? { id: recipient.id, username: recipient.username, avatarUrl: recipient.avatarUrl }
+            : { id: recipientIdParam, username: listing.user?.username ?? 'User', avatarUrl: null },
+          listing: {
+            id: listing.id,
+            title: listing.title,
+            price: listing.price,
+            currency: listing.currency,
+            imageUrls: listing.imageUrls,
+          },
+        });
+      }
+    }).catch(() => {});
+  }, [listingIdParam, recipientIdParam, messages.length, activeConvo]);
 
   // Fetch messages when activeConvoId changes
   useEffect(() => {
@@ -362,23 +402,44 @@ export function MarketplaceMessages() {
 
             {/* Input area */}
             <div className={styles.messageInputArea}>
-              <textarea
-                ref={textareaRef}
-                className={styles.messageTextarea}
-                placeholder="Type a message…"
-                value={messageInput}
-                onChange={handleTextareaInput}
-                onKeyDown={handleKeyDown}
-                maxLength={5000}
-                rows={1}
-              />
-              <button
-                className={styles.messageSendBtn}
-                onClick={handleSend}
-                disabled={!messageInput.trim() || sending}
-              >
-                {sending ? '…' : 'Send'}
-              </button>
+              {listingInfo && (
+                <a href={`/marketplace/${listingInfo.id}`} className={styles.inputListingBanner}>
+                  {listingInfo.imageUrls?.[0] && (
+                    <img
+                      src={resolveImageUrl(listingInfo.imageUrls[0])}
+                      alt=""
+                      className={styles.inputListingImage}
+                    />
+                  )}
+                  <div className={styles.inputListingInfo}>
+                    <span className={styles.inputListingTitle}>{listingInfo.title}</span>
+                    {listingInfo.price != null && listingInfo.currency && (
+                      <span className={styles.inputListingPrice}>
+                        {new Intl.NumberFormat('en-GB', { style: 'currency', currency: listingInfo.currency }).format(listingInfo.price)}
+                      </span>
+                    )}
+                  </div>
+                </a>
+              )}
+              <div className={styles.inputRow}>
+                <textarea
+                  ref={textareaRef}
+                  className={styles.messageTextarea}
+                  placeholder="Type a message…"
+                  value={messageInput}
+                  onChange={handleTextareaInput}
+                  onKeyDown={handleKeyDown}
+                  maxLength={5000}
+                  rows={1}
+                />
+                <button
+                  className={styles.messageSendBtn}
+                  onClick={handleSend}
+                  disabled={!messageInput.trim() || sending}
+                >
+                  {sending ? '…' : 'Send'}
+                </button>
+              </div>
             </div>
           </>
         )}
