@@ -6,7 +6,7 @@ export const updateProfileSchema = z.object({
   location: z.string().max(100).optional().nullable(),
   avatarUrl: z.string().url().optional().nullable(),
   bannerUrl: z.string().url().optional().nullable(),
-  bannerColor: z.string().max(7).regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
+  bannerColor: z.string().length(7).regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
   discordUsername: z.string().max(50).optional().nullable(),
   profileVisibility: z.enum(['PUBLIC', 'PRIVATE']).optional(),
 });
