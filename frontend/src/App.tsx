@@ -11,6 +11,7 @@ import { CommunityPage } from './pages/Community/CommunityPage';
 import { MarketplacePage } from './pages/Marketplace/MarketplacePage';
 import { MarketplaceMessages } from './pages/Marketplace/MarketplaceMessages';
 import { ProfilePage } from './pages/Profile/ProfilePage';
+import { SettingsPage } from './pages/Settings/SettingsPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
@@ -56,6 +57,9 @@ export function App() {
 
         {/* Profile */}
         <Route path="/profile/:username" element={<ProfilePage />} />
+
+        {/* Settings */}
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
         {/* Configurator (moved from / to /build) */}
         <Route path="/build" element={<RigBuilderPage />} />

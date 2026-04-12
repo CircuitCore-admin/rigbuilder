@@ -296,7 +296,7 @@ export function MarketplaceMessages() {
                   </div>
                   <div className={styles.conversationItemBody}>
                     <div className={styles.conversationItemTopLine}>
-                      <span className={styles.conversationItemName}>{other.username}</span>
+                      <a href={`/profile/${other.username}`} className={styles.messageUserLink} onClick={e => e.stopPropagation()}>{other.username}</a>
                       <span className={styles.conversationItemTime}>
                         {relativeTime(convo.lastMessage.createdAt)}
                       </span>
@@ -345,7 +345,7 @@ export function MarketplaceMessages() {
                         <span>{otherUser.username[0]?.toUpperCase()}</span>
                       )}
                     </div>
-                    <span className={styles.messageHeaderName}>{otherUser.username}</span>
+                    <a href={`/profile/${otherUser.username}`} className={styles.messageUserLink}>{otherUser.username}</a>
                   </div>
                 )}
               </div>

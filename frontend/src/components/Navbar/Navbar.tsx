@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './Navbar.module.scss';
 
@@ -12,6 +13,21 @@ import styles from './Navbar.module.scss';
 export function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      setDropdownOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen, handleClickOutside]);
 
   return (
     <>
@@ -89,11 +105,34 @@ export function Navbar() {
             </button>
 
             {user ? (
-              <div className={styles.userGroup}>
-                <span className={styles.username}>{user.username}</span>
-                <button type="button" className={styles.btnGhost} onClick={() => void logout()}>
-                  Log Out
+              <div className={styles.userDropdownWrapper} ref={dropdownRef}>
+                <button
+                  type="button"
+                  className={styles.userDropdownTrigger}
+                  onClick={() => setDropdownOpen(prev => !prev)}
+                >
+                  <span className={styles.username}>{user.username}</span>
+                  <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M6 8L10 12L14 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
+                {dropdownOpen && (
+                  <div className={styles.userDropdown}>
+                    <a href={`/profile/${user.username}`} className={styles.userDropdownItem} onClick={() => setDropdownOpen(false)}>
+                      My Profile
+                    </a>
+                    <a href="/settings" className={styles.userDropdownItem} onClick={() => setDropdownOpen(false)}>
+                      Settings
+                    </a>
+                    <button
+                      type="button"
+                      className={styles.userDropdownItem}
+                      onClick={() => { setDropdownOpen(false); void logout(); }}
+                    >
+                      Log Out
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className={styles.authGroup}>
@@ -152,7 +191,7 @@ export function Navbar() {
         </NavLink>
 
         <NavLink
-          to={user ? '/account' : '/login'}
+          to={user ? `/profile/${user.username}` : '/login'}
           className={({ isActive }) => `${styles.tab} ${isActive ? styles.tabActive : ''}`}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">

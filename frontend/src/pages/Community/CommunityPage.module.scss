@@ -227,6 +227,12 @@
   color: var(--text-muted);
 }
 
+.threadCardAuthorLink {
+  color: var(--text-muted);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); text-decoration: underline; }
+}
+
 // ---------- Pagination ----------
 
 .pagination {

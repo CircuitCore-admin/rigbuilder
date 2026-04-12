@@ -823,6 +823,14 @@ $bp-desktop: 1280px;
   color: var(--text-secondary);
 }
 
+.gridCardSellerLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); text-decoration: underline; }
+}
+
 .gridCardRating {
   font-size: 11px;
   color: #FFB020;

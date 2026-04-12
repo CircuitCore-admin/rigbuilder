@@ -373,7 +373,11 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                     <div className={styles.showroomInfo}>
                       <h3 className={styles.showroomTitle}>{t.title}</h3>
                       <span className={styles.showroomAuthor}>
-                        {t.user.id === 'anonymous' ? <em>Anonymous</em> : t.user.username}
+                        {t.user.id === 'anonymous' ? <em>Anonymous</em> : (
+                          <a href={`/profile/${t.user.username}`} className={styles.threadCardAuthorLink} onClick={e => e.stopPropagation()}>
+                            {t.user.username}
+                          </a>
+                        )}
                       </span>
                     </div>
                   </a>
@@ -419,7 +423,11 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                             {catLabel}
                           </span>
                           <span className={styles.threadCardMeta}>
-                            Posted by {t.user.id === 'anonymous' ? <em>Anonymous</em> : t.user.username}
+                            Posted by {t.user.id === 'anonymous' ? <em>Anonymous</em> : (
+                              <a href={`/profile/${t.user.username}`} className={styles.threadCardAuthorLink} onClick={e => e.stopPropagation()}>
+                                {t.user.username}
+                              </a>
+                            )}
                             {t.user.id !== 'anonymous' && t.user.pitCred != null && t.user.pitCred > 0 && (
                               <span className={styles.pitCredSmall}> · {t.user.pitCred} PC</span>
                             )}

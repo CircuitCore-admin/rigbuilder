@@ -340,6 +340,14 @@
   color: var(--text-primary);
 }
 
+.messageUserLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); text-decoration: underline; }
+}
+
 // (messageHeaderListing replaced by messageHeaderListingCard above)
 
 // Listing context card in header

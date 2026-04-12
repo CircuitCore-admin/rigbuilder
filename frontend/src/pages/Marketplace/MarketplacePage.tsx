@@ -725,7 +725,9 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
             </span>
           </div>
           <div className={styles.gridCardFooter}>
-            <span className={styles.gridCardSeller}>{listing.user?.username}</span>
+            <a href={`/profile/${listing.user?.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>
+              {listing.user?.username}
+            </a>
             {listing.user?.sellerRating != null && listing.user.sellerRating > 0 && (
               <span className={styles.gridCardRating}>★ {listing.user.sellerRating.toFixed(1)}</span>
             )}
@@ -755,7 +757,7 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
         <h3 className={styles.listRowTitle}>{listing.title}</h3>
         <div className={styles.listRowDetails}>
           {listing.country && <span>📍 {listing.country}</span>}
-          <span>{listing.user.username}</span>
+          <a href={`/profile/${listing.user.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>{listing.user.username}</a>
           <span>{relativeTime(listing.createdAt)}</span>
         </div>
       </div>
@@ -1861,7 +1863,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                   <span className={styles.relatedCardPrice}>
                     {item.price != null ? formatPrice(item.price, item.currency) : 'Open to Offers'}
                   </span>
-                  <span className={styles.relatedCardSeller}>{item.user?.username}</span>
+                  <a href={`/profile/${item.user?.username}`} className={styles.gridCardSellerLink} onClick={e => e.stopPropagation()}>{item.user?.username}</a>
                 </div>
               </a>
             ))}
