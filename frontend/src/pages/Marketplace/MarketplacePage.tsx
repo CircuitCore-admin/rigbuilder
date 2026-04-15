@@ -1407,6 +1407,11 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   const [offerMessage, setOfferMessage] = useState('');
   const [offerSubmitting, setOfferSubmitting] = useState(false);
 
+  // Counter-offer
+  const [counterOfferId, setCounterOfferId] = useState<string | null>(null);
+  const [counterAmount, setCounterAmount] = useState('');
+  const [counterMessage, setCounterMessage] = useState('');
+
   // Reviews
   const [reviews, setReviews] = useState<Review[]>([]);
 
@@ -1508,10 +1513,40 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   const handleOfferAction = async (offerId: string, action: 'accept' | 'reject') => {
     try {
       await api(`/marketplace/offers/${offerId}`, { method: 'PUT', body: { status: action === 'accept' ? 'ACCEPTED' : 'REJECTED' } });
-      setOffers(prev => prev.map(o => o.id === offerId ? { ...o, status: action === 'accept' ? 'ACCEPTED' : 'REJECTED' } : o));
+      setOffers(prev => prev.map(o => {
+        if (o.id === offerId) return { ...o, status: action === 'accept' ? 'ACCEPTED' : 'REJECTED' };
+        if (action === 'accept' && o.status === 'PENDING') return { ...o, status: 'REJECTED' };
+        return o;
+      }));
       showToast(`Offer ${action}ed`, 'success');
+
+      // If accepted, update listing status to RESERVED
+      if (action === 'accept' && listing) {
+        setListing((prev: ListingItem | null) => prev ? { ...prev, status: 'RESERVED' } : prev);
+      }
     } catch {
       showToast(`Failed to ${action} offer`, 'error');
+    }
+  };
+
+  const handleCounterOffer = async (offerId: string) => {
+    const amt = parseFloat(counterAmount);
+    if (!amt || amt <= 0) {
+      showToast('Enter a valid counter amount', 'error');
+      return;
+    }
+    try {
+      await api(`/marketplace/offers/${offerId}/counter`, {
+        method: 'POST',
+        body: { amount: amt, message: counterMessage || undefined },
+      });
+      setOffers(prev => prev.map(o => o.id === offerId ? { ...o, status: 'REJECTED' } : o));
+      setCounterOfferId(null);
+      setCounterAmount('');
+      setCounterMessage('');
+      showToast('Counter-offer sent', 'success');
+    } catch {
+      showToast('Failed to send counter-offer', 'error');
     }
   };
 
@@ -1743,7 +1778,41 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                     {isOwner && offer.status === 'PENDING' && (
                       <div className={styles.bidActions}>
                         <button className={styles.acceptBtn} onClick={() => handleOfferAction(offer.id, 'accept')}>Accept</button>
+                        <button className={styles.counterBtn} onClick={() => {
+                          setCounterOfferId(offer.id);
+                          setCounterAmount('');
+                          setCounterMessage('');
+                        }}>Counter</button>
                         <button className={styles.rejectBtn} onClick={() => handleOfferAction(offer.id, 'reject')}>Reject</button>
+                      </div>
+                    )}
+                    {counterOfferId === offer.id && (
+                      <div className={styles.counterForm}>
+                        <div className={styles.counterInputRow}>
+                          <span className={styles.counterCurrency}>{CURRENCY_SYMBOLS[listing.currency] ?? '\u00A3'}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className={styles.counterInput}
+                            placeholder="Your counter price"
+                            value={counterAmount}
+                            onChange={e => setCounterAmount(e.target.value)}
+                          />
+                        </div>
+                        <textarea
+                          className={styles.counterMessageInput}
+                          placeholder="Optional message..."
+                          value={counterMessage}
+                          onChange={e => setCounterMessage(e.target.value)}
+                          rows={2}
+                        />
+                        <div className={styles.counterActions}>
+                          <button className={styles.counterCancelBtn} onClick={() => setCounterOfferId(null)}>Cancel</button>
+                          <button className={styles.submitCounterBtn} onClick={() => handleCounterOffer(offer.id)}>
+                            Send Counter
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

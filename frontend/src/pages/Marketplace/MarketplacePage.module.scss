@@ -2365,6 +2365,99 @@ $bp-desktop: 1280px;
   &:hover { background: rgba(255, 68, 85, 0.08); }
 }
 
+.counterBtn {
+  padding: 6px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFB020;
+  background: none;
+  border: 1px solid #FFB020;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { background: rgba(255, 176, 32, 0.1); }
+}
+
+.counterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.counterInputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counterCurrency {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.counterInput {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.counterMessageInput {
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  resize: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.counterActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.counterCancelBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.submitCounterBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: #FFB020;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+}
+
 // ----- Reviews -----
 
 .reviewsSection {
