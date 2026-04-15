@@ -18,6 +18,7 @@ export interface AuthUser {
   userId: string;
   username: string;
   role: UserRole;
+  emailVerified?: boolean;
 }
 
 interface AuthContextValue {

@@ -12,5 +12,7 @@ router.post('/login', authLimiter, authSlowDown, validate(loginSchema), AuthCont
 router.post('/logout', authenticate, AuthController.logout);
 router.post('/change-password', authenticate, AuthController.changePassword);
 router.get('/me', authenticate, AuthController.me);
+router.get('/verify-email', AuthController.verifyEmail);
+router.post('/resend-verification', authenticate, AuthController.resendVerification);
 
 export default router;

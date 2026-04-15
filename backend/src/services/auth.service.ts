@@ -1,6 +1,7 @@
 import * as argon2 from 'argon2';
 import crypto from 'node:crypto';
 import { prisma } from '../prisma';
+import { EmailService } from './email.service';
 import type { RegisterInput, LoginInput } from '../validators/auth.schema';
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -29,6 +30,12 @@ export class AuthService {
     });
 
     const sessionId = await this.createSession(user.id);
+
+    // Send verification email (fire-and-forget)
+    EmailService.sendVerificationEmail(user.id, input.email, input.username).catch(err => {
+      console.error('Failed to send verification email:', err);
+    });
+
     return { sessionId, userId: user.id };
   }
 

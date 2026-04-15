@@ -123,6 +123,9 @@ model User {
   sellerReviewCount Int      @default(0) @map("seller_review_count")
   completedSales    Int      @default(0) @map("completed_sales")
   avgResponseMinutes Int?    @map("avg_response_minutes")
+  emailVerified       Boolean   @default(false) @map("email_verified")
+  emailVerifyToken    String?   @map("email_verify_token")
+  emailVerifyExpiry   DateTime? @map("email_verify_expiry")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 

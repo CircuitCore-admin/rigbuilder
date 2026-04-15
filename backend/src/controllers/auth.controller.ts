@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { EmailService } from '../services/email.service';
 import { prisma } from '../prisma';
 import * as argon2 from 'argon2';
 
@@ -44,7 +45,12 @@ export class AuthController {
 
   static async me(req: Request, res: Response) {
     const session = (req as any).session;
-    res.json({ userId: session.userId, username: session.username, role: session.role });
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, username: true, role: true, emailVerified: true },
+    });
+    if (!user) return res.status(401).json({ error: 'User not found' });
+    res.json({ userId: user.id, username: user.username, role: user.role, emailVerified: user.emailVerified });
   }
 
   static async changePassword(req: Request, res: Response) {
@@ -69,6 +75,32 @@ export class AuthController {
       res.json({ ok: true });
     } catch {
       res.status(500).json({ error: 'Failed to change password' });
+    }
+  }
+
+  /** GET /api/v1/auth/verify-email?token=xxx */
+  static async verifyEmail(req: Request, res: Response) {
+    const token = req.query.token as string;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    const result = await EmailService.verifyEmail(token);
+    if (result.success) {
+      res.json({ ok: true, message: 'Email verified successfully' });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  }
+
+  /** POST /api/v1/auth/resend-verification */
+  static async resendVerification(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.status(401).json({ error: 'Not authenticated' });
+
+    try {
+      await EmailService.resendVerification(session.userId);
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
     }
   }
 }

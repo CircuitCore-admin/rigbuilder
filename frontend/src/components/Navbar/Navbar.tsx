@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../Toast/Toast';
 import { api } from '../../utils/api';
 import styles from './Navbar.module.scss';
 
@@ -45,6 +46,7 @@ interface NavNotification {
  */
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -112,6 +114,24 @@ export function Navbar() {
 
   return (
     <>
+      {/* Email verification banner */}
+      {user && user.emailVerified === false && (
+        <div className={styles.verifyBanner}>
+          <span>Please verify your email to access all features.</span>
+          <button
+            className={styles.resendBtn}
+            onClick={async () => {
+              try {
+                await api('/auth/resend-verification', { method: 'POST' });
+                showToast('Verification email sent!', 'success');
+              } catch { showToast('Failed to send', 'error'); }
+            }}
+          >
+            Resend Email
+          </button>
+        </div>
+      )}
+
       {/* ── Desktop / Tablet top bar ── */}
       <header className={styles.topBar}>
         <div className={styles.inner}>

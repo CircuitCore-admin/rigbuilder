@@ -4,6 +4,19 @@ import { MarketplaceRepository } from '../repositories/marketplace.repository';
 import { prisma } from '../prisma';
 import type { MarketplaceListingType, ItemCondition, Currency, ShippingOption, ListingStatus, ReportStatus } from '@prisma/client';
 
+async function requireEmailVerified(req: Request, res: Response): Promise<boolean> {
+  const session = (req as any).session;
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { emailVerified: true },
+  });
+  if (!user?.emailVerified) {
+    res.status(403).json({ error: 'Please verify your email before using the marketplace' });
+    return false;
+  }
+  return true;
+}
+
 export class MarketplaceController {
   private static readonly VIEW_DEDUP_WINDOW_MS = 5 * 60 * 1000;
 
@@ -97,6 +110,7 @@ export class MarketplaceController {
   /** POST /api/v1/marketplace */
   static async createListing(req: Request, res: Response) {
     try {
+      if (!(await requireEmailVerified(req, res))) return;
       const session = (req as any).session;
       const listing = await MarketplaceService.createListing(req.body, session.userId);
       res.status(201).json(listing);
@@ -197,6 +211,7 @@ export class MarketplaceController {
   /** POST /api/v1/marketplace/:id/offers */
   static async createOffer(req: Request, res: Response) {
     try {
+      if (!(await requireEmailVerified(req, res))) return;
       const session = (req as any).session;
       const offer = await MarketplaceService.createOffer(req.params.id, session.userId, req.body);
       res.status(201).json(offer);
@@ -282,6 +297,7 @@ export class MarketplaceController {
   /** POST /api/v1/marketplace/messages */
   static async sendMessage(req: Request, res: Response) {
     try {
+      if (!(await requireEmailVerified(req, res))) return;
       const session = (req as any).session;
       const message = await MarketplaceService.sendMessage(session.userId, req.body);
       res.status(201).json(message);
