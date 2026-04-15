@@ -121,6 +121,8 @@ model User {
   pitCred           Int      @default(0) @map("pit_cred")
   sellerRating      Float?   @map("seller_rating")
   sellerReviewCount Int      @default(0) @map("seller_review_count")
+  completedSales    Int      @default(0) @map("completed_sales")
+  avgResponseMinutes Int?    @map("avg_response_minutes")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
@@ -149,6 +151,8 @@ model User {
   marketplaceReviewsReceived  MarketplaceReview[]       @relation("SellerReviews")
   marketplaceNotifications    MarketplaceNotification[]
   wishlistedListings          WishlistedListing[]       @relation("WishlistedListings")
+  blockedUsers                UserBlock[]               @relation("BlockedUsers")
+  blockedBy                   UserBlock[]               @relation("BlockedBy")
 
   @@index([username])
   @@index([email])
@@ -850,4 +854,17 @@ model WishlistedListing {
   @@index([userId])
   @@index([listingId])
   @@map("wishlisted_listings")
+}
+
+model UserBlock {
+  id        String   @id @default(cuid())
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker User @relation("BlockedUsers", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@map("user_blocks")
 }

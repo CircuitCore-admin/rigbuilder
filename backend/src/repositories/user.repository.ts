@@ -19,6 +19,8 @@ const FULL_PROFILE_SELECT = {
   pitCred: true,
   sellerRating: true,
   sellerReviewCount: true,
+  completedSales: true,
+  avgResponseMinutes: true,
   discordUsername: true,
   profileVisibility: true,
   _count: { select: { forumThreads: true, marketplaceListings: true } },

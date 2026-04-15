@@ -223,7 +223,17 @@ export class MarketplaceService {
       throw new BadRequestError(`Cannot transition from ${listing.status} to ${status}`);
     }
 
-    return MarketplaceRepository.updateListingStatus(id, status);
+    const updated = await MarketplaceRepository.updateListingStatus(id, status);
+
+    // Increment completedSales when marking as SOLD or FOUND
+    if (status === 'SOLD' || status === 'FOUND') {
+      prisma.user.update({
+        where: { id: listing.userId },
+        data: { completedSales: { increment: 1 } },
+      }).catch(() => {});
+    }
+
+    return updated;
   }
 
   static async getMyListings(userId: string) {
@@ -594,6 +604,44 @@ export class MarketplaceService {
       referenceId: message.id,
       message: `New message about "${listing.title}"`,
     }).catch(() => {});
+
+    // Track seller response time (fire-and-forget)
+    if (listing.userId === userId) {
+      (async () => {
+        try {
+          const lastBuyerMessage = await prisma.marketplaceMessage.findFirst({
+            where: {
+              conversationId,
+              senderId: data.recipientId,
+              recipientId: userId,
+            },
+            orderBy: { createdAt: 'desc' },
+          });
+
+          if (lastBuyerMessage) {
+            const responseMinutes = Math.round(
+              (Date.now() - new Date(lastBuyerMessage.createdAt).getTime()) / 60000,
+            );
+
+            const currentUser = await prisma.user.findUnique({
+              where: { id: userId },
+              select: { avgResponseMinutes: true },
+            });
+
+            if (currentUser) {
+              const currentAvg = currentUser.avgResponseMinutes ?? responseMinutes;
+              const newAvg = Math.round((currentAvg + responseMinutes) / 2);
+              await prisma.user.update({
+                where: { id: userId },
+                data: { avgResponseMinutes: newAvg },
+              });
+            }
+          }
+        } catch {
+          // Non-critical
+        }
+      })();
+    }
 
     return {
       id: message.id,

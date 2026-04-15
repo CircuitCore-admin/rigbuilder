@@ -98,4 +98,53 @@ export class UserController {
       res.status(400).json({ error: (err as Error).message });
     }
   }
+
+  /** POST /api/v1/users/:username/block — toggle block */
+  static async toggleBlock(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      const target = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!target) return res.status(404).json({ error: 'User not found' });
+      if (target.id === session.userId) return res.status(400).json({ error: 'Cannot block yourself' });
+
+      const existing = await prisma.userBlock.findUnique({
+        where: { blockerId_blockedId: { blockerId: session.userId, blockedId: target.id } },
+      });
+
+      if (existing) {
+        await prisma.userBlock.delete({ where: { id: existing.id } });
+        res.json({ blocked: false });
+      } else {
+        await prisma.userBlock.create({ data: { blockerId: session.userId, blockedId: target.id } });
+        res.json({ blocked: true });
+      }
+    } catch { res.status(500).json({ error: 'Failed to toggle block' }); }
+  }
+
+  /** GET /api/v1/users/blocked — get blocked users */
+  static async getBlockedUsers(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      const blocks = await prisma.userBlock.findMany({
+        where: { blockerId: session.userId },
+        include: { blocked: { select: { id: true, username: true, avatarUrl: true } } },
+      });
+      res.json(blocks.map(b => b.blocked));
+    } catch { res.status(500).json({ error: 'Failed to fetch blocked users' }); }
+  }
+
+  /** GET /api/v1/users/:username/block — check if blocked */
+  static async isBlocked(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      if (!session?.userId) return res.json({ blocked: false });
+      const target = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!target) return res.status(404).json({ error: 'User not found' });
+
+      const existing = await prisma.userBlock.findUnique({
+        where: { blockerId_blockedId: { blockerId: session.userId, blockedId: target.id } },
+      });
+      res.json({ blocked: !!existing });
+    } catch { res.status(500).json({ error: 'Failed to check block status' }); }
+  }
 }

@@ -6,10 +6,13 @@ import { sanitize } from '../middleware/sanitize';
 const router = Router();
 
 router.get('/id/:id', UserController.getById);
+router.get('/blocked', authenticate, UserController.getBlockedUsers);
 router.put('/profile', authenticate, sanitize, UserController.updateProfile);
 router.get('/:username', optionalAuth, UserController.getByUsername);
 router.get('/:username/threads', UserController.getUserThreads);
 router.get('/:username/listings', UserController.getUserListings);
 router.get('/:username/reviews', UserController.getUserReviews);
+router.post('/:username/block', authenticate, UserController.toggleBlock);
+router.get('/:username/block', optionalAuth, UserController.isBlocked);
 
 export default router;

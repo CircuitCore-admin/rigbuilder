@@ -38,6 +38,19 @@ export class MarketplaceController {
     const shippingRaw = req.query.shippingOptions as string | undefined;
     const shippingOptions = shippingRaw ? shippingRaw.split(',') as ShippingOption[] : undefined;
 
+    // Get blocked user IDs for filtering
+    const session = (req as any).session;
+    let excludeUserIds: string[] | undefined;
+    if (session?.userId) {
+      const blocks = await prisma.userBlock.findMany({
+        where: { blockerId: session.userId },
+        select: { blockedId: true },
+      });
+      if (blocks.length > 0) {
+        excludeUserIds = blocks.map(b => b.blockedId);
+      }
+    }
+
     const { items, total } = await MarketplaceService.listListings({
       page,
       limit,
@@ -54,6 +67,7 @@ export class MarketplaceController {
       search: req.query.search as string | undefined,
       sortBy: (req.query.sortBy as any) || 'createdAt',
       sortDir: (req.query.sortDir as any) || 'desc',
+      excludeUserIds,
     });
 
     res.set('Cache-Control', 'public, max-age=10, stale-while-revalidate=30');

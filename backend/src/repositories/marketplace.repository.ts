@@ -31,6 +31,7 @@ export interface ListingListParams {
   search?: string;
   sortBy?: 'createdAt' | 'price' | 'viewCount';
   sortDir?: 'asc' | 'desc';
+  excludeUserIds?: string[];
 }
 
 const userSelect = {
@@ -39,6 +40,8 @@ const userSelect = {
   avatarUrl: true,
   sellerRating: true,
   sellerReviewCount: true,
+  completedSales: true,
+  avgResponseMinutes: true,
 } as const;
 
 /** Listing fields included when returning message data. */
@@ -49,6 +52,7 @@ const listingMessageSelect = {
   currency: true,
   imageUrls: true,
   status: true,
+  userId: true,
 } as const;
 
 /** Window in ms for detecting recently-expired items (to avoid re-notification). */
@@ -80,6 +84,7 @@ export class MarketplaceRepository {
       search,
       sortBy = 'createdAt',
       sortDir = 'desc',
+      excludeUserIds,
     } = params;
 
     const excludedStatuses: ListingStatus[] = includeSold
@@ -107,6 +112,7 @@ export class MarketplaceRepository {
           { description: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
+      ...(excludeUserIds?.length && { userId: { notIn: excludeUserIds } }),
     };
 
     const orderBy: Prisma.MarketplaceListingOrderByWithRelationInput[] = [
@@ -300,10 +306,24 @@ export class MarketplaceRepository {
   // -------------------------------------------------------------------------
 
   static async findConversations(userId: string) {
+    // Get blocked user IDs (both directions)
+    const blocks = await prisma.userBlock.findMany({
+      where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+    });
+    const blockedIds = blocks.map(b => b.blockerId === userId ? b.blockedId : b.blockerId);
+
     // Find all distinct conversations the user is part of
     const messages = await prisma.marketplaceMessage.findMany({
       where: {
         OR: [{ senderId: userId }, { recipientId: userId }],
+        ...(blockedIds.length > 0 && {
+          NOT: {
+            OR: [
+              { senderId: { in: blockedIds } },
+              { recipientId: { in: blockedIds } },
+            ],
+          },
+        }),
       },
       orderBy: { createdAt: 'desc' },
       include: {
