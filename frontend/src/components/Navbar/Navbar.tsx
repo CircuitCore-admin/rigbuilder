@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { api } from '../../utils/api';
 import styles from './Navbar.module.scss';
 
 /**
@@ -15,6 +16,7 @@ export function Navbar() {
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -28,6 +30,22 @@ export function Navbar() {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [dropdownOpen, handleClickOutside]);
+
+  // Poll for unread message count
+  useEffect(() => {
+    if (!user) return;
+    const fetchUnread = () => {
+      api<{ unreadCount: number }[]>('/marketplace/conversations')
+        .then(convos => {
+          const total = (Array.isArray(convos) ? convos : []).reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
+          setUnreadMessages(total);
+        })
+        .catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <>
@@ -103,6 +121,17 @@ export function Navbar() {
                 <path d="M12 12l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </button>
+
+            {user && (
+              <a href="/messages" className={styles.navIconBtn}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                {unreadMessages > 0 && (
+                  <span className={styles.navBadge}>{unreadMessages > 99 ? '99+' : unreadMessages}</span>
+                )}
+              </a>
+            )}
 
             {user ? (
               <div className={styles.userDropdownWrapper} ref={dropdownRef}>

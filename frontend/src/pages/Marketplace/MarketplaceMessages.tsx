@@ -77,6 +77,7 @@ export function MarketplaceMessages() {
 
   const [messageInput, setMessageInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [messageError, setMessageError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -91,6 +92,9 @@ export function MarketplaceMessages() {
     otherUser: { id: string; username: string; avatarUrl: string | null };
     listing: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[] };
   } | null>(null);
+
+  // Search
+  const [convoSearch, setConvoSearch] = useState('');
 
   // Derived: get the other user and listing info from conversations or messages
   const activeConvo = conversations.find(c => c.conversationId === activeConvoId);
@@ -107,6 +111,20 @@ export function MarketplaceMessages() {
     ?? (messages.length > 0 ? messages[0].listing : null)
     ?? newConvoContext?.listing
     ?? null;
+
+  // Filtered conversations for search
+  const filteredConversations = conversations.filter(convo => {
+    if (!convoSearch.trim()) return true;
+    const q = convoSearch.toLowerCase();
+    const other = convo.lastMessage.sender.id === user?.userId
+      ? convo.lastMessage.recipient
+      : convo.lastMessage.sender;
+    return (
+      other.username.toLowerCase().includes(q) ||
+      convo.lastMessage.listing.title.toLowerCase().includes(q) ||
+      convo.lastMessage.preview.toLowerCase().includes(q)
+    );
+  });
 
   // Sync activeConvoId with URL param
   useEffect(() => {
@@ -167,22 +185,28 @@ export function MarketplaceMessages() {
 
   // Fetch messages when activeConvoId changes
   useEffect(() => {
-    if (!activeConvoId) { setMessages([]); return; }
+    if (!activeConvoId || !user) { setMessages([]); return; }
     setLoadingMessages(true);
-    api<Message[]>(`/marketplace/conversations/${activeConvoId}`)
+    setMessageError(null);
+    api<Message[]>(`/marketplace/conversations/${encodeURIComponent(activeConvoId)}`)
       .then(data => {
-        setMessages(Array.isArray(data) ? data : []);
+        const items = Array.isArray(data) ? data : [];
+        setMessages(items);
         scrollToBottom();
       })
-      .catch(() => setMessages([]))
+      .catch(err => {
+        console.error('[Messages] Failed to load:', err);
+        setMessageError(err instanceof Error ? err.message : 'Failed to load messages');
+        setMessages([]);
+      })
       .finally(() => setLoadingMessages(false));
-  }, [activeConvoId, scrollToBottom]);
+  }, [activeConvoId, user, scrollToBottom]);
 
   // Poll for new messages every 10s
   useEffect(() => {
     if (!activeConvoId) return;
     const interval = setInterval(() => {
-      api<Message[]>(`/marketplace/conversations/${activeConvoId}`)
+      api<Message[]>(`/marketplace/conversations/${encodeURIComponent(activeConvoId)}`)
         .then(data => {
           const items = Array.isArray(data) ? data : [];
           setMessages(prev => {
@@ -228,6 +252,20 @@ export function MarketplaceMessages() {
         textareaRef.current.style.height = 'auto';
       }
       scrollToBottom();
+
+      // Refresh conversation list so the new convo appears
+      api<ConversationPreview[]>('/marketplace/conversations')
+        .then(data => setConversations(Array.isArray(data) ? data : []))
+        .catch(() => {});
+
+      // Clear new convo context — it's now a real conversation
+      setNewConvoContext(null);
+
+      // Remove query params from URL (clean up)
+      if (listingIdParam || recipientIdParam) {
+        navigate(`/messages/${activeConvoId}`, { replace: true });
+      }
+
       showToast('Message sent', 'success');
     } catch {
       showToast('Failed to send message', 'error');
@@ -246,7 +284,7 @@ export function MarketplaceMessages() {
   // Select a conversation
   const selectConversation = (convoId: string) => {
     setActiveConvoId(convoId);
-    navigate(`/marketplace/messages/${convoId}`, { replace: true });
+    navigate(`/messages/${convoId}`, { replace: true });
   };
 
   // Auth gate
@@ -267,6 +305,17 @@ export function MarketplaceMessages() {
         <div className={styles.conversationListHeader}>
           <h1 className={styles.conversationListTitle}>Messages</h1>
         </div>
+        <div className={styles.convoSearchRow}>
+          <input
+            className={styles.convoSearchInput}
+            placeholder="Search conversations..."
+            value={convoSearch}
+            onChange={e => setConvoSearch(e.target.value)}
+          />
+          {convoSearch && (
+            <button className={styles.convoSearchClear} onClick={() => setConvoSearch('')}>×</button>
+          )}
+        </div>
 
         <div className={styles.conversationListBody}>
           {loadingConvos ? (
@@ -277,7 +326,7 @@ export function MarketplaceMessages() {
               <span>Messages with sellers will appear here</span>
             </div>
           ) : (
-            conversations.map(convo => {
+            filteredConversations.map(convo => {
               const other = convo.lastMessage.sender.id === user.userId
                 ? convo.lastMessage.recipient
                 : convo.lastMessage.sender;
@@ -332,7 +381,7 @@ export function MarketplaceMessages() {
               <div className={styles.messageHeaderLeft}>
                 <button
                   className={styles.mobileBackBtn}
-                  onClick={() => navigate('/marketplace/messages')}
+                  onClick={() => navigate('/messages')}
                 >
                   ←
                 </button>
@@ -376,6 +425,14 @@ export function MarketplaceMessages() {
             {/* Messages */}
             {loadingMessages ? (
               <div className={styles.loadingState}>Loading messages…</div>
+            ) : messageError ? (
+              <div className={styles.messageError}>
+                <p>Failed to load messages: {messageError}</p>
+                <button onClick={() => {
+                  setMessageError(null);
+                  setActiveConvoId(activeConvoId);
+                }}>Retry</button>
+              </div>
             ) : (
               <div className={styles.messageList}>
                 {messages.map(msg => {

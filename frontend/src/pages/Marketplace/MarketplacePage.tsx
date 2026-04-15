@@ -621,7 +621,7 @@ function MarketplaceDashboard() {
         )}
 
         {user && (
-          <a href="/marketplace/messages" className={styles.messagesBtn}>
+          <a href="/messages" className={styles.messagesBtn}>
             ✉ Messages
           </a>
         )}
@@ -1672,7 +1672,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                 onClick={() => {
                   const ids = [user.userId, listing.user.id].sort();
                   const convId = `${ids[0]}_${ids[1]}_${listing.id}`;
-                  navigate(`/marketplace/messages/${convId}?listingId=${listing.id}&recipientId=${listing.user.id}`);
+                  navigate(`/messages/${convId}?listingId=${listing.id}&recipientId=${listing.user.id}`);
                 }}
               >
                 Message Seller

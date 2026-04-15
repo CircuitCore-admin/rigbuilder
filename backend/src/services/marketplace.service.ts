@@ -364,15 +364,20 @@ export class MarketplaceService {
   }
 
   static async getMessages(conversationId: string, userId: string) {
-    const messages = await MarketplaceRepository.findMessages(conversationId);
-
-    // Verify user is a participant
-    if (messages.length > 0) {
-      const first = messages[0];
-      if (first.senderId !== userId && first.recipientId !== userId) {
-        throw new ForbiddenError('You are not a participant in this conversation');
-      }
+    // Parse the conversation ID to verify participation
+    // Format: sortedUserId1_sortedUserId2_listingId
+    const parts = conversationId.split('_');
+    if (parts.length < 3) {
+      throw new ForbiddenError('Invalid conversation ID');
     }
+
+    // The first two parts are sorted user IDs
+    const participantIds = [parts[0], parts[1]];
+    if (!participantIds.includes(userId)) {
+      throw new ForbiddenError('You are not a participant in this conversation');
+    }
+
+    const messages = await MarketplaceRepository.findMessages(conversationId);
 
     // Mark messages as read (fire-and-forget)
     MarketplaceRepository.markMessagesRead(conversationId, userId).catch(() => {});
