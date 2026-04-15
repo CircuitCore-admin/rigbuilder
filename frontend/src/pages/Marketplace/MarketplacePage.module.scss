@@ -3214,3 +3214,214 @@ $bp-desktop: 1280px;
     padding: 8px 12px;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Wishlist, Share, Recently Viewed, Quick Message
+// ---------------------------------------------------------------------------
+
+.wishlistBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 150ms ease;
+  opacity: 0;
+
+  .gridCard:hover & {
+    opacity: 1;
+  }
+}
+
+.wishlistBtnActive {
+  color: var(--accent-hot);
+  opacity: 1;
+}
+
+.shareCardBtn {
+  position: absolute;
+  top: 10px;
+  right: 52px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  z-index: 3;
+  opacity: 0;
+  transition: all 150ms ease;
+
+  .gridCard:hover & {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.wishlistDetailBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--accent-hot);
+    color: var(--accent-hot);
+  }
+}
+
+.wishlistDetailBtnActive {
+  color: var(--accent-hot);
+  border-color: var(--accent-hot);
+  background: var(--accent-hot-subtle, rgba(255, 80, 80, 0.06));
+}
+
+.shareRow {
+  display: flex;
+  gap: 8px;
+}
+
+.shareBtn {
+  flex: 1;
+  padding: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-secondary);
+  }
+}
+
+.quickMessageBtn {
+  width: 100%;
+  padding: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+.recentlyViewedSection {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.recentlyViewedTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.recentlyViewedScroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
+}
+
+.recentCard {
+  flex-shrink: 0;
+  width: 160px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 150ms ease;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.recentCardImage {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.recentCardNoImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.recentCardBody {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recentCardTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentCardPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}

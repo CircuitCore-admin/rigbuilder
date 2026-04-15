@@ -68,7 +68,7 @@ interface MarketplaceReview {
   listing: { id: string; title: string };
 }
 
-type TabKey = 'overview' | 'posts' | 'marketplace' | 'reviews';
+type TabKey = 'overview' | 'posts' | 'marketplace' | 'saved' | 'reviews';
 
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: '\u00A3', EUR: '\u20AC', USD: '$', SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', CHF: 'CHF ' };
 
@@ -115,6 +115,7 @@ export function ProfilePage() {
   const [threads, setThreads] = useState<ForumThread[]>([]);
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [reviews, setReviews] = useState<MarketplaceReview[]>([]);
+  const [savedListings, setSavedListings] = useState<MarketplaceListing[]>([]);
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -154,6 +155,11 @@ export function ProfilePage() {
     if (activeTab === 'reviews' || activeTab === 'overview') {
       api<MarketplaceReview[]>(`/users/${encodeURIComponent(username)}/reviews`)
         .then(r => setReviews(r))
+        .catch(() => {});
+    }
+    if (activeTab === 'saved' && isOwnProfile) {
+      api<{ items: MarketplaceListing[] }>('/marketplace/wishlisted')
+        .then(d => setSavedListings(d.items))
         .catch(() => {});
     }
   }, [username, profile, activeTab]);
@@ -378,13 +384,16 @@ export function ProfilePage() {
 
       {/* Tabs */}
       <div className={styles.tabBar}>
-        {(['overview', 'posts', 'marketplace', 'reviews'] as const).map(tab => (
+        {(isOwnProfile
+          ? ['overview', 'posts', 'marketplace', 'saved', 'reviews'] as const
+          : ['overview', 'posts', 'marketplace', 'reviews'] as const
+        ).map(tab => (
           <button
             key={tab}
             className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'overview' ? 'Overview' : tab === 'posts' ? 'Forum Posts' : tab === 'marketplace' ? 'Marketplace' : 'Reviews'}
+            {tab === 'overview' ? 'Overview' : tab === 'posts' ? 'Forum Posts' : tab === 'marketplace' ? 'Marketplace' : tab === 'saved' ? 'Saved' : 'Reviews'}
           </button>
         ))}
       </div>
@@ -460,6 +469,19 @@ export function ProfilePage() {
             </div>
           ) : (
             <div className={styles.emptyState}>No marketplace listings yet</div>
+          )
+        )}
+
+        {/* Saved tab (own profile only) */}
+        {activeTab === 'saved' && isOwnProfile && (
+          savedListings.length > 0 ? (
+            <div className={styles.listingsGrid}>
+              {savedListings.map(l => (
+                <ListingCard key={l.id} listing={l} onClick={() => navigate(`/marketplace/${l.id}`)} />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>No saved listings yet</div>
           )
         )}
 

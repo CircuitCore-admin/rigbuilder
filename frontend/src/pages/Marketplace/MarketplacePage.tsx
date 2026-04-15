@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import { api, resolveImageUrl, ensureCsrfToken } from '../../utils/api';
+import { addRecentlyViewed, getRecentlyViewed } from '../../utils/recentlyViewed';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
 import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
@@ -154,6 +155,54 @@ function MarketplaceDashboard() {
 
   // View mode
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Wishlist
+  const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    api<{ items: any[] }>('/marketplace/wishlisted?limit=100')
+      .then(data => {
+        setWishlistedIds(new Set(data.items.map((l: any) => l.id)));
+      })
+      .catch(() => {});
+  }, [user]);
+
+  const toggleWishlist = async (e: React.MouseEvent, listingId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { showToast('Log in to save listings', 'error'); return; }
+
+    const wasWishlisted = wishlistedIds.has(listingId);
+    setWishlistedIds(prev => {
+      const next = new Set(prev);
+      if (wasWishlisted) next.delete(listingId); else next.add(listingId);
+      return next;
+    });
+
+    try {
+      await api(`/marketplace/${listingId}/wishlist`, { method: 'POST' });
+      showToast(wasWishlisted ? 'Removed from saved' : 'Saved to wishlist', 'success');
+    } catch {
+      setWishlistedIds(prev => {
+        const next = new Set(prev);
+        if (wasWishlisted) next.add(listingId); else next.delete(listingId);
+        return next;
+      });
+      showToast('Failed to update wishlist', 'error');
+    }
+  };
+
+  const handleShareCard = (e: React.MouseEvent, listingId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(`${window.location.origin}/marketplace/${listingId}`)
+      .then(() => showToast('Link copied!', 'success'))
+      .catch(() => {});
+  };
+
+  // Recently viewed
+  const recentlyViewed = getRecentlyViewed();
 
   // Filters
   const [typeFilter, setTypeFilter] = useState<string>('');
@@ -570,7 +619,7 @@ function MarketplaceDashboard() {
         ) : viewMode === 'grid' ? (
           <div className={styles.listingGrid}>
             {listings.map(listing => (
-              <ListingCard key={listing.id} listing={listing} mode="grid" />
+              <ListingCard key={listing.id} listing={listing} mode="grid" isWishlisted={wishlistedIds.has(listing.id)} onToggleWishlist={user ? toggleWishlist : undefined} onShare={handleShareCard} />
             ))}
           </div>
         ) : (
@@ -610,9 +659,33 @@ function MarketplaceDashboard() {
             )}
           </div>
         )}
-      </main>
 
-      {/* ---------- Right sidebar ---------- */}
+        {/* Recently Viewed */}
+        {recentlyViewed.length > 0 && !loading && (
+          <div className={styles.recentlyViewedSection}>
+            <h3 className={styles.recentlyViewedTitle}>Recently Viewed</h3>
+            <div className={styles.recentlyViewedScroll}>
+              {recentlyViewed.slice(0, 8).map(item => (
+                <a key={item.id} href={`/marketplace/${item.id}`} className={styles.recentCard}>
+                  <div className={styles.recentCardImage}>
+                    {item.imageUrl ? (
+                      <img src={resolveImageUrl(item.imageUrl)} alt="" />
+                    ) : (
+                      <div className={styles.recentCardNoImage}>No image</div>
+                    )}
+                  </div>
+                  <div className={styles.recentCardBody}>
+                    <span className={styles.recentCardTitle}>{item.title}</span>
+                    <span className={styles.recentCardPrice}>
+                      {item.price != null ? `${item.currency === 'GBP' ? '\u00A3' : item.currency === 'EUR' ? '\u20AC' : '$'}${item.price}` : 'Offers'}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
       <aside className={styles.rightSidebar}>
         {user && (
           <a href="/marketplace/new" className={styles.createListingBtn}>
@@ -692,7 +765,13 @@ function MarketplaceDashboard() {
 // Listing Card (Grid & List mode)
 // ---------------------------------------------------------------------------
 
-function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | 'list' }) {
+function ListingCard({ listing, mode, isWishlisted, onToggleWishlist, onShare }: {
+  listing: ListingItem;
+  mode: 'grid' | 'list';
+  isWishlisted?: boolean;
+  onToggleWishlist?: (e: React.MouseEvent, id: string) => void;
+  onShare?: (e: React.MouseEvent, id: string) => void;
+}) {
   const typeInfo = LISTING_TYPE_LABELS[listing.type] ?? { label: listing.type, color: '#7878A0' };
   const condLabel = listing.condition ? CONDITION_LABELS[listing.condition] ?? listing.condition : null;
   const isSold = listing.status === 'SOLD' || listing.status === 'FOUND';
@@ -713,6 +792,28 @@ function ListingCard({ listing, mode }: { listing: ListingItem; mode: 'grid' | '
           {isSold && <span className={styles.soldOverlay}>SOLD</span>}
           {listing.imageUrls.length > 1 && (
             <span className={styles.imageCount}>📷 {listing.imageUrls.length}</span>
+          )}
+          {onShare && (
+            <button
+              className={styles.shareCardBtn}
+              onClick={(e) => onShare(e, listing.id)}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+            </button>
+          )}
+          {onToggleWishlist && (
+            <button
+              className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlistBtnActive : ''}`}
+              onClick={(e) => onToggleWishlist(e, listing.id)}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill={isWishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+            </button>
           )}
         </div>
         <div className={styles.gridCardBody}>
@@ -1412,6 +1513,9 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   const [counterAmount, setCounterAmount] = useState('');
   const [counterMessage, setCounterMessage] = useState('');
 
+  // Wishlist
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
   // Reviews
   const [reviews, setReviews] = useState<Review[]>([]);
 
@@ -1458,6 +1562,39 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
       })
       .catch(() => {});
   }, [listing, listingId]);
+
+  // Check wishlist status
+  useEffect(() => {
+    if (!user || !listing) return;
+    api<{ wishlisted: boolean }>(`/marketplace/${listingId}/wishlist`)
+      .then(d => setIsWishlisted(d.wishlisted))
+      .catch(() => {});
+  }, [user, listing, listingId]);
+
+  // Track recently viewed
+  useEffect(() => {
+    if (!listing) return;
+    addRecentlyViewed({
+      id: listing.id,
+      title: listing.title,
+      price: listing.price,
+      currency: listing.currency,
+      imageUrl: listing.imageUrls?.[0] ?? null,
+    });
+  }, [listing]);
+
+  const handleToggleWishlist = async () => {
+    if (!user) { showToast('Log in to save listings', 'error'); return; }
+    const was = isWishlisted;
+    setIsWishlisted(!was);
+    try {
+      await api(`/marketplace/${listingId}/wishlist`, { method: 'POST' });
+      showToast(was ? 'Removed from saved' : 'Saved to wishlist', 'success');
+    } catch {
+      setIsWishlisted(was);
+      showToast('Failed', 'error');
+    }
+  };
 
   const isOwner = user && listing && user.userId === listing.user.id;
   const isSold = listing?.status === 'SOLD' || listing?.status === 'FOUND';
@@ -1712,6 +1849,26 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               >
                 Message Seller
               </button>
+              <button
+                className={styles.quickMessageBtn}
+                onClick={async () => {
+                  if (!user || !listing) return;
+                  try {
+                    await api('/marketplace/messages', {
+                      method: 'POST',
+                      body: { listingId: listing.id, recipientId: listing.user.id, body: 'Hi, is this still available?' },
+                    });
+                    const ids = [user.userId, listing.user.id].sort();
+                    const convId = `${ids[0]}_${ids[1]}_${listing.id}`;
+                    showToast('Message sent!', 'success');
+                    navigate(`/messages/${convId}`);
+                  } catch {
+                    showToast('Failed to send', 'error');
+                  }
+                }}
+              >
+                Is this still available?
+              </button>
               {listing.type === 'SELLING' && (
                 <button
                   className={styles.makeOfferBtnPrimary}
@@ -1826,6 +1983,37 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
             {listing.shippingOptions?.includes('LOCAL_PICKUP') && <span className={styles.shippingPill}>Local Pickup</span>}
             {listing.shippingOptions?.includes('NATIONAL_SHIPPING') && <span className={styles.shippingPill}>National Shipping</span>}
             {listing.shippingOptions?.includes('INTERNATIONAL_SHIPPING') && <span className={styles.shippingPill}>International</span>}
+          </div>
+
+          {/* Wishlist + Share */}
+          <button
+            className={`${styles.wishlistDetailBtn} ${isWishlisted ? styles.wishlistDetailBtnActive : ''}`}
+            onClick={handleToggleWishlist}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={isWishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+            {isWishlisted ? 'Saved' : 'Save'}
+          </button>
+          <div className={styles.shareRow}>
+            <button
+              className={styles.shareBtn}
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href)
+                  .then(() => showToast('Link copied!', 'success'))
+                  .catch(() => showToast('Failed to copy', 'error'));
+              }}
+            >
+              Copy Link
+            </button>
+            <a
+              className={styles.shareBtn}
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(`Check out: ${listing.title}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Share on X
+            </a>
           </div>
 
           {/* Owner controls */}
