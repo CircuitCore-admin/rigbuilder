@@ -25,6 +25,17 @@ function getNotificationLink(n: { source: string; type: string; threadId?: strin
   return '/marketplace';
 }
 
+interface NavNotification {
+  id: string;
+  source: 'forum' | 'marketplace';
+  type: string;
+  message: string;
+  read: boolean;
+  threadId: string | null;
+  listingId: string | null;
+  createdAt: string;
+}
+
 /**
  * Global navigation bar — sticky "frosted glass" top bar on desktop,
  * bottom tab bar on mobile.
@@ -40,7 +51,7 @@ export function Navbar() {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NavNotification[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
@@ -87,7 +98,7 @@ export function Navbar() {
     const opening = !showNotifDropdown;
     setShowNotifDropdown(opening);
     if (opening) {
-      api<{ items: any[] }>('/notifications?limit=10')
+      api<{ items: NavNotification[] }>('/notifications?limit=10')
         .then(data => setNotifications(Array.isArray(data.items) ? data.items : []))
         .catch(() => setNotifications([]));
     }
