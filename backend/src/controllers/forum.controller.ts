@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { ForumService, NotFoundError } from '../services/forum.service';
 import { ForumRepository } from '../repositories/forum.repository';
+import { prisma } from '../prisma';
 import type { ForumCategory } from '@prisma/client';
 
 export class ForumController {
@@ -298,5 +299,39 @@ export class ForumController {
     const ids = req.body.ids as string[] | undefined;
     await ForumService.markNotificationsRead(session.userId, ids);
     res.json({ success: true });
+  }
+
+  /** PUT /api/v1/forum/:slug/pin */
+  static async togglePin(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (session.role !== 'ADMIN' && session.role !== 'MODERATOR') {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    const thread = await prisma.forumThread.findUnique({ where: { slug: req.params.slug } });
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    const updated = await prisma.forumThread.update({
+      where: { slug: req.params.slug },
+      data: { isPinned: !thread.isPinned },
+    });
+    res.json({ isPinned: updated.isPinned });
+  }
+
+  /** PUT /api/v1/forum/:slug/lock */
+  static async toggleLock(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (session.role !== 'ADMIN' && session.role !== 'MODERATOR') {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    const thread = await prisma.forumThread.findUnique({ where: { slug: req.params.slug } });
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    const updated = await prisma.forumThread.update({
+      where: { slug: req.params.slug },
+      data: { isLocked: !thread.isLocked },
+    });
+    res.json({ isLocked: updated.isLocked });
   }
 }

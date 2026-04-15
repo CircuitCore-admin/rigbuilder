@@ -57,6 +57,8 @@ interface Thread {
   imageUrls?: string[];
   link?: string | null;
   isAnonymous?: boolean;
+  isPinned?: boolean;
+  isLocked?: boolean;
 }
 
 interface ForumThreadProps {
@@ -551,6 +553,34 @@ export function ForumThread({ slug }: ForumThreadProps) {
                   <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={handleDelete}>Delete</button>
                 </>
               )}
+              {(authUser?.role === 'ADMIN' || authUser?.role === 'MODERATOR') && (
+                <div className={styles.adminActions}>
+                  <button
+                    className={`${styles.adminBtn} ${thread.isPinned ? styles.adminBtnActive : ''}`}
+                    onClick={async () => {
+                      try {
+                        const result = await api<{ isPinned: boolean }>(`/forum/${thread.slug}/pin`, { method: 'PUT' });
+                        setThread((prev: any) => prev ? { ...prev, isPinned: result.isPinned } : prev);
+                        showToast(result.isPinned ? 'Thread pinned' : 'Thread unpinned', 'success');
+                      } catch { showToast('Failed', 'error'); }
+                    }}
+                  >
+                    {thread.isPinned ? 'Unpin' : 'Pin'}
+                  </button>
+                  <button
+                    className={`${styles.adminBtn} ${thread.isLocked ? styles.adminBtnActive : ''}`}
+                    onClick={async () => {
+                      try {
+                        const result = await api<{ isLocked: boolean }>(`/forum/${thread.slug}/lock`, { method: 'PUT' });
+                        setThread((prev: any) => prev ? { ...prev, isLocked: result.isLocked } : prev);
+                        showToast(result.isLocked ? 'Thread locked' : 'Thread unlocked', 'success');
+                      } catch { showToast('Failed', 'error'); }
+                    }}
+                  >
+                    {thread.isLocked ? 'Unlock' : 'Lock'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Mobile vote display (inline) */}
@@ -622,11 +652,20 @@ export function ForumThread({ slug }: ForumThreadProps) {
               onInlineReplySubmit={handleSubmitInlineReply}
               onInlineReplyCancel={handleCancelInlineReply}
               submitting={submitting}
+              isLocked={!!thread.isLocked}
             />
           ))}
         </div>
 
-        {authUser ? (
+        {thread.isLocked ? (
+          <div className={styles.lockedNotice}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ color: 'var(--text-muted)' }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+            <span>This thread has been locked. No new replies can be posted.</span>
+          </div>
+        ) : authUser ? (
           <div className={styles.replyForm}>
             {inlineReplyId ? (
               <div className={styles.replyDisabled}>Replying to a comment above…</div>
@@ -667,7 +706,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
 function ReplyNode({
   reply, depth, onReply, onVote, onShareReply, replyVotes, replyVotingIds, collapsedReplies, toggleCollapse,
   inlineReplyId, inlineReplyBody, onInlineReplyBodyChange,
-  onInlineReplySubmit, onInlineReplyCancel, submitting,
+  onInlineReplySubmit, onInlineReplyCancel, submitting, isLocked,
 }: {
   reply: Reply & { children?: Reply[] };
   depth: number;
@@ -684,6 +723,7 @@ function ReplyNode({
   onInlineReplySubmit: () => void;
   onInlineReplyCancel: () => void;
   submitting: boolean;
+  isLocked?: boolean;
 }) {
   const badges = getBadges(reply.user.reputation, reply.user.role);
   const showInlineForm = inlineReplyId === reply.id;
@@ -746,15 +786,17 @@ function ReplyNode({
                   >
                     <DownArrowIcon size={14} />
                   </button>
-                  <button className={styles.replyActionBtn} onClick={() => onReply(reply.id)}>
-                    <ChatIcon size={14} /> Reply
-                  </button>
+                  {!isLocked && (
+                    <button className={styles.replyActionBtn} onClick={() => onReply(reply.id)}>
+                      <ChatIcon size={14} /> Reply
+                    </button>
+                  )}
                   <button className={styles.replyActionBtn} onClick={() => onShareReply(reply.id)}>
                     <ShareIcon size={14} /> Share
                   </button>
                 </div>
               </div>
-              {showInlineForm && (
+              {showInlineForm && !isLocked && (
                 <div className={styles.inlineReplyForm}>
                   <MarkdownEditor
                     value={inlineReplyBody}
@@ -794,6 +836,7 @@ function ReplyNode({
                   onInlineReplySubmit={onInlineReplySubmit}
                   onInlineReplyCancel={onInlineReplyCancel}
                   submitting={submitting}
+                  isLocked={isLocked}
                 />
               ))}
             </>

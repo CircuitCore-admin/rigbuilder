@@ -190,6 +190,50 @@
   }
 }
 
+.adminActions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.adminBtn {
+  padding: 5px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-secondary);
+  }
+}
+
+.adminBtnActive {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.lockedNotice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+}
+
 // Mobile vote display (inline, hidden on desktop)
 .mobileVoteRow {
   display: none;

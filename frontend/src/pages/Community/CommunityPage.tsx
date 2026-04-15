@@ -33,6 +33,8 @@ interface ThreadListItem {
   score?: number;
   createdAt: string;
   imageUrls?: string[];
+  isPinned?: boolean;
+  isLocked?: boolean;
   user: {
     id: string;
     username: string;
@@ -422,6 +424,23 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                           >
                             {catLabel}
                           </span>
+                          {t.isPinned && (
+                            <span className={styles.pinnedBadge}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
+                              </svg>
+                              Pinned
+                            </span>
+                          )}
+                          {t.isLocked && (
+                            <span className={styles.lockedBadge}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                              </svg>
+                              Locked
+                            </span>
+                          )}
                           <span className={styles.threadCardMeta}>
                             Posted by {t.user.id === 'anonymous' ? <em>Anonymous</em> : (
                               <a href={`/profile/${t.user.username}`} className={styles.threadCardAuthorLink} onClick={e => e.stopPropagation()}>

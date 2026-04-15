@@ -22,7 +22,10 @@ export class ForumRepository {
     const [items, total] = await Promise.all([
       prisma.forumThread.findMany({
         where,
-        orderBy: { [sortBy]: sortDir },
+        orderBy: [
+        { isPinned: 'desc' },
+        { [sortBy]: sortDir },
+      ],
         skip: (page - 1) * limit,
         take: limit,
         include: {
