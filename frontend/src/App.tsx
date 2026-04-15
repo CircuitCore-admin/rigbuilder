@@ -10,6 +10,7 @@ import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { MarketplacePage } from './pages/Marketplace/MarketplacePage';
 import { MarketplaceMessages } from './pages/Marketplace/MarketplaceMessages';
+import { NotificationsPage } from './pages/Notifications/NotificationsPage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
@@ -53,6 +54,7 @@ export function App() {
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/messages" element={<MarketplaceMessages />} />
         <Route path="/messages/:conversationId" element={<MarketplaceMessages />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/marketplace/:id" element={<MarketplacePage />} />
 
         {/* Profile */}
