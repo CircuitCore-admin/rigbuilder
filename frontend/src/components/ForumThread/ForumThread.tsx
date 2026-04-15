@@ -560,7 +560,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
                     onClick={async () => {
                       try {
                         const result = await api<{ isPinned: boolean }>(`/forum/${thread.slug}/pin`, { method: 'PUT' });
-                        setThread((prev: any) => prev ? { ...prev, isPinned: result.isPinned } : prev);
+                        setThread(prev => prev ? { ...prev, isPinned: result.isPinned } : prev);
                         showToast(result.isPinned ? 'Thread pinned' : 'Thread unpinned', 'success');
                       } catch { showToast('Failed', 'error'); }
                     }}
@@ -572,7 +572,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
                     onClick={async () => {
                       try {
                         const result = await api<{ isLocked: boolean }>(`/forum/${thread.slug}/lock`, { method: 'PUT' });
-                        setThread((prev: any) => prev ? { ...prev, isLocked: result.isLocked } : prev);
+                        setThread(prev => prev ? { ...prev, isLocked: result.isLocked } : prev);
                         showToast(result.isLocked ? 'Thread locked' : 'Thread unlocked', 'success');
                       } catch { showToast('Failed', 'error'); }
                     }}
