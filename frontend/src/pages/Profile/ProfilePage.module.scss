@@ -729,3 +729,18 @@
     grid-template-columns: 1fr;
   }
 }
+
+// ---------- Block Button ----------
+
+.blockBtn {
+  padding: 6px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--accent-hot);
+  background: none;
+  border: 1px solid var(--accent-hot);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-top: 8px;
+  &:hover { background: var(--accent-hot-subtle); }
+}

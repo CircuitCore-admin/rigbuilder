@@ -478,6 +478,22 @@ export function MarketplaceMessages() {
                   </div>
                 </a>
               )}
+              {listingInfo && user && (listingInfo as any).userId === user.userId && (
+                <div className={styles.quickResponses}>
+                  {['Still available!', 'Price is firm.', 'Happy to negotiate — make me an offer.', 'Can arrange local pickup.', 'Will ship nationally.'].map(qr => (
+                    <button
+                      key={qr}
+                      className={styles.quickResponseBtn}
+                      onClick={() => {
+                        setMessageInput(qr);
+                        textareaRef.current?.focus();
+                      }}
+                    >
+                      {qr}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className={styles.inputRow}>
                 <textarea
                   ref={textareaRef}

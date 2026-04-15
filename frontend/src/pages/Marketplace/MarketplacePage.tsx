@@ -833,6 +833,9 @@ function ListingCard({ listing, mode, isWishlisted, onToggleWishlist, onShare }:
             ) : (
               <span className={styles.gridCardSeller}>Unknown</span>
             )}
+            {listing.user?.completedSales >= 5 && (
+              <span className={styles.verifiedSellerSmall} title="Verified Seller — 5+ completed sales">✓</span>
+            )}
             {listing.user?.sellerRating != null && listing.user.sellerRating > 0 && (
               <span className={styles.gridCardRating}>★ {listing.user.sellerRating.toFixed(1)}</span>
             )}
@@ -1826,6 +1829,12 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               <a href={`/profile/${listing.user.username}`} className={styles.sellerNameLink}>
                 {listing.user.username}
               </a>
+              {listing.user.completedSales >= 5 && (
+                <span className={styles.verifiedSellerBadge}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                  Verified Seller
+                </span>
+              )}
               <div className={styles.sellerRating}>
                 {listing.user.sellerRating !== null ? (
                   <>{renderStars(listing.user.sellerRating)} ({listing.user.sellerReviewCount})</>
@@ -1833,6 +1842,11 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                   <span className={styles.sellerNoRating}>No ratings yet</span>
                 )}
               </div>
+              {listing.user.avgResponseMinutes != null && (
+                <span className={styles.responseTime}>
+                  Usually responds {listing.user.avgResponseMinutes < 60 ? `within ${listing.user.avgResponseMinutes} minutes` : listing.user.avgResponseMinutes < 1440 ? `within ${Math.round(listing.user.avgResponseMinutes / 60)} hours` : `within ${Math.round(listing.user.avgResponseMinutes / 1440)} days`}
+                </span>
+              )}
             </div>
           </div>
 
@@ -2015,6 +2029,27 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               Share on X
             </a>
           </div>
+
+          {/* Listing Analytics — owner only */}
+          {isOwner && (
+            <div className={styles.analyticsCard}>
+              <h4 className={styles.analyticsTitle}>Listing Analytics</h4>
+              <div className={styles.analyticsGrid}>
+                <div className={styles.analyticItem}>
+                  <span className={styles.analyticValue}>{listing.viewCount}</span>
+                  <span className={styles.analyticLabel}>Views</span>
+                </div>
+                <div className={styles.analyticItem}>
+                  <span className={styles.analyticValue}>{listing.wishlistCount ?? 0}</span>
+                  <span className={styles.analyticLabel}>Saves</span>
+                </div>
+                <div className={styles.analyticItem}>
+                  <span className={styles.analyticValue}>{offers.length}</span>
+                  <span className={styles.analyticLabel}>Offers</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Owner controls */}
           {isOwner && (

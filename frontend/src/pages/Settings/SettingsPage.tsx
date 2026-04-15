@@ -5,6 +5,12 @@ import { useToast } from '../../components/Toast/Toast';
 import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
 import styles from './SettingsPage.module.scss';
 
+interface BlockedUser {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+}
+
 export function SettingsPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -22,6 +28,9 @@ export function SettingsPage() {
   // Discord
   const [discord, setDiscord] = useState('');
 
+  // Blocked users
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
+
   useEffect(() => {
     if (!user) return;
     api<any>(`/users/${user.username}`)
@@ -31,6 +40,7 @@ export function SettingsPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    api<BlockedUser[]>('/users/blocked').then(setBlockedUsers).catch(() => {});
   }, [user]);
 
   const handleSavePrivacy = async () => {
@@ -112,6 +122,34 @@ export function SettingsPage() {
           <input className={styles.fieldInput} placeholder="@username" value={discord} onChange={e => setDiscord(e.target.value)} />
         </div>
         <button className={styles.saveBtn} onClick={handleSaveDiscord}>Save</button>
+      </section>
+
+      {/* Blocked Users */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Blocked Users</h2>
+        {blockedUsers.length === 0 ? (
+          <p className={styles.sectionDesc}>No blocked users</p>
+        ) : (
+          <div className={styles.blockedList}>
+            {blockedUsers.map(u => (
+              <div key={u.id} className={styles.blockedItem}>
+                <span>{u.username}</span>
+                <button
+                  className={styles.unblockBtn}
+                  onClick={async () => {
+                    try {
+                      await api(`/users/${u.username}/block`, { method: 'POST' });
+                      setBlockedUsers(prev => prev.filter(b => b.id !== u.id));
+                      showToast('Unblocked', 'success');
+                    } catch { showToast('Failed', 'error'); }
+                  }}
+                >
+                  Unblock
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

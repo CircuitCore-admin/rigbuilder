@@ -26,6 +26,8 @@ interface UserProfile {
   pitCred?: number;
   sellerRating?: number | null;
   sellerReviewCount?: number;
+  completedSales?: number;
+  avgResponseMinutes?: number | null;
   discordUsername?: string | null;
   profileVisibility?: string;
   createdAt: string;
@@ -117,6 +119,9 @@ export function ProfilePage() {
   const [reviews, setReviews] = useState<MarketplaceReview[]>([]);
   const [savedListings, setSavedListings] = useState<MarketplaceListing[]>([]);
 
+  // Block state
+  const [isBlocked, setIsBlocked] = useState(false);
+
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editBio, setEditBio] = useState('');
@@ -137,6 +142,23 @@ export function ProfilePage() {
       .then(p => { setProfile(p); setLoading(false); })
       .catch(() => { setProfile(null); setLoading(false); });
   }, [username]);
+
+  // Check block status
+  useEffect(() => {
+    if (!authUser || !username || isOwnProfile) return;
+    api<{ blocked: boolean }>(`/users/${encodeURIComponent(username)}/block`)
+      .then(d => setIsBlocked(d.blocked))
+      .catch(() => {});
+  }, [authUser, username, isOwnProfile]);
+
+  const handleToggleBlock = async () => {
+    if (!username) return;
+    try {
+      const result = await api<{ blocked: boolean }>(`/users/${encodeURIComponent(username)}/block`, { method: 'POST' });
+      setIsBlocked(result.blocked);
+      showToast(result.blocked ? 'User blocked' : 'User unblocked', 'success');
+    } catch { showToast('Failed', 'error'); }
+  };
 
   // Fetch tab data
   useEffect(() => {
@@ -366,6 +388,10 @@ export function ProfilePage() {
                 <span className={styles.statLabel}>{profile.sellerReviewCount ?? 0} reviews</span>
               </div>
             )}
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{profile.completedSales ?? 0}</span>
+              <span className={styles.statLabel}>Sales</span>
+            </div>
           </div>
 
           {isOwnProfile && !isEditing && (
@@ -377,6 +403,11 @@ export function ProfilePage() {
               setIsEditing(true);
             }}>
               Edit Profile
+            </button>
+          )}
+          {!isOwnProfile && authUser && (
+            <button className={styles.blockBtn} onClick={handleToggleBlock}>
+              {isBlocked ? 'Unblock User' : 'Block User'}
             </button>
           )}
         </div>
