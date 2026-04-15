@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { MarketplaceService, NotFoundError, ForbiddenError, BadRequestError } from '../services/marketplace.service';
 import { MarketplaceRepository } from '../repositories/marketplace.repository';
+import { prisma } from '../prisma';
 import type { MarketplaceListingType, ItemCondition, Currency, ShippingOption, ListingStatus, ReportStatus } from '@prisma/client';
 
 export class MarketplaceController {
@@ -407,5 +408,72 @@ export class MarketplaceController {
     } catch {
       res.status(500).json({ error: 'Failed to fetch related listings' });
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Wishlist
+  // -------------------------------------------------------------------------
+
+  /** POST /api/v1/marketplace/:id/wishlist — toggle wishlist */
+  static async toggleWishlist(req: Request, res: Response) {
+    const session = (req as any).session;
+    const listingId = req.params.id;
+
+    const existing = await prisma.wishlistedListing.findUnique({
+      where: { userId_listingId: { userId: session.userId, listingId } },
+    });
+
+    if (existing) {
+      await prisma.$transaction([
+        prisma.wishlistedListing.delete({ where: { id: existing.id } }),
+        prisma.marketplaceListing.update({ where: { id: listingId }, data: { wishlistCount: { decrement: 1 } } }),
+      ]);
+      res.json({ wishlisted: false });
+    } else {
+      await prisma.$transaction([
+        prisma.wishlistedListing.create({ data: { userId: session.userId, listingId } }),
+        prisma.marketplaceListing.update({ where: { id: listingId }, data: { wishlistCount: { increment: 1 } } }),
+      ]);
+      res.json({ wishlisted: true });
+    }
+  }
+
+  /** GET /api/v1/marketplace/:id/wishlist — check if wishlisted */
+  static async isWishlisted(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.json({ wishlisted: false });
+    const existing = await prisma.wishlistedListing.findUnique({
+      where: { userId_listingId: { userId: session.userId, listingId: req.params.id } },
+    });
+    res.json({ wishlisted: !!existing });
+  }
+
+  /** GET /api/v1/marketplace/wishlisted — get user's wishlisted listings */
+  static async getWishlistedListings(req: Request, res: Response) {
+    const session = (req as any).session;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 12));
+
+    const [items, total] = await Promise.all([
+      prisma.wishlistedListing.findMany({
+        where: { userId: session.userId },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          listing: {
+            include: {
+              user: { select: { id: true, username: true, avatarUrl: true, sellerRating: true, sellerReviewCount: true } },
+            },
+          },
+        },
+      }),
+      prisma.wishlistedListing.count({ where: { userId: session.userId } }),
+    ]);
+
+    res.json({
+      items: items.map(w => w.listing),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   }
 }

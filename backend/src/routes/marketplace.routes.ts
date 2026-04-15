@@ -46,8 +46,13 @@ router.put('/reports/:reportId', authenticate, writeLimiter, validate(reviewRepo
 // Seller reviews
 router.get('/users/:userId/reviews', searchLimiter, MarketplaceController.getSellerReviews);
 
+// Wishlisted listings (before :id catch-all)
+router.get('/wishlisted', authenticate, searchLimiter, MarketplaceController.getWishlistedListings);
+
 // Single listing routes
 router.get('/:id/related', searchLimiter, MarketplaceController.getRelatedListings);
+router.get('/:id/wishlist', optionalAuth, searchLimiter, MarketplaceController.isWishlisted);
+router.post('/:id/wishlist', authenticate, writeLimiter, MarketplaceController.toggleWishlist);
 router.get('/:id', optionalAuth, searchLimiter, MarketplaceController.getListingById);
 router.post('/', authenticate, writeLimiter, validate(createListingSchema), MarketplaceController.createListing);
 router.put('/:id', authenticate, writeLimiter, validate(updateListingSchema), MarketplaceController.updateListing);

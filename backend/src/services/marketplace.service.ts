@@ -129,6 +129,8 @@ export class MarketplaceService {
       throw new ForbiddenError('You do not have permission to edit this listing');
     }
 
+    const oldPrice = listing.price != null ? Number(listing.price) : null;
+
     // Build update payload — strip out fields that shouldn't go directly to Prisma
     const { productId, buildPermalink, ...updateData } = data as any;
     const prismaData: Record<string, unknown> = { ...updateData };
@@ -137,7 +139,31 @@ export class MarketplaceService {
       prismaData.product = productId ? { connect: { id: productId } } : { disconnect: true };
     }
 
-    return MarketplaceRepository.updateListing(id, prismaData);
+    const updated = await MarketplaceRepository.updateListing(id, prismaData);
+
+    // Check for price drop — notify wishlisters
+    if (data.price !== undefined && oldPrice !== null && Number(data.price) < oldPrice) {
+      try {
+        const wishlisters = await prisma.wishlistedListing.findMany({
+          where: { listingId: id, userId: { not: userId } },
+          select: { userId: true },
+        });
+
+        const currencySymbol = listing.currency === 'GBP' ? '\u00A3' : listing.currency === 'EUR' ? '\u20AC' : '$';
+        for (const w of wishlisters) {
+          MarketplaceRepository.createNotification({
+            userId: w.userId,
+            type: 'PRICE_DROP',
+            listingId: id,
+            message: `Price dropped on "${listing.title}": ${currencySymbol}${oldPrice} \u2192 ${currencySymbol}${data.price}`,
+          }).catch(() => {});
+        }
+      } catch {
+        // Non-critical: don't fail listing update if notification fails
+      }
+    }
+
+    return updated;
   }
 
   static async deleteListing(id: string, userId: string, role: string) {
