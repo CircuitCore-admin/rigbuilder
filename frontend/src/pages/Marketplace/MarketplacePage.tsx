@@ -27,6 +27,8 @@ interface ListingUser {
   avatarUrl: string | null;
   sellerRating: number | null;
   sellerReviewCount: number;
+  completedSales: number;
+  avgResponseMinutes: number | null;
   createdAt?: string;
 }
 
@@ -49,6 +51,7 @@ interface ListingItem {
   discordUsername: string | null;
   productId: string | null;
   viewCount: number;
+  wishlistCount: number;
   isPremium: boolean;
   premiumUntil: string | null;
   expiresAt: string;
