@@ -373,7 +373,11 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                     <div className={styles.showroomInfo}>
                       <h3 className={styles.showroomTitle}>{t.title}</h3>
                       <span className={styles.showroomAuthor}>
-                        {t.user.username}
+                        {t.user.id === 'anonymous' ? <em>Anonymous</em> : (
+                          <a href={`/profile/${t.user.username}`} className={styles.threadCardAuthorLink} onClick={e => e.stopPropagation()}>
+                            {t.user.username}
+                          </a>
+                        )}
                       </span>
                     </div>
                   </a>
@@ -419,8 +423,12 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                             {catLabel}
                           </span>
                           <span className={styles.threadCardMeta}>
-                            Posted by {t.user.username}
-                            {t.user.pitCred != null && t.user.pitCred > 0 && (
+                            Posted by {t.user.id === 'anonymous' ? <em>Anonymous</em> : (
+                              <a href={`/profile/${t.user.username}`} className={styles.threadCardAuthorLink} onClick={e => e.stopPropagation()}>
+                                {t.user.username}
+                              </a>
+                            )}
+                            {t.user.id !== 'anonymous' && t.user.pitCred != null && t.user.pitCred > 0 && (
                               <span className={styles.pitCredSmall}> · {t.user.pitCred} PC</span>
                             )}
                             {' · '}
@@ -572,6 +580,7 @@ function NewThreadForm() {
   const [bomEntries, setBomEntries] = useState<BomEntry[]>([{ item: '', quantity: '1' }]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Image upload states
@@ -805,6 +814,7 @@ function NewThreadForm() {
           category,
           metadata: Object.keys(meta).length > 0 ? meta : undefined,
           imageUrls: filteredImages.length > 0 ? filteredImages : undefined,
+          isAnonymous: isAnonymous || undefined,
         },
       });
       showToast('Thread created');
@@ -1152,6 +1162,17 @@ function NewThreadForm() {
         </div>
 
         <div className={styles.formActions}>
+          <label className={styles.anonymousToggle}>
+            <input
+              type="checkbox"
+              checked={isAnonymous}
+              onChange={e => setIsAnonymous(e.target.checked)}
+            />
+            <div>
+              <span className={styles.anonymousToggleLabel}>Post as Anonymous</span>
+              <span className={styles.anonymousToggleHint}>Your identity will be hidden from other users</span>
+            </div>
+          </label>
           <button
             type="submit"
             className={styles.submitBtn}

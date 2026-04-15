@@ -1,0 +1,95 @@
+.selectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.selectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 150ms ease;
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.selectTriggerOpen {
+  border-color: var(--accent-primary);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.selectPlaceholder {
+  color: var(--text-muted);
+}
+
+.selectValue {
+  color: var(--text-body);
+}
+
+.selectChevron {
+  color: var(--text-muted);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.selectChevronOpen {
+  transform: rotate(180deg);
+}
+
+.selectDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent-primary);
+  border-top: none;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  max-height: 260px;
+  overflow-y: auto;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 120ms ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.selectOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 100ms ease;
+
+  &:hover {
+    background: var(--surface-hover);
+  }
+}
+
+.selectOptionActive {
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}

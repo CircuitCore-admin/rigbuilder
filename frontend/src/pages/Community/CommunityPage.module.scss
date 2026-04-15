@@ -227,6 +227,12 @@
   color: var(--text-muted);
 }
 
+.threadCardAuthorLink {
+  color: var(--text-muted);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); text-decoration: underline; }
+}
+
 // ---------- Pagination ----------
 
 .pagination {
@@ -482,8 +488,46 @@
 
 .formActions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   padding-top: 4px;
+  gap: 16px;
+}
+
+.anonymousToggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 150ms ease;
+
+  &:hover {
+    border-color: var(--border-strong, var(--accent-primary));
+  }
+
+  input[type="checkbox"] {
+    margin-top: 2px;
+    accent-color: var(--accent-primary);
+  }
+}
+
+.anonymousToggleLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+}
+
+.anonymousToggleHint {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
 }
 
 .submitBtn {

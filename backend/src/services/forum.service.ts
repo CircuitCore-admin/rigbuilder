@@ -9,9 +9,26 @@ export class NotFoundError extends Error {
   }
 }
 
+// Mask user data for anonymous threads
+function maskAnonymousThread<T extends { isAnonymous?: boolean; user?: any }>(thread: T): T {
+  if (!thread?.isAnonymous) return thread;
+  return {
+    ...thread,
+    user: {
+      id: 'anonymous',
+      username: 'Anonymous',
+      avatarUrl: null,
+      reputation: 0,
+      pitCred: null,
+      role: 'USER',
+    },
+  };
+}
+
 export class ForumService {
   static async listThreads(params: ForumListParams) {
-    return ForumRepository.findThreads(params);
+    const result = await ForumRepository.findThreads(params);
+    return { ...result, items: result.items.map(maskAnonymousThread) };
   }
 
   /** Fetch thread by slug — does NOT increment view count.
@@ -19,7 +36,7 @@ export class ForumService {
   static async getThreadBySlug(slug: string) {
     const thread = await ForumRepository.findThreadBySlug(slug);
     if (!thread) throw new NotFoundError('Thread not found');
-    return thread;
+    return maskAnonymousThread(thread);
   }
 
   static async getThreadById(id: string) {
@@ -35,6 +52,7 @@ export class ForumService {
     link?: string;
     metadata?: Record<string, unknown>;
     imageUrls?: string[];
+    isAnonymous?: boolean;
   }) {
     const slug = slugify(data.title) + '-' + Date.now().toString(36);
 
@@ -48,6 +66,7 @@ export class ForumService {
       ...(data.link && { link: data.link }),
       ...(data.metadata && { metadata: data.metadata }),
       ...(data.imageUrls?.length && { imageUrls: data.imageUrls }),
+      ...(data.isAnonymous && { isAnonymous: true }),
     });
   }
 

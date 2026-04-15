@@ -160,11 +160,226 @@
   }
 }
 
+.navIconBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: color 150ms ease, background 150ms ease;
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+}
+
+.navBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border-radius: 8px;
+  padding: 0 4px;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.notifWrapper {
+  position: relative;
+}
+
+.notifDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 380px;
+  max-height: 480px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: notifDropdownFadeIn 150ms ease;
+}
+
+@keyframes notifDropdownFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notifDropdownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+
+  h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+}
+
+.markAllRead {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--accent-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
+}
+
+.notifDropdownList {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 360px;
+}
+
+.notifItem {
+  display: block;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 150ms ease;
+  &:hover { background: var(--surface-hover); }
+  &:last-child { border-bottom: none; }
+}
+
+.notifItemUnread {
+  background: rgba(var(--accent-primary-rgb, 0 255 136), 0.04);
+  border-left: 3px solid var(--accent-primary);
+  padding-left: 13px;
+}
+
+.notifMessage {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.notifTime {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.notifEmpty {
+  padding: 32px;
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.notifViewAll {
+  display: block;
+  padding: 12px;
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-decoration: none;
+  border-top: 1px solid var(--border-subtle);
+  &:hover { background: var(--surface-hover); }
+}
+
 .userGroup,
 .authGroup {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.userDropdownWrapper {
+  position: relative;
+}
+
+.userDropdownTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--text-body);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 200;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.userDropdownItem {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-body);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--accent-primary);
+  }
 }
 
 .username {

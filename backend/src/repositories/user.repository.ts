@@ -12,16 +12,30 @@ const PUBLIC_SELECT = {
   createdAt: true,
 } as const;
 
+const FULL_PROFILE_SELECT = {
+  ...PUBLIC_SELECT,
+  bannerUrl: true,
+  bannerColor: true,
+  pitCred: true,
+  sellerRating: true,
+  sellerReviewCount: true,
+  completedSales: true,
+  avgResponseMinutes: true,
+  discordUsername: true,
+  profileVisibility: true,
+  _count: { select: { forumThreads: true, marketplaceListings: true } },
+} as const;
+
 export class UserRepository {
   static async findByUsername(username: string) {
-    return prisma.user.findUnique({ where: { username }, select: PUBLIC_SELECT });
+    return prisma.user.findUnique({ where: { username }, select: FULL_PROFILE_SELECT });
   }
 
   static async findById(id: string) {
     return prisma.user.findUnique({ where: { id }, select: PUBLIC_SELECT });
   }
 
-  static async updateProfile(id: string, data: { username?: string; bio?: string; location?: string; avatarUrl?: string | null }) {
-    return prisma.user.update({ where: { id }, data, select: PUBLIC_SELECT });
+  static async updateProfile(id: string, data: Record<string, unknown>) {
+    return prisma.user.update({ where: { id }, data, select: FULL_PROFILE_SELECT });
   }
 }

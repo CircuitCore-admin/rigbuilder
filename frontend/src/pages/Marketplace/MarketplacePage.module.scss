@@ -1,0 +1,3498 @@
+// ============================================================================
+// Marketplace — Clean Modern Aesthetic
+// ============================================================================
+
+$bp-mobile: 768px;
+$bp-tablet: 1024px;
+$bp-desktop: 1280px;
+
+// ---------- Dashboard layout ----------
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  gap: 0;
+  max-width: 100%;
+  margin: 0;
+  min-height: calc(100vh - 64px);
+  padding: 0 24px;
+}
+
+// ---------- Left sidebar (filters) ----------
+
+.sidebar {
+  background: none;
+  border-right: 1px solid var(--border-subtle);
+  padding: 24px 24px 24px 0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.sidebarTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+// ---------- Filter sections ----------
+
+.filterSection {
+  margin-bottom: 8px;
+  padding-bottom: 0;
+  border-bottom: none;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.filterTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 0;
+  cursor: pointer;
+  color: inherit;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
+}
+
+.filterToggle {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.filterBody {
+  animation: filterExpand 150ms ease;
+}
+
+@keyframes filterExpand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.filterChip {
+  padding: 6px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+  }
+}
+
+.filterChipActive {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.filterCheckboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  transition: color 150ms ease;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 150ms ease;
+
+    &:checked {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    &:checked::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--bg-void);
+      font-weight: 700;
+    }
+  }
+}
+
+.checkbox {
+  // Kept for backwards compat but styles now on checkboxLabel input
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.priceRangeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priceInput {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+
+  &::placeholder { color: var(--text-muted); }
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.priceSep {
+  color: var(--text-muted);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.currencySelect {
+  margin-top: 8px;
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.filterInput {
+  width: 100%;
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  box-sizing: border-box;
+  margin-top: 4px;
+
+  &::placeholder { color: var(--text-muted); }
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.clearFiltersBtn {
+  width: 100%;
+  padding: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+  margin-top: 12px;
+
+  &:hover {
+    color: var(--text-secondary);
+    border-color: var(--border-strong);
+  }
+}
+
+// ---------- Mobile top bar ----------
+
+.mobileTopBar {
+  display: none;
+}
+
+.mobileFilterBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--text-secondary);
+  }
+}
+
+.mobileViewToggle {
+  display: flex;
+  gap: 4px;
+}
+
+// ---------- Filter drawer (mobile) ----------
+
+.filterDrawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 10, 0.7);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.filterDrawer {
+  width: 300px;
+  max-width: 85vw;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-default);
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.filterDrawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.filterDrawerTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.filterDrawerClose {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover { color: var(--text-primary); }
+}
+
+.filterDrawerContent {
+  padding: 16px 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+// ---------- Feed area ----------
+
+.feed {
+  min-width: 0;
+  padding: 24px 40px;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  gap: 12px;
+}
+
+.emptyStateTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.emptyStateText {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 360px;
+  margin: 0;
+}
+
+.emptyStateCta {
+  margin-top: 8px;
+  padding: 10px 24px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+
+  &:hover { opacity: 0.9; color: var(--bg-void); }
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+
+  h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+  }
+}
+
+// ---------- Search & Sort controls ----------
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 0 16px;
+  height: 48px;
+  transition: border-color 200ms ease;
+
+  &:focus-within {
+    border-color: var(--accent-primary);
+  }
+}
+
+.searchIcon {
+  font-size: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  color: var(--text-body);
+  background: transparent;
+  border: none;
+  outline: none;
+
+  &::placeholder { color: var(--text-muted); }
+}
+
+.searchClear {
+  font-size: 16px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover { color: var(--text-secondary); }
+}
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.sortRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sortPill {
+  padding: 7px 18px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+  }
+}
+
+.sortPillActive {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.viewToggle {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+  }
+}
+
+.viewBtnActive {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+// ============================================================================
+// Listing Grid (Card View)
+// ============================================================================
+
+.listingGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.gridCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+
+    .gridCardImage {
+      transform: scale(1.05);
+    }
+  }
+}
+
+.gridCardPremium {
+  border-color: rgba(255, 176, 32, 0.4);
+  box-shadow: 0 0 16px rgba(255, 176, 32, 0.08);
+}
+
+.gridCardSold {
+  opacity: 0.65;
+}
+
+.gridCardImageWrap {
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-elevated);
+  aspect-ratio: 1 / 1;
+}
+
+.gridCardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 300ms ease;
+}
+
+.gridCardNoImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+}
+
+.typeBadge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
+.premiumBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #FFB020;
+  background: rgba(255, 176, 32, 0.15);
+  border: 1px solid rgba(255, 176, 32, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  z-index: 2;
+}
+
+.premiumToggle {
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  opacity: 0.6;
+}
+
+.premiumToggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: not-allowed;
+}
+
+.premiumToggleText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.premiumLockIcon {
+  font-size: 14px;
+}
+
+.premiumComingSoon {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+}
+
+.soldOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 10, 0.6);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-error);
+  letter-spacing: 0.1em;
+  z-index: 3;
+}
+
+.imageCount {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.gridCardBody {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.gridCardTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gridCardPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 4px 0 2px;
+}
+
+.gridCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.conditionTag {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.categoryTag {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-secondary);
+  background: rgba(110, 86, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.locationTag {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.soldTag {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-error);
+  background: rgba(255, 68, 85, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.gridCardFooter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.gridCardSeller {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.gridCardSellerLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); text-decoration: underline; }
+}
+
+.gridCardRating {
+  font-size: 11px;
+  color: #FFB020;
+}
+
+.gridCardTime {
+  margin-left: auto;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+}
+
+// ============================================================================
+// Listing List (Row View)
+// ============================================================================
+
+.listingList {
+  display: flex;
+  flex-direction: column;
+}
+
+.listRow {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 0 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0;
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: border-color 200ms ease, background 200ms ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
+  }
+}
+
+.listRowPremium {
+  border-left: 3px solid #FFB020;
+}
+
+.listRowSold {
+  opacity: 0.65;
+}
+
+.listRowImageWrap {
+  width: 140px;
+  height: 100px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+}
+
+.listRowImage {
+  width: 140px;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+}
+
+.listRowNoImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text-muted);
+}
+
+.listRowContent {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 0;
+}
+
+.listRowTopLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .typeBadge {
+    position: static;
+  }
+}
+
+.listRowTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listRowDetails {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.listRowPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  align-self: center;
+  white-space: nowrap;
+  padding: 12px 16px;
+}
+
+// ============================================================================
+// Pagination
+// ============================================================================
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: 28px;
+}
+
+.pageBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover { border-color: var(--border-strong); }
+}
+
+.activePage {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.pageEllipsis {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+// ============================================================================
+// Right Sidebar
+// ============================================================================
+
+.rightSidebar {
+  border-left: 1px solid var(--border-subtle);
+  padding: 24px 0 24px 24px;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.createListingBtn {
+  display: block;
+  text-align: center;
+  padding: 12px 24px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: opacity 200ms ease;
+
+  &:hover {
+    opacity: 0.9;
+    color: var(--bg-void);
+  }
+}
+
+.messagesBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+  }
+}
+
+.sidebarCard {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.sidebarCardTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.safetyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.safetyItem {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.5;
+  padding-left: 18px;
+  position: relative;
+
+  &::before {
+    content: '⚠';
+    position: absolute;
+    left: 0;
+    font-size: 10px;
+  }
+}
+
+.rulesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ruleItem {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.5;
+  padding-left: 16px;
+  position: relative;
+
+  &::before {
+    content: counter(rule-counter);
+    counter-increment: rule-counter;
+    position: absolute;
+    left: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  &:last-child { border-bottom: none; }
+}
+
+.statValue {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.statLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.popularCategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.popularCategoryBtn {
+  padding: 5px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+// ============================================================================
+// Create Listing Form
+// ============================================================================
+
+.formContainer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.formHeader {
+  margin-bottom: 28px;
+}
+
+.backLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-block;
+  margin-bottom: 16px;
+
+  &:hover { color: var(--accent-primary); }
+}
+
+.formTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.formSubtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+// ----- Type selection cards -----
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.typeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  text-align: center;
+
+  &:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+}
+
+.typeCardIcon {
+  font-size: 32px;
+}
+
+.typeCardLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.typeCardDesc {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+// ----- Form fields -----
+
+.listingForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 24px;
+}
+
+.formGridFull {
+  grid-column: 1 / -1;
+}
+
+.formError {
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--color-error);
+  background: rgba(255, 68, 85, 0.08);
+  border: 1px solid rgba(255, 68, 85, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.fieldLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-secondary);
+}
+
+.fieldOptional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+.fieldRequired {
+  color: var(--color-error);
+  font-weight: 400;
+}
+
+.pricingTypeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover { border-color: var(--border-strong); color: var(--text-body); }
+}
+
+.radioActive {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.radioInput {
+  display: none;
+}
+
+.fieldInput,
+.fieldSelect {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder { color: var(--text-muted); }
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.fieldInvalid {
+  border-color: var(--color-error);
+  &:focus { border-color: var(--color-error); }
+}
+
+.fieldHint {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--color-error);
+}
+
+.fieldSelect {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%237878A0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 32px;
+}
+
+.priceRow {
+  display: flex;
+  gap: 8px;
+}
+
+.currencyInput {
+  max-width: 120px;
+}
+
+.shippingOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+// ----- Image upload -----
+
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 36px 16px;
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
+  }
+}
+
+.dropZoneActive {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.dropZoneIcon {
+  font-size: 24px;
+}
+
+.dropZoneText {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.urlAddRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.addBtn {
+  align-self: flex-start;
+  padding: 4px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--accent-primary);
+  background: none;
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  height: 42px;
+
+  &:hover { background: var(--accent-primary-subtle); }
+}
+
+.uploadErrorList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.uploadError {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--color-error);
+  padding: 4px 10px;
+  background: rgba(255, 68, 85, 0.06);
+  border-radius: var(--radius-sm);
+}
+
+// ----- Thumbnail row -----
+
+.thumbRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+.thumbCard {
+  position: relative;
+  flex-shrink: 0;
+  width: 100px;
+  height: 75px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  cursor: grab;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+
+  &:active { cursor: grabbing; }
+}
+
+.thumbDragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbRemove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover { background: var(--color-error); }
+}
+
+.thumbLoading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface);
+  font-size: 16px;
+}
+
+// ----- Terms -----
+
+.termsSection {
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.termsLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.termsText {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.5;
+}
+
+.termsDetails {
+  margin-top: 12px;
+}
+
+.termsSummary {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--accent-primary);
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.termsBody {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+// ----- Submit -----
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.submitBtn {
+  padding: 10px 28px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.cancelBtn {
+  padding: 10px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+
+  &:hover { border-color: var(--border-strong); }
+}
+
+// ----- Login required -----
+
+.loginRequired {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loginMessage {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 8px 0 20px;
+}
+
+.loginLink {
+  display: inline-block;
+  padding: 8px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  &:hover { opacity: 0.9; }
+}
+
+// ----- Draft banner -----
+
+.draftBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  background: var(--accent-primary-subtle);
+  border: 1px solid var(--accent-primary-muted);
+  border-radius: var(--radius-md);
+}
+
+.draftRestore {
+  padding: 4px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover { opacity: 0.9; }
+}
+
+.draftDiscard {
+  padding: 4px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover { border-color: var(--border-strong); }
+}
+
+// ============================================================================
+// Listing Detail Page
+// ============================================================================
+
+.detailContainer {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+
+// Top section: images left (60%), info right (40%)
+.detailTop {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 32px;
+  margin-top: 16px;
+  margin-bottom: 32px;
+}
+
+// ----- Gallery -----
+
+.detailGallery {
+  align-self: start;
+}
+
+.galleryMain {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  margin-bottom: 12px;
+}
+
+.galleryMainImage {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  display: block;
+  cursor: pointer;
+  background: var(--bg-surface);
+}
+
+.galleryArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.galleryArrowLeft { left: 12px; }
+.galleryArrowRight { right: 12px; }
+
+.galleryCounter {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  z-index: 2;
+}
+
+.gallerySoldOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 5, 10, 0.6);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-error);
+  letter-spacing: 0.1em;
+}
+
+.galleryThumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 2px;
+  }
+}
+
+.galleryThumb {
+  width: 64px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &:hover { border-color: var(--border-strong); }
+}
+
+.galleryThumbActive {
+  border-color: var(--accent-primary);
+}
+
+.galleryNoImage {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  font-size: 48px;
+  color: var(--text-muted);
+
+  span:last-child {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+  }
+}
+
+// ----- Detail sidebar (sticky right panel) -----
+
+.detailSidebar {
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detailBadges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  .typeBadge {
+    position: static;
+  }
+}
+
+.detailTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.detailPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detailPriceOpen {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.minimumOfferHint {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.detailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+// Compact seller card in sidebar
+.sellerCardCompact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.sellerAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.sellerDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sellerNameLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); }
+}
+
+.sellerRating {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sellerNoRating {
+  color: var(--text-muted);
+}
+
+// Action buttons — prominent like Marktplaats
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.messageSellerBtnPrimary {
+  width: 100%;
+  padding: 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 150ms ease;
+  &:hover { opacity: 0.9; }
+}
+
+.makeOfferBtnPrimary {
+  width: 100%;
+  padding: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+// Inline offer form in sidebar
+.offerFormInline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.offerInputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.offerCurrencyLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.offerInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.offerMessageInput {
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  resize: none;
+  &::placeholder { color: var(--text-muted); }
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.offerFormBtns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.submitOfferBtn {
+  padding: 8px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+// Sidebar bids section (Marktplaats-style — below offer form)
+.sidebarBidsSection {
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.sidebarBidsTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.sidebarBidsEmpty {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.sidebarBidsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebarBidItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.sidebarBidTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sidebarBidMessage {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+// Shipping pills
+.shippingSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.shippingPill {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-body);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 12px;
+  border-radius: 16px;
+}
+
+// Owner controls — compact in sidebar
+.ownerControlsCompact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.statusBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.4; }
+}
+
+.extendBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { border-color: var(--border-strong); color: var(--text-primary); }
+}
+
+.deleteBtnSmall {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-error);
+  background: none;
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { background: rgba(255, 68, 85, 0.08); }
+}
+
+.reportLink {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  &:hover { color: var(--color-error); text-decoration: underline; }
+}
+
+// --- Bottom section (full width below the image+sidebar) ---
+
+.detailBottom {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.descriptionSection {
+  max-width: 800px;
+}
+
+.buildLinkSection {
+  padding-top: 8px;
+}
+
+.markdownContent {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-body);
+
+  p { margin: 0 0 12px; }
+  h1, h2, h3, h4 {
+    color: var(--text-primary);
+    margin: 16px 0 8px;
+  }
+  a { color: var(--accent-secondary); }
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: var(--bg-elevated);
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--bg-elevated);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+  }
+  ul, ol { padding-left: 20px; }
+  img { max-width: 100%; border-radius: var(--radius-md); }
+  blockquote {
+    border-left: 3px solid var(--accent-primary);
+    margin: 0;
+    padding: 4px 16px;
+    color: var(--text-secondary);
+  }
+}
+
+// Bids/offers section (full width)
+.bidsSection {
+  max-width: 800px;
+}
+
+.bidsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bidCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.bidUser {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); }
+}
+
+.bidAmount {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.bidStatus {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.bidStatusPending {
+  color: #FFB020;
+  background: rgba(255, 176, 32, 0.1);
+}
+
+.bidStatusAccepted {
+  color: var(--accent-primary);
+  background: rgba(0, 255, 163, 0.1);
+}
+
+.bidStatusRejected {
+  color: var(--color-error);
+  background: rgba(255, 68, 85, 0.1);
+}
+
+.bidTime {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.bidActions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.acceptBtn {
+  padding: 6px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+}
+
+.rejectBtn {
+  padding: 6px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-error);
+  background: none;
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { background: rgba(255, 68, 85, 0.08); }
+}
+
+.counterBtn {
+  padding: 6px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFB020;
+  background: none;
+  border: 1px solid #FFB020;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { background: rgba(255, 176, 32, 0.1); }
+}
+
+.counterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.counterInputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counterCurrency {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.counterInput {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.counterMessageInput {
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  resize: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.counterActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.counterCancelBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.submitCounterBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: #FFB020;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+}
+
+// ----- Reviews -----
+
+.reviewsSection {
+  padding-top: 4px;
+}
+
+.reviewCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.reviewUser {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reviewStars {
+  font-size: 12px;
+  color: #FFB020;
+}
+
+.reviewTime {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.reviewComment {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.5;
+  margin: 4px 0 0;
+}
+
+// ============================================================================
+// Modal
+// ============================================================================
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 10, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 24px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.modalTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modalClose {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover { color: var(--text-primary); }
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.reportDisclaimer {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 8px 0 16px;
+}
+
+// ============================================================================
+// Messages
+// ============================================================================
+
+.messagesContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+
+.messagesHeader {
+  margin-bottom: 16px;
+}
+
+.messagesTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.messagesLayout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 0;
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-height: 500px;
+}
+
+// ----- Conversation list -----
+
+.convoList {
+  border-right: 1px solid var(--border-default);
+  overflow-y: auto;
+  background: var(--bg-primary);
+}
+
+.emptyConvos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.convoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+
+  &:hover { background: var(--surface-hover); }
+}
+
+.convoItemActive {
+  background: var(--bg-surface);
+  border-left: 3px solid var(--accent-primary);
+}
+
+.convoAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+}
+
+.convoDetails {
+  min-width: 0;
+  flex: 1;
+}
+
+.convoTopLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.convoUsername {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.convoTime {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.convoListing {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--accent-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.convoPreview {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unreadBadge {
+  background: var(--accent-primary);
+  color: var(--bg-void);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 0 4px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+// ----- Message view -----
+
+.messageView {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.noConvoSelected {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+
+  span {
+    font-size: 48px;
+  }
+
+  p {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+.messagesList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.messageBubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  word-wrap: break-word;
+}
+
+.messageMine {
+  align-self: flex-end;
+  background: var(--accent-primary);
+  color: var(--bg-void);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.messageTheirs {
+  align-self: flex-start;
+  background: var(--bg-elevated);
+  color: var(--text-body);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.messageBody {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.messageTime {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+.messageInputForm {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-primary);
+}
+
+.messageInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-body);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+
+  &::placeholder { color: var(--text-muted); }
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.sendBtn {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ============================================================================
+// Mobile FAB
+// ============================================================================
+
+.mobileFab {
+  display: none;
+}
+
+// ============================================================================
+// Focus visible
+// ============================================================================
+
+.filterChip:focus-visible,
+.sortPill:focus-visible,
+.viewBtn:focus-visible,
+.searchInput:focus-visible,
+.fieldInput:focus-visible,
+.fieldSelect:focus-visible,
+.submitBtn:focus-visible,
+.cancelBtn:focus-visible,
+.addBtn:focus-visible,
+.typeCard:focus-visible,
+.pageBtn:focus-visible,
+.convoItem:focus-visible,
+.sendBtn:focus-visible,
+.messageSellerBtnPrimary:focus-visible,
+.makeOfferBtnPrimary:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+// ----- Related listings -----
+
+.relatedSection {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.relatedTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.relatedScroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 2px;
+  }
+}
+
+.relatedCard {
+  flex-shrink: 0;
+  width: 180px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 150ms ease, transform 150ms ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+}
+
+.relatedCardImage {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--bg-elevated);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.relatedCardNoImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.relatedCardBody {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.relatedCardTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.relatedCardPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.relatedCardSeller {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+// ============================================================================
+// Responsive — Large desktop: <= 1400px
+// ============================================================================
+
+@media (max-width: 1400px) {
+  .listingGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ============================================================================
+// Responsive — Tablet: <= 1024px
+// ============================================================================
+
+@media (max-width: $bp-tablet) {
+  .dashboard {
+    grid-template-columns: 260px 1fr;
+    padding: 0 16px;
+  }
+
+  .rightSidebar {
+    display: none;
+  }
+
+  .sidebar {
+    padding: 24px 16px 24px 0;
+  }
+
+  .mobileTopBar {
+    display: none;
+  }
+
+  .feed {
+    padding: 20px 24px;
+  }
+
+  .listingGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .controlsRow {
+    .viewToggle {
+      display: none;
+    }
+  }
+
+  .detailTop {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .detailGallery {
+    position: static;
+  }
+
+  .messagesLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .convoList {
+    display: none;
+  }
+}
+
+// ============================================================================
+// Responsive — Mobile: <= 768px
+// ============================================================================
+
+@media (max-width: $bp-mobile) {
+  .dashboard {
+    grid-template-columns: 1fr;
+    padding: 0 12px;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .mobileTopBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-primary);
+  }
+
+  .feed {
+    padding: 16px;
+  }
+
+  .listingGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .gridCardBody {
+    padding: 10px 12px;
+  }
+
+  .gridCardTitle {
+    font-size: 13px;
+  }
+
+  .gridCardPrice {
+    font-size: 16px;
+  }
+
+  .gridCardFooter {
+    display: none;
+  }
+
+  .listRow {
+    grid-template-columns: 80px 1fr;
+    gap: 0 10px;
+  }
+
+  .listRowPrice {
+    grid-column: 1 / -1;
+    padding-top: 4px;
+    font-size: 14px;
+  }
+
+  .listRowImageWrap {
+    width: 80px;
+    height: 60px;
+  }
+
+  .sortRow {
+    flex-wrap: wrap;
+  }
+
+  .searchRow {
+    padding: 0 8px;
+  }
+
+  .mobileFab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    font-size: 24px;
+    color: var(--bg-void);
+    background: var(--accent-primary);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(0, 255, 163, 0.3);
+    cursor: pointer;
+    z-index: 100;
+    text-decoration: none;
+
+    &:hover {
+      opacity: 0.9;
+      color: var(--bg-void);
+    }
+  }
+
+  .formContainer {
+    padding: 20px 16px;
+  }
+
+  .formTitle {
+    font-size: 22px;
+  }
+
+  .typeGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formGridFull {
+    grid-column: 1;
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .detailContainer {
+    padding: 16px;
+  }
+
+  .detailTop {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .detailSidebar {
+    position: static;
+  }
+
+  .detailTitle {
+    font-size: 22px;
+  }
+
+  .detailPrice {
+    font-size: 26px;
+  }
+
+  .messagesContainer {
+    padding: 12px;
+  }
+
+  .messagesLayout {
+    min-height: 400px;
+  }
+
+  .messageBubble {
+    max-width: 85%;
+  }
+
+  .messageInputForm {
+    padding: 8px 12px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Wishlist, Share, Recently Viewed, Quick Message
+// ---------------------------------------------------------------------------
+
+.wishlistBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 150ms ease;
+  opacity: 0;
+
+  .gridCard:hover & {
+    opacity: 1;
+  }
+}
+
+.wishlistBtnActive {
+  color: var(--accent-hot);
+  opacity: 1;
+}
+
+.shareCardBtn {
+  position: absolute;
+  top: 10px;
+  right: 52px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  z-index: 3;
+  opacity: 0;
+  transition: all 150ms ease;
+
+  .gridCard:hover & {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.wishlistDetailBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--accent-hot);
+    color: var(--accent-hot);
+  }
+}
+
+.wishlistDetailBtnActive {
+  color: var(--accent-hot);
+  border-color: var(--accent-hot);
+  background: var(--accent-hot-subtle, rgba(255, 80, 80, 0.06));
+}
+
+.shareRow {
+  display: flex;
+  gap: 8px;
+}
+
+.shareBtn {
+  flex: 1;
+  padding: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-secondary);
+  }
+}
+
+.quickMessageBtn {
+  width: 100%;
+  padding: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+.recentlyViewedSection {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.recentlyViewedTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.recentlyViewedScroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
+}
+
+.recentCard {
+  flex-shrink: 0;
+  width: 160px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 150ms ease;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.recentCardImage {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.recentCardNoImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.recentCardBody {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recentCardTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentCardPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+// ---------- Verified Seller ----------
+
+.verifiedSellerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.verifiedSellerSmall {
+  color: var(--accent-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+// ---------- Response Time ----------
+
+.responseTime {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--accent-primary);
+}
+
+// ---------- Listing Analytics ----------
+
+.analyticsCard {
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.analyticsTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+}
+
+.analyticsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.analyticItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.analyticValue {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.analyticLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+}

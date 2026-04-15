@@ -8,6 +8,11 @@ import { HomePage } from './pages/Home/HomePage';
 import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
+import { MarketplacePage } from './pages/Marketplace/MarketplacePage';
+import { MarketplaceMessages } from './pages/Marketplace/MarketplaceMessages';
+import { NotificationsPage } from './pages/Notifications/NotificationsPage';
+import { ProfilePage } from './pages/Profile/ProfilePage';
+import { SettingsPage } from './pages/Settings/SettingsPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
@@ -44,6 +49,19 @@ export function App() {
         {/* Community Forum */}
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:slug" element={<CommunityPage />} />
+
+        {/* Marketplace */}
+        <Route path="/marketplace" element={<MarketplacePage />} />
+        <Route path="/messages" element={<MarketplaceMessages />} />
+        <Route path="/messages/:conversationId" element={<MarketplaceMessages />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/marketplace/:id" element={<MarketplacePage />} />
+
+        {/* Profile */}
+        <Route path="/profile/:username" element={<ProfilePage />} />
+
+        {/* Settings */}
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
         {/* Configurator (moved from / to /build) */}
         <Route path="/build" element={<RigBuilderPage />} />
