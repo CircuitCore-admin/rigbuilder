@@ -17,7 +17,7 @@ interface ConversationPreview {
     senderId: string;
     sender: { id: string; username: string; avatarUrl: string | null };
     recipient: { id: string; username: string; avatarUrl: string | null };
-    listing: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[]; status?: string };
+    listing: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[]; status?: string; userId?: string };
     preview: string;
     createdAt: string;
     readAt: string | null;
@@ -35,7 +35,7 @@ interface Message {
   createdAt: string;
   sender: { id: string; username: string; avatarUrl: string | null };
   recipient?: { id: string; username: string; avatarUrl: string | null };
-  listing?: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[]; status?: string };
+  listing?: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[]; status?: string; userId?: string };
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ export function MarketplaceMessages() {
   // Context for new conversations (no messages yet)
   const [newConvoContext, setNewConvoContext] = useState<{
     otherUser: { id: string; username: string; avatarUrl: string | null };
-    listing: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[] };
+    listing: { id: string; title: string; price?: number | null; currency?: string; imageUrls?: string[]; userId?: string };
   } | null>(null);
 
   // Search
@@ -478,7 +478,7 @@ export function MarketplaceMessages() {
                   </div>
                 </a>
               )}
-              {listingInfo && user && (listingInfo as any).userId === user.userId && (
+              {listingInfo && user && listingInfo.userId === user.userId && (
                 <div className={styles.quickResponses}>
                   {['Still available!', 'Price is firm.', 'Happy to negotiate — make me an offer.', 'Can arrange local pickup.', 'Will ship nationally.'].map(qr => (
                     <button
