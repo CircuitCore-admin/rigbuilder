@@ -9,6 +9,7 @@ import {
   updateListingStatusSchema,
   createOfferSchema,
   updateOfferSchema,
+  counterOfferSchema,
   sendMessageSchema,
   createReportSchema,
   reviewReportSchema,
@@ -35,6 +36,7 @@ router.post('/messages', authenticate, writeLimiter, validate(sendMessageSchema)
 
 // Offers management
 router.put('/offers/:offerId', authenticate, writeLimiter, validate(updateOfferSchema), MarketplaceController.updateOffer);
+router.post('/offers/:offerId/counter', authenticate, writeLimiter, validate(counterOfferSchema), MarketplaceController.counterOffer);
 router.delete('/offers/:offerId', authenticate, writeLimiter, MarketplaceController.withdrawOffer);
 
 // Reports (admin)

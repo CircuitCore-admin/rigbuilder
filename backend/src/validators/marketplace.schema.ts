@@ -62,6 +62,11 @@ export const createReviewSchema = z.object({
   body: z.string().max(2000).nullable().optional(),
 });
 
+export const counterOfferSchema = z.object({
+  amount: z.number().positive(),
+  message: z.string().max(1000).nullable().optional(),
+});
+
 export const markNotificationsReadSchema = z.object({
   ids: z.array(z.string()).optional(),
   all: z.boolean().optional(),

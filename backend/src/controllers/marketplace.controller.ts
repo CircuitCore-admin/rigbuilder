@@ -225,6 +225,22 @@ export class MarketplaceController {
     }
   }
 
+  /** POST /api/v1/marketplace/offers/:offerId/counter */
+  static async counterOffer(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      const { amount, message } = req.body;
+      if (!amount || amount <= 0) return res.status(400).json({ error: 'Amount required' });
+      const result = await MarketplaceService.counterOffer(req.params.offerId, session.userId, session.role, amount, message);
+      res.json(result);
+    } catch (err) {
+      if (err instanceof NotFoundError) return res.status(404).json({ error: err.message });
+      if (err instanceof ForbiddenError) return res.status(403).json({ error: err.message });
+      if (err instanceof BadRequestError) return res.status(400).json({ error: err.message });
+      throw err;
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Messages
   // -------------------------------------------------------------------------

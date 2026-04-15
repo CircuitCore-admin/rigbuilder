@@ -246,15 +246,39 @@ export class MarketplaceService {
     }
 
     const expiresAt = new Date(Date.now() + OFFER_EXPIRY_MS);
+    const currency = (data.currency as any) || 'GBP';
 
     const offer = await MarketplaceRepository.createOffer({
       amount: data.amount,
-      currency: (data.currency as any) || 'GBP',
+      currency,
       ...(data.message && { message: data.message }),
       expiresAt,
       listing: { connect: { id: listingId } },
       user: { connect: { id: userId } },
     });
+
+    // Auto-send a message to the seller about the offer (fire-and-forget)
+    try {
+      const offerUser = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+      const conversationId = generateConversationId(userId, listing.userId, listingId);
+      const currencySymbol = currency === 'GBP' ? '\u00A3' : currency === 'EUR' ? '\u20AC' : '$';
+
+      let offerMessageText = `New Offer: ${currencySymbol}${data.amount}\n\n${offerUser?.username ?? 'Someone'} made an offer on your listing "${listing.title}".`;
+      if (data.message) {
+        offerMessageText += `\n\n> ${data.message}`;
+      }
+
+      const encryptedBody = encryptMessage(conversationId, offerMessageText);
+      await MarketplaceRepository.createMessage({
+        conversationId,
+        body: encryptedBody,
+        listing: { connect: { id: listingId } },
+        sender: { connect: { id: userId } },
+        recipient: { connect: { id: listing.userId } },
+      });
+    } catch {
+      // Non-critical: don't fail offer creation if messaging fails
+    }
 
     // Notify seller (fire-and-forget)
     MarketplaceRepository.createNotification({
@@ -283,8 +307,52 @@ export class MarketplaceService {
       throw new BadRequestError('This offer is no longer pending');
     }
 
+    const currencySymbol = offer.currency === 'GBP' ? '\u00A3' : offer.currency === 'EUR' ? '\u20AC' : '$';
+
     if (status === 'ACCEPTED') {
       await MarketplaceRepository.acceptOffer(offerId);
+
+      // Send acceptance message to the bidder
+      try {
+        const conversationId = generateConversationId(offer.userId, offer.listing.userId, offer.listingId);
+        const acceptMsg = `Offer Accepted: ${currencySymbol}${offer.amount}\n\nYour offer on "${offer.listing.title}" has been accepted! The listing is now reserved for you.\n\nPlease arrange payment and collection/delivery with the seller.`;
+        const encryptedAccept = encryptMessage(conversationId, acceptMsg);
+        await MarketplaceRepository.createMessage({
+          conversationId,
+          body: encryptedAccept,
+          listing: { connect: { id: offer.listingId } },
+          sender: { connect: { id: offer.listing.userId } },
+          recipient: { connect: { id: offer.userId } },
+        });
+      } catch {
+        // Non-critical
+      }
+
+      // Notify all OTHER rejected bidders via message
+      try {
+        const otherOffers = await prisma.marketplaceOffer.findMany({
+          where: { listingId: offer.listingId, id: { not: offerId }, status: 'REJECTED' },
+          include: { listing: { select: { title: true, userId: true } } },
+        });
+        for (const rejected of otherOffers) {
+          try {
+            const rejConvId = generateConversationId(rejected.userId, offer.listing.userId, offer.listingId);
+            const rejMsg = `Offer Declined\n\nThe seller has accepted another offer on "${offer.listing.title}". Your offer of ${currencySymbol}${rejected.amount} was not accepted.`;
+            const encRej = encryptMessage(rejConvId, rejMsg);
+            await MarketplaceRepository.createMessage({
+              conversationId: rejConvId,
+              body: encRej,
+              listing: { connect: { id: offer.listingId } },
+              sender: { connect: { id: offer.listing.userId } },
+              recipient: { connect: { id: rejected.userId } },
+            });
+          } catch {
+            // Non-critical
+          }
+        }
+      } catch {
+        // Non-critical
+      }
 
       // Notify offer maker
       MarketplaceRepository.createNotification({
@@ -299,6 +367,22 @@ export class MarketplaceService {
     }
 
     const updated = await MarketplaceRepository.updateOffer(offerId, { status: 'REJECTED' });
+
+    // Send rejection message to the bidder
+    try {
+      const conversationId = generateConversationId(offer.userId, offer.listing.userId, offer.listingId);
+      const rejMsg = `Offer Declined: ${currencySymbol}${offer.amount}\n\nThe seller has declined your offer on "${offer.listing.title}".`;
+      const encRej = encryptMessage(conversationId, rejMsg);
+      await MarketplaceRepository.createMessage({
+        conversationId,
+        body: encRej,
+        listing: { connect: { id: offer.listingId } },
+        sender: { connect: { id: offer.listing.userId } },
+        recipient: { connect: { id: offer.userId } },
+      });
+    } catch {
+      // Non-critical
+    }
 
     // Notify offer maker
     MarketplaceRepository.createNotification({
@@ -325,6 +409,53 @@ export class MarketplaceService {
     }
 
     await MarketplaceRepository.updateOffer(offerId, { status: 'WITHDRAWN' });
+  }
+
+  static async counterOffer(offerId: string, userId: string, role: string, amount: number, message?: string) {
+    const offer = await MarketplaceRepository.findOfferById(offerId);
+    if (!offer) throw new NotFoundError('Offer not found');
+
+    const isStaff = role === 'ADMIN' || role === 'MODERATOR';
+    if (offer.listing.userId !== userId && !isStaff) {
+      throw new ForbiddenError('Only the listing seller can counter offers');
+    }
+    if (offer.status !== 'PENDING') {
+      throw new BadRequestError('This offer is no longer pending');
+    }
+
+    // Reject the current offer
+    await MarketplaceRepository.updateOffer(offerId, { status: 'REJECTED' });
+
+    // Send counter-offer message
+    const conversationId = generateConversationId(offer.userId, offer.listing.userId, offer.listingId);
+    const currencySymbol = offer.currency === 'GBP' ? '\u00A3' : offer.currency === 'EUR' ? '\u20AC' : '$';
+    let counterMsg = `Counter-Offer: ${currencySymbol}${amount}\n\nThe seller has countered your offer of ${currencySymbol}${offer.amount} with ${currencySymbol}${amount}.`;
+    if (message) counterMsg += `\n\n> ${message}`;
+    counterMsg += `\n\nYou can submit a new offer from the listing page.`;
+
+    try {
+      const enc = encryptMessage(conversationId, counterMsg);
+      await MarketplaceRepository.createMessage({
+        conversationId,
+        body: enc,
+        listing: { connect: { id: offer.listingId } },
+        sender: { connect: { id: offer.listing.userId } },
+        recipient: { connect: { id: offer.userId } },
+      });
+    } catch {
+      // Non-critical
+    }
+
+    // Notify
+    MarketplaceRepository.createNotification({
+      userId: offer.userId,
+      type: 'OFFER_REJECTED',
+      listingId: offer.listingId,
+      referenceId: offerId,
+      message: `Counter-offer of ${currencySymbol}${amount} on "${offer.listing.title}"`,
+    }).catch(() => {});
+
+    return { ok: true, counterAmount: amount };
   }
 
   // -------------------------------------------------------------------------
