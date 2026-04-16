@@ -540,3 +540,425 @@
 .seoOnly {
   display: none;
 }
+
+// ---------------------------------------------------------------------------
+// Review form
+// ---------------------------------------------------------------------------
+
+.writeReviewBtn {
+  padding: 10px 24px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+}
+
+.reviewForm {
+  padding: 24px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reviewFormTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ratingField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ratingSlider {
+  width: 100%;
+  accent-color: var(--accent-primary);
+}
+
+.ratingScale {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ownershipSelect {
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.reviewTextarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  resize: vertical;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  cursor: pointer;
+  input { accent-color: var(--accent-primary); }
+}
+
+.reviewFormActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  padding: 10px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  &:hover { color: var(--text-primary); }
+}
+
+.submitBtn {
+  padding: 10px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &:hover:not(:disabled) { opacity: 0.9; }
+}
+
+// ---------------------------------------------------------------------------
+// Review list
+// ---------------------------------------------------------------------------
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.reviewCard {
+  padding: 16px 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.reviewCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.reviewAuthor {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  &:hover { color: var(--accent-primary); }
+}
+
+.reviewRatingBadge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.reviewOwnership, .reviewDate {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.reviewProsCons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  h5 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 4px;
+    text-transform: uppercase;
+  }
+
+  p {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    color: var(--text-body);
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.reviewPros h5 { color: var(--accent-primary); }
+.reviewCons h5 { color: var(--accent-hot, #FF6B6B); }
+
+.reviewCardFooter {
+  margin-top: 12px;
+}
+
+.wouldBuyYes {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.wouldBuyNo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-hot, #FF6B6B);
+}
+
+// ---------------------------------------------------------------------------
+// Q&A Section
+// ---------------------------------------------------------------------------
+
+.qaSection {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-subtle);
+  margin-bottom: 48px;
+}
+
+.askQuestionRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.questionInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.askBtn {
+  padding: 10px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.questionList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.questionCard {
+  padding: 16px 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.questionHeader {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.questionLabel, .answerLabel {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.questionLabel { color: var(--accent-primary); background: var(--accent-primary-subtle); }
+.answerLabel { color: var(--text-secondary); background: var(--bg-elevated); }
+
+.questionText {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.questionMeta {
+  display: flex;
+  gap: 12px;
+  margin: 8px 0 12px 40px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  a { color: var(--text-muted); text-decoration: none; &:hover { color: var(--accent-primary); } }
+}
+
+.answerCard {
+  margin-left: 40px;
+  padding: 12px 16px;
+  border-left: 2px solid var(--border-subtle);
+  margin-bottom: 8px;
+}
+
+.answerAccepted { border-left-color: var(--accent-primary); }
+
+.answerHeader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.acceptedBadge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.answerText {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  line-height: 1.5;
+  margin: 4px 0;
+}
+
+.answerMeta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  a { color: var(--text-muted); text-decoration: none; &:hover { color: var(--accent-primary); } }
+}
+
+.acceptAnswerBtn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
+}
+
+.answerBtn {
+  margin-left: 40px;
+  margin-top: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--accent-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  &:hover { text-decoration: underline; }
+}
+
+.answerForm {
+  margin-left: 40px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.answerTextarea {
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  resize: vertical;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.answerFormActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
