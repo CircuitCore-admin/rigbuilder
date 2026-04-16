@@ -1093,3 +1093,61 @@
     position: static;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Flair styles
+// ---------------------------------------------------------------------------
+
+.flairBadge {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.flairSOLVED {
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.flairQUESTION {
+  color: #6E56FF;
+  background: rgba(110, 86, 255, 0.1);
+}
+
+.flairWIP {
+  color: #FFB020;
+  background: rgba(255, 176, 32, 0.1);
+}
+
+.flairREVIEW {
+  color: #FF6B8A;
+  background: rgba(255, 107, 138, 0.1);
+}
+
+.flairPSA {
+  color: #FF4455;
+  background: rgba(255, 68, 85, 0.1);
+}
+
+.flairGUIDE {
+  color: #3B9EFF;
+  background: rgba(59, 158, 255, 0.1);
+}
+
+.markSolvedBtn {
+  padding: 5px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: none;
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { background: var(--accent-primary-subtle); }
+}

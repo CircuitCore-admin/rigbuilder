@@ -31,6 +31,7 @@ interface ThreadListItem {
   viewCount: number;
   replyCount: number;
   score?: number;
+  flair?: string | null;
   createdAt: string;
   imageUrls?: string[];
   isPinned?: boolean;
@@ -72,6 +73,24 @@ const CATEGORY_COLORS: Record<string, string> = {
   DEALS: '#FF3366',
   GENERAL: '#7878A0',
 };
+
+const FLAIR_LABELS: Record<string, string> = {
+  SOLVED: 'Solved',
+  QUESTION: 'Question',
+  WIP: 'WIP',
+  REVIEW: 'Review',
+  PSA: 'PSA',
+  GUIDE: 'Guide',
+};
+
+const FLAIR_OPTIONS = [
+  { value: null, label: 'No Flair' },
+  { value: 'QUESTION', label: 'Question' },
+  { value: 'WIP', label: 'Work in Progress' },
+  { value: 'REVIEW', label: 'Review' },
+  { value: 'PSA', label: 'PSA' },
+  { value: 'GUIDE', label: 'Guide' },
+];
 
 const SNIPPET_MAX_LENGTH = 120;
 
@@ -123,6 +142,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [totalPosts, setTotalPosts] = useState<number | null>(null);
+  const [selectedFlair, setSelectedFlair] = useState<string | null>(null);
 
   // Thread list voting state
   const [listVotes, setListVotes] = useState<Record<string, { score: number; userVote: 0 | 1 | -1 }>>({});
@@ -139,7 +159,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   }, [location.pathname, threadSlug]);
 
   useEffect(() => {
-    const cacheKey = `${activeCategory}-${page}-${sortBy}`;
+    const cacheKey = `${activeCategory}-${page}-${sortBy}-${selectedFlair ?? ''}`;
     const cached = threadListCache[cacheKey];
 
     const initVoteState = (items: ThreadListItem[]) => {
@@ -168,6 +188,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: '20', sortBy, sortDir: 'desc' });
     if (activeCategory) params.set('category', activeCategory);
+    if (selectedFlair) params.set('flair', selectedFlair);
 
     api<PaginatedThreads>(`/forum?${params}`)
       .then((data) => {
@@ -184,7 +205,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
       })
       .catch(() => setThreads([]))
       .finally(() => setLoading(false));
-  }, [activeCategory, page, sortBy, debouncedSearch, refreshKey]);
+  }, [activeCategory, page, sortBy, debouncedSearch, selectedFlair, refreshKey]);
 
   const setCategory = useCallback(
     (cat: string) => {
@@ -293,6 +314,18 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             );
           })}
         </nav>
+
+        <div className={styles.flairFilter}>
+          {Object.entries(FLAIR_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              className={`${styles.flairFilterPill} ${selectedFlair === key ? styles.flairFilterPillActive : ''}`}
+              onClick={() => setSelectedFlair(selectedFlair === key ? null : key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </aside>
 
       {/* ---------- Mobile category bar ---------- */}
@@ -439,6 +472,11 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                                 <path d="M7 11V7a5 5 0 0110 0v4"/>
                               </svg>
                               Locked
+                            </span>
+                          )}
+                          {t.flair && (
+                            <span className={`${styles.flairBadge} ${styles[`flair${t.flair}`]}`}>
+                              {FLAIR_LABELS[t.flair]}
                             </span>
                           )}
                           <span className={styles.threadCardMeta}>
@@ -600,6 +638,7 @@ function NewThreadForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [flair, setFlair] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Image upload states
@@ -834,6 +873,7 @@ function NewThreadForm() {
           metadata: Object.keys(meta).length > 0 ? meta : undefined,
           imageUrls: filteredImages.length > 0 ? filteredImages : undefined,
           isAnonymous: isAnonymous || undefined,
+          flair: flair || undefined,
         },
       });
       showToast('Thread created');
@@ -910,6 +950,23 @@ function NewThreadForm() {
             rows={8}
             required
           />
+        </div>
+
+        {/* Flair selector */}
+        <div className={styles.flairSelector}>
+          <label className={styles.fieldLabel}>Flair (optional)</label>
+          <div className={styles.flairOptions}>
+            {FLAIR_OPTIONS.map(opt => (
+              <button
+                key={opt.value ?? 'none'}
+                type="button"
+                className={`${styles.flairPill} ${flair === opt.value ? styles.flairPillActive : ''} ${opt.value ? styles[`flair${opt.value}`] : ''}`}
+                onClick={() => setFlair(flair === opt.value ? null : opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* --- Category-specific fields --- */}

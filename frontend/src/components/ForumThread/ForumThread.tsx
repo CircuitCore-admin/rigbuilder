@@ -50,6 +50,7 @@ interface Thread {
   score: number;
   upvotes: number;
   downvotes: number;
+  flair?: string | null;
   createdAt: string;
   user: ThreadUser;
   product: ThreadProduct | null;
@@ -73,6 +74,15 @@ const CATEGORY_LABELS: Record<string, string> = {
   TELEMETRY: 'Telemetry',
   DEALS: 'Deals',
   GENERAL: 'General',
+};
+
+const FLAIR_LABELS: Record<string, string> = {
+  SOLVED: 'Solved',
+  QUESTION: 'Question',
+  WIP: 'WIP',
+  REVIEW: 'Review',
+  PSA: 'PSA',
+  GUIDE: 'Guide',
 };
 
 function getBadges(reputation: number, role?: string): string[] {
@@ -481,6 +491,11 @@ export function ForumThread({ slug }: ForumThreadProps) {
               <span className={styles.categoryTag}>
                 {CATEGORY_LABELS[thread.category] ?? thread.category}
               </span>
+              {thread.flair && (
+                <span className={`${styles.flairBadge} ${styles[`flair${thread.flair}`]}`}>
+                  {FLAIR_LABELS[thread.flair]}
+                </span>
+              )}
               <span className={styles.threadMetaText}>
                 Posted by <UserBadge user={thread.user} />
                 {thread.user.id !== 'anonymous' && thread.user.pitCred != null && (
@@ -551,6 +566,20 @@ export function ForumThread({ slug }: ForumThreadProps) {
                 <>
                   <button className={`${styles.actionBtn} ${styles.actionBtnEdit}`} onClick={handleStartEdit}>Edit</button>
                   <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={handleDelete}>Delete</button>
+                  {thread.flair !== 'SOLVED' && (
+                    <button
+                      className={styles.markSolvedBtn}
+                      onClick={async () => {
+                        try {
+                          await api(`/forum/${thread.slug}/flair`, { method: 'PUT', body: { flair: 'SOLVED' } });
+                          setThread((prev: Thread | null) => prev ? { ...prev, flair: 'SOLVED' } : prev);
+                          showToast('Marked as solved', 'success');
+                        } catch { showToast('Failed to update flair', 'error'); }
+                      }}
+                    >
+                      ✓ Mark as Solved
+                    </button>
+                  )}
                 </>
               )}
               {(authUser?.role === 'ADMIN' || authUser?.role === 'MODERATOR') && (
