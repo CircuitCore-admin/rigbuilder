@@ -31,21 +31,23 @@ interface HelperUser {
 
 type TabKey = 'contributors' | 'sellers' | 'helpers';
 
+type LeaderboardUser = ContributorUser | SellerUser | HelperUser;
+
 export function LeaderboardPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>('contributors');
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    api<any[]>(`/leaderboards/${activeTab}?limit=50`)
+    api<LeaderboardUser[]>(`/leaderboards/${activeTab}?limit=50`)
       .then(setData)
       .catch(() => setData([]))
       .finally(() => setLoading(false));
   }, [activeTab]);
 
-  const getMetric = (user: any) => {
+  const getMetric = (user: LeaderboardUser) => {
     if (activeTab === 'contributors') return `${(user as ContributorUser).pitCred} PC`;
     if (activeTab === 'sellers') return `${(user as SellerUser).completedSales} sales`;
     return `${(user as HelperUser).totalUpvotes} upvotes`;
