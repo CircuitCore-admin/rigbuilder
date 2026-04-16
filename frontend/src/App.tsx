@@ -8,6 +8,7 @@ import { HomePage } from './pages/Home/HomePage';
 import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import { ProductComparePage } from './pages/ProductCompare/ProductComparePage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
+import { CreateGuidePage } from './pages/Guides/CreateGuidePage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { LeaderboardPage } from './pages/Leaderboard/LeaderboardPage';
 import { ComparePage } from './pages/Compare/ComparePage';
@@ -48,6 +49,8 @@ export function App() {
         />
 
         {/* Guides */}
+        <Route path="/guides/new" element={<ProtectedRoute><CreateGuidePage /></ProtectedRoute>} />
+        <Route path="/guides/edit/:id" element={<ProtectedRoute><CreateGuidePage /></ProtectedRoute>} />
         <Route path="/guides" element={<GuidesPage />} />
         <Route path="/guides/:slug" element={<GuidesPage />} />
 
