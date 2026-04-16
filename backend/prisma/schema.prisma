@@ -157,6 +157,8 @@ model User {
   blockedUsers                UserBlock[]               @relation("BlockedUsers")
   blockedBy                   UserBlock[]               @relation("BlockedBy")
   pollVotes                   ForumPollVote[]
+  following                   UserFollow[]               @relation("Following")
+  followers                   UserFollow[]               @relation("Followers")
 
   @@index([username])
   @@index([email])
@@ -611,6 +613,7 @@ model Notification {
   type      NotificationType
   threadId  String?          @map("thread_id")
   replyId   String?          @map("reply_id")
+  actorId   String?          @map("actor_id")
   message   String
   isRead    Boolean          @default(false) @map("is_read")
   createdAt DateTime         @default(now()) @map("created_at")
@@ -626,6 +629,7 @@ enum NotificationType {
   REPLY
   MENTION
   FOLLOW
+  NEW_FOLLOWER
 }
 
 // ---------------------------------------------------------------------------
@@ -945,4 +949,19 @@ model ForumPollVote {
   @@unique([optionId, userId])
   @@index([userId])
   @@map("forum_poll_votes")
+}
+
+model UserFollow {
+  id         String   @id @default(cuid())
+  followerId String   @map("follower_id")
+  followedId String   @map("followed_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  follower User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("Followers", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+  @@map("user_follows")
 }

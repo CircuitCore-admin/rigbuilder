@@ -147,4 +147,82 @@ export class UserController {
       res.json({ blocked: !!existing });
     } catch { res.status(500).json({ error: 'Failed to check block status' }); }
   }
+
+  /** POST /api/v1/users/:username/follow — toggle follow */
+  static async toggleFollow(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      const target = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!target) return res.status(404).json({ error: 'User not found' });
+      if (target.id === session.userId) return res.status(400).json({ error: 'Cannot follow yourself' });
+
+      const existing = await prisma.userFollow.findUnique({
+        where: { followerId_followedId: { followerId: session.userId, followedId: target.id } },
+      });
+
+      if (existing) {
+        await prisma.userFollow.delete({ where: { id: existing.id } });
+        res.json({ following: false });
+      } else {
+        await prisma.userFollow.create({ data: { followerId: session.userId, followedId: target.id } });
+
+        // Notify the followed user
+        await prisma.notification.create({
+          data: {
+            userId: target.id,
+            type: 'NEW_FOLLOWER',
+            actorId: session.userId,
+            message: `${session.username} started following you`,
+          },
+        }).catch(() => {});
+
+        res.json({ following: true });
+      }
+    } catch { res.status(500).json({ error: 'Failed to toggle follow' }); }
+  }
+
+  /** GET /api/v1/users/:username/followers */
+  static async getFollowers(req: Request, res: Response) {
+    try {
+      const user = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const followers = await prisma.userFollow.findMany({
+        where: { followedId: user.id },
+        include: { follower: { select: { id: true, username: true, avatarUrl: true, pitCred: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+      res.json({ count: followers.length, users: followers.map(f => f.follower) });
+    } catch { res.status(500).json({ error: 'Failed to fetch followers' }); }
+  }
+
+  /** GET /api/v1/users/:username/following */
+  static async getFollowing(req: Request, res: Response) {
+    try {
+      const user = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const following = await prisma.userFollow.findMany({
+        where: { followerId: user.id },
+        include: { followed: { select: { id: true, username: true, avatarUrl: true, pitCred: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+      res.json({ count: following.length, users: following.map(f => f.followed) });
+    } catch { res.status(500).json({ error: 'Failed to fetch following' }); }
+  }
+
+  /** GET /api/v1/users/:username/is-following */
+  static async isFollowing(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      if (!session?.userId) return res.json({ following: false });
+      const target = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!target) return res.json({ following: false });
+
+      const existing = await prisma.userFollow.findUnique({
+        where: { followerId_followedId: { followerId: session.userId, followedId: target.id } },
+      });
+      res.json({ following: !!existing });
+    } catch { res.status(500).json({ error: 'Failed to check follow status' }); }
+  }
 }

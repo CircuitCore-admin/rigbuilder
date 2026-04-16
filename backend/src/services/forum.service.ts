@@ -1,6 +1,8 @@
 import { ForumRepository } from '../repositories/forum.repository';
 import type { ForumListParams } from '../repositories/forum.repository';
 import { slugify } from '../utils/slug';
+import { extractMentions } from '../utils/mentions';
+import { prisma } from '../prisma';
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -82,6 +84,9 @@ export class ForumService {
       });
     }
 
+    // Notify mentioned users in thread body (fire-and-forget)
+    this.notifyMentions(data.body, data.userId, thread.id).catch(() => {});
+
     return thread;
   }
 
@@ -104,6 +109,9 @@ export class ForumService {
 
     // Notify thread owner + followers (fire-and-forget)
     this.notifyOnReply(data.threadId, data.userId, reply.id).catch(() => {});
+
+    // Notify mentioned users in reply body (fire-and-forget)
+    this.notifyMentions(data.body, data.userId, data.threadId, reply.id).catch(() => {});
 
     return reply;
   }
@@ -187,6 +195,37 @@ export class ForumService {
 
   static async getNotifications(userId: string, params: { page: number; limit: number; unreadOnly?: boolean }) {
     return ForumRepository.findNotifications(userId, params);
+  }
+
+  /** Notify users mentioned via @username in thread/reply body. */
+  private static async notifyMentions(body: string, authorId: string, threadId: string, replyId?: string) {
+    const usernames = extractMentions(body);
+    if (usernames.length === 0) return;
+
+    const mentionedUsers = await prisma.user.findMany({
+      where: { username: { in: usernames } },
+      select: { id: true, username: true },
+    });
+
+    const thread = await ForumRepository.findThreadById(threadId);
+    if (!thread) return;
+
+    const author = await prisma.user.findUnique({ where: { id: authorId }, select: { username: true } });
+    const authorName = author?.username ?? 'Someone';
+
+    const recipientIds = mentionedUsers
+      .filter((u) => u.id !== authorId) // Don't notify yourself
+      .map((u) => u.id);
+
+    if (recipientIds.length === 0) return;
+
+    await ForumRepository.createNotifications({
+      userIds: recipientIds,
+      type: 'MENTION',
+      threadId,
+      replyId,
+      message: `${authorName} mentioned you in "${thread.title}"`,
+    });
   }
 
   static async markNotificationsRead(userId: string, ids?: string[]) {
