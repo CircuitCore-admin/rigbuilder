@@ -198,7 +198,7 @@ export function Navbar() {
 
           {/* Secondary (right) */}
           <div className={styles.secondaryNav}>
-            <button type="button" className={styles.searchBtn} aria-label="Search">
+            <button type="button" className={styles.searchBtn} aria-label="Search" onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                 <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M12 12l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

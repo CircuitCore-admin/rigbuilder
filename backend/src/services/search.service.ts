@@ -59,6 +59,28 @@ export class SearchService {
         filterableAttributes: ['category', 'productId'],
         sortableAttributes: ['replyCount', 'viewCount', 'createdAt'],
       });
+
+      // Marketplace listings
+      const marketplaceIndex = meili.index(INDEXES.MARKETPLACE);
+      await marketplaceIndex.updateSettings({
+        searchableAttributes: ['title', 'description', 'category', 'sellerUsername', 'country', 'region'],
+        filterableAttributes: ['category', 'condition', 'status', 'type', 'currency', 'country'],
+        sortableAttributes: ['price', 'createdAt', 'viewCount'],
+        rankingRules: ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'],
+        synonyms: Object.fromEntries(
+          SIM_RACING_SYNONYMS.flatMap((group) =>
+            group.map((term) => [term, group.filter((t) => t !== term)])
+          )
+        ),
+      });
+
+      // Users
+      const usersIndex = meili.index(INDEXES.USERS);
+      await usersIndex.updateSettings({
+        searchableAttributes: ['username', 'bio', 'location'],
+        filterableAttributes: ['role'],
+        sortableAttributes: ['pitCred', 'createdAt'],
+      });
     } catch (err) {
       console.warn('⚠️  Meilisearch init skipped (not reachable):', (err as Error).message);
     }
@@ -152,6 +174,70 @@ export class SearchService {
     catch (err) { console.warn('⚠️  Forum sync to Meilisearch failed:', (err as Error).message); }
   }
 
+  /** Sync all active marketplace listings to Meilisearch. */
+  static async syncMarketplaceListings(): Promise<void> {
+    const listings = await prisma.marketplaceListing.findMany({
+      where: { status: { in: ['ACTIVE', 'RESERVED'] } },
+      include: { user: { select: { username: true } } },
+    });
+    const docs = listings.map(l => ({
+      id: l.id,
+      title: l.title,
+      description: (l.description ?? '').substring(0, 500),
+      category: l.category,
+      condition: l.condition,
+      type: l.type,
+      status: l.status,
+      price: l.price != null ? Number(l.price) : null,
+      currency: l.currency,
+      country: l.country,
+      region: l.region,
+      sellerUsername: l.user.username,
+      imageUrl: l.imageUrls?.[0] ?? null,
+      viewCount: l.viewCount,
+      createdAt: l.createdAt.toISOString(),
+    }));
+    try { await meili.index(INDEXES.MARKETPLACE).addDocuments(docs); }
+    catch (err) { console.warn('⚠️  Marketplace sync to Meilisearch failed:', (err as Error).message); }
+  }
+
+  /** Sync a single marketplace listing (for create/update hooks). */
+  static async syncMarketplaceListing(listingId: string): Promise<void> {
+    const l = await prisma.marketplaceListing.findUnique({
+      where: { id: listingId },
+      include: { user: { select: { username: true } } },
+    });
+    if (!l || !['ACTIVE', 'RESERVED'].includes(l.status)) {
+      try { await meili.index(INDEXES.MARKETPLACE).deleteDocument(listingId); } catch {}
+      return;
+    }
+    try {
+      await meili.index(INDEXES.MARKETPLACE).addDocuments([{
+        id: l.id, title: l.title, description: (l.description ?? '').substring(0, 500),
+        category: l.category, condition: l.condition, type: l.type, status: l.status,
+        price: l.price != null ? Number(l.price) : null, currency: l.currency,
+        country: l.country, region: l.region, sellerUsername: l.user.username,
+        imageUrl: l.imageUrls?.[0] ?? null, viewCount: l.viewCount,
+        createdAt: l.createdAt.toISOString(),
+      }]);
+    } catch (err) { console.warn('⚠️  Listing sync failed:', (err as Error).message); }
+  }
+
+  /** Sync all public users to Meilisearch. */
+  static async syncUsers(): Promise<void> {
+    const users = await prisma.user.findMany({
+      where: { profileVisibility: 'PUBLIC' },
+      select: { id: true, username: true, bio: true, location: true, role: true, pitCred: true, avatarUrl: true, createdAt: true },
+    });
+    const docs = users.map(u => ({
+      id: u.id, username: u.username, bio: (u.bio ?? '').substring(0, 200),
+      location: u.location, role: u.role, pitCred: u.pitCred, avatarUrl: u.avatarUrl,
+      createdAt: u.createdAt.toISOString(),
+    }));
+    try { await meili.index(INDEXES.USERS).addDocuments(docs); }
+    catch (err) { console.warn('⚠️  User sync to Meilisearch failed:', (err as Error).message); }
+  }
+
   /**
    * Unified instant search across products, builds, and forum threads.
    * Rate-limit strategy: 30 req/min on the endpoint + 200ms frontend debounce.
@@ -168,12 +254,16 @@ export class SearchService {
           },
           { indexUid: INDEXES.BUILDS, q: query, limit, filter: 'isPublic = true' },
           { indexUid: INDEXES.FORUM_THREADS, q: query, limit },
+          { indexUid: INDEXES.MARKETPLACE, q: query, limit, filter: 'status = "ACTIVE"' },
+          { indexUid: INDEXES.USERS, q: query, limit: 3 },
         ],
       });
       return {
         products: results.results[0]?.hits ?? [],
         builds: results.results[1]?.hits ?? [],
         threads: results.results[2]?.hits ?? [],
+        listings: results.results[3]?.hits ?? [],
+        users: results.results[4]?.hits ?? [],
       };
     } catch (err) {
       console.warn('⚠️  Meilisearch query failed, falling back to DB:', (err as Error).message);
@@ -183,7 +273,7 @@ export class SearchService {
 
   /** Database fallback when Meilisearch is unavailable. */
   private static async fallbackSearch(query: string, limit: number) {
-    const [products, builds, threads] = await Promise.all([
+    const [products, builds, threads, listings, users] = await Promise.all([
       prisma.product.findMany({
         where: { OR: [
           { name: { contains: query, mode: 'insensitive' } },
@@ -205,8 +295,21 @@ export class SearchService {
         ]},
         take: limit,
       }),
+      prisma.marketplaceListing.findMany({
+        where: { status: 'ACTIVE', OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { category: { contains: query, mode: 'insensitive' } },
+        ]},
+        take: limit,
+        include: { user: { select: { username: true } } },
+      }),
+      prisma.user.findMany({
+        where: { profileVisibility: 'PUBLIC', username: { contains: query, mode: 'insensitive' } },
+        take: 3,
+        select: { id: true, username: true, avatarUrl: true, pitCred: true },
+      }),
     ]);
-    return { products, builds, threads };
+    return { products, builds, threads, listings, users };
   }
 }
 

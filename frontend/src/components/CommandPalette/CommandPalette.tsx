@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../../hooks/useSearch';
-import type { SearchProduct, SearchBuild, SearchThread } from '../../hooks/useSearch';
+import { resolveImageUrl } from '../../utils/api';
+import type { SearchProduct, SearchBuild, SearchThread, SearchListing, SearchUser } from '../../hooks/useSearch';
 import styles from './CommandPalette.module.scss';
 
 export function CommandPalette() {
@@ -8,13 +10,18 @@ export function CommandPalette() {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const { results, loading } = useSearch(query);
+  const navigate = useNavigate();
 
-  // Cmd+K / Ctrl+K keyboard shortcut
+  // Cmd+K / Ctrl+K / '/' keyboard shortcut
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setOpen((prev) => !prev);
+      }
+      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) {
+        e.preventDefault();
+        setOpen(true);
       }
       if (e.key === 'Escape') {
         setOpen(false);
@@ -22,6 +29,13 @@ export function CommandPalette() {
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Listen for external open event (from Navbar search button)
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener('open-command-palette', handler);
+    return () => window.removeEventListener('open-command-palette', handler);
   }, []);
 
   // Focus input when opened
@@ -37,7 +51,12 @@ export function CommandPalette() {
     setQuery('');
   }, []);
 
-  const hasResults = results.products.length > 0 || results.builds.length > 0 || results.threads.length > 0;
+  const handleSelect = useCallback((url: string) => {
+    close();
+    navigate(url);
+  }, [close, navigate]);
+
+  const hasResults = results.products.length > 0 || results.builds.length > 0 || results.threads.length > 0 || results.listings.length > 0 || results.users.length > 0;
   const showResults = query.trim().length >= 2;
 
   if (!open) return null;
@@ -54,7 +73,7 @@ export function CommandPalette() {
             ref={inputRef}
             className={styles.input}
             type="text"
-            placeholder="Search products, builds, discussions…"
+            placeholder="Search products, listings, threads, users…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -69,10 +88,34 @@ export function CommandPalette() {
               <div className={styles.empty}>No results for &ldquo;{query}&rdquo;</div>
             )}
 
+            {results.users.length > 0 && (
+              <ResultSection title="Users">
+                {results.users.map((u) => (
+                  <UserHit key={u.id} user={u} onSelect={handleSelect} />
+                ))}
+              </ResultSection>
+            )}
+
             {results.products.length > 0 && (
               <ResultSection title="Products">
                 {results.products.map((p) => (
-                  <ProductHit key={p.id} product={p} onSelect={close} />
+                  <ProductHit key={p.id} product={p} onSelect={handleSelect} />
+                ))}
+              </ResultSection>
+            )}
+
+            {results.listings.length > 0 && (
+              <ResultSection title="Marketplace">
+                {results.listings.map((l) => (
+                  <ListingHit key={l.id} listing={l} onSelect={handleSelect} />
+                ))}
+              </ResultSection>
+            )}
+
+            {results.threads.length > 0 && (
+              <ResultSection title="Community">
+                {results.threads.map((t) => (
+                  <ThreadHit key={t.id} thread={t} onSelect={handleSelect} />
                 ))}
               </ResultSection>
             )}
@@ -80,15 +123,7 @@ export function CommandPalette() {
             {results.builds.length > 0 && (
               <ResultSection title="Builds">
                 {results.builds.map((b) => (
-                  <BuildHit key={b.id} build={b} onSelect={close} />
-                ))}
-              </ResultSection>
-            )}
-
-            {results.threads.length > 0 && (
-              <ResultSection title="Discussions">
-                {results.threads.map((t) => (
-                  <ThreadHit key={t.id} thread={t} onSelect={close} />
+                  <BuildHit key={b.id} build={b} onSelect={handleSelect} />
                 ))}
               </ResultSection>
             )}
@@ -99,7 +134,7 @@ export function CommandPalette() {
           <span className={styles.hint}>
             <kbd className={styles.kbdSmall}>↑↓</kbd> Navigate
             <kbd className={styles.kbdSmall}>↵</kbd> Open
-            <kbd className={styles.kbdSmall}>ESC</kbd> Close
+            <kbd className={styles.kbdSmall}>Ctrl</kbd>+<kbd className={styles.kbdSmall}>K</kbd> Toggle
           </span>
         </div>
       </div>
@@ -116,13 +151,27 @@ function ResultSection({ title, children }: { title: string; children: React.Rea
   );
 }
 
-function ProductHit({ product, onSelect }: { product: SearchProduct; onSelect: () => void }) {
+function UserHit({ user, onSelect }: { user: SearchUser; onSelect: (url: string) => void }) {
+  return (
+    <button className={styles.hit} onClick={() => onSelect(`/profile/${user.username}`)}>
+      <div className={styles.hitAvatar}>
+        {user.avatarUrl ? <img src={resolveImageUrl(user.avatarUrl)} alt="" /> : <span>{user.username[0]?.toUpperCase()}</span>}
+      </div>
+      <div className={styles.hitInfo}>
+        <span className={styles.hitName}>{user.username}</span>
+        {user.pitCred > 0 && <span className={styles.hitMeta}>{user.pitCred} Pit Cred</span>}
+      </div>
+    </button>
+  );
+}
+
+function ProductHit({ product, onSelect }: { product: SearchProduct; onSelect: (url: string) => void }) {
   const lowestPrice = product.affiliateLinks?.length
     ? Math.min(...product.affiliateLinks.map((l) => l.price))
     : null;
 
   return (
-    <a href={`/products/${product.slug}`} className={styles.hit} onClick={onSelect}>
+    <button className={styles.hit} onClick={() => onSelect(`/products/${product.slug}`)}>
       <div className={styles.hitInfo}>
         <span className={styles.hitName}>
           {product.name}
@@ -136,31 +185,45 @@ function ProductHit({ product, onSelect }: { product: SearchProduct; onSelect: (
       {lowestPrice != null && (
         <span className={styles.hitPrice}>${lowestPrice.toFixed(2)}</span>
       )}
-    </a>
+    </button>
   );
 }
 
-function BuildHit({ build, onSelect }: { build: SearchBuild; onSelect: () => void }) {
+function ListingHit({ listing, onSelect }: { listing: SearchListing; onSelect: (url: string) => void }) {
+  const currencySymbol = listing.currency === 'GBP' ? '£' : listing.currency === 'EUR' ? '€' : '$';
   return (
-    <a href={`/builds/${build.slug}`} className={styles.hit} onClick={onSelect}>
+    <button className={styles.hit} onClick={() => onSelect(`/marketplace/${listing.id}`)}>
+      <div className={styles.hitInfo}>
+        <span className={styles.hitName}>{listing.title}</span>
+        <span className={styles.hitMeta}>
+          {listing.price != null ? `${currencySymbol}${listing.price}` : 'Offers'} · {listing.category} · {listing.sellerUsername}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function BuildHit({ build, onSelect }: { build: SearchBuild; onSelect: (url: string) => void }) {
+  return (
+    <button className={styles.hit} onClick={() => onSelect(`/list/${build.slug}`)}>
       <div className={styles.hitInfo}>
         <span className={styles.hitName}>{build.name}</span>
         <span className={styles.hitMeta}>by {build.userName} · ▲ {build.upvoteCount}</span>
       </div>
       <span className={styles.hitPrice}>${build.totalCost.toFixed(0)}</span>
-    </a>
+    </button>
   );
 }
 
-function ThreadHit({ thread, onSelect }: { thread: SearchThread; onSelect: () => void }) {
+function ThreadHit({ thread, onSelect }: { thread: SearchThread; onSelect: (url: string) => void }) {
   return (
-    <a href={`/community/${thread.slug}`} className={styles.hit} onClick={onSelect}>
+    <button className={styles.hit} onClick={() => onSelect(`/community/${thread.slug}`)}>
       <div className={styles.hitInfo}>
         <span className={styles.hitName}>{thread.title}</span>
         <span className={styles.hitMeta}>
           {thread.category.replaceAll('_', ' ')} · by {thread.userName} · {thread.replyCount} replies
         </span>
       </div>
-    </a>
+    </button>
   );
 }

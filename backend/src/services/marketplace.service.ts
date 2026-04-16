@@ -3,6 +3,7 @@ import type { ListingListParams } from '../repositories/marketplace.repository';
 import type { ListingStatus, MarketplaceListingType } from '@prisma/client';
 import { prisma } from '../prisma';
 import { encryptMessage, decryptMessage, generateConversationId } from '../utils/marketplace-encryption';
+import { SearchService } from './search.service';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -112,6 +113,9 @@ export class MarketplaceService {
     // Fire-and-forget matching
     this.runMatching(listing).catch(() => {});
 
+    // Sync to search index
+    SearchService.syncMarketplaceListing(listing.id).catch(() => {});
+
     return listing;
   }
 
@@ -141,6 +145,8 @@ export class MarketplaceService {
 
     const updated = await MarketplaceRepository.updateListing(id, prismaData);
 
+    // Sync to search index
+    SearchService.syncMarketplaceListing(id).catch(() => {});
     // Check for price drop — notify wishlisters
     if (data.price !== undefined && oldPrice !== null && Number(data.price) < oldPrice) {
       try {
@@ -225,6 +231,8 @@ export class MarketplaceService {
 
     const updated = await MarketplaceRepository.updateListingStatus(id, status);
 
+    // Sync to search index (removes from index if no longer active)
+    SearchService.syncMarketplaceListing(id).catch(() => {});
     // Increment completedSales when marking as SOLD or FOUND
     if (status === 'SOLD' || status === 'FOUND') {
       prisma.user.update({

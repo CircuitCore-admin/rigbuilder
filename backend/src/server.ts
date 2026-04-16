@@ -59,7 +59,18 @@ app.use(errorHandler);
 app.listen(env.PORT, () => {
   console.log(`🏁 RigBuilder API running on port ${env.PORT} [${env.NODE_ENV}]`);
   // Initialize Meilisearch indexes (non-blocking)
-  SearchService.initializeIndexes().catch(() => {});
+  SearchService.initializeIndexes()
+    .then(() => {
+      // Sync data in background (don't block server start)
+      Promise.all([
+        SearchService.syncProducts(),
+        SearchService.syncBuilds(),
+        SearchService.syncForumThreads(),
+        SearchService.syncMarketplaceListings(),
+        SearchService.syncUsers(),
+      ]).catch(err => console.warn('⚠️  Initial Meilisearch sync failed:', err));
+    })
+    .catch(() => {});
 });
 
 export default app;
