@@ -161,6 +161,7 @@ model User {
   followers                   UserFollow[]               @relation("Followers")
   productQuestions            ProductQuestion[]          @relation("QuestionAuthor")
   productAnswers              ProductAnswer[]            @relation("AnswerAuthor")
+  priceAlerts                 PriceAlert[]
 
   @@index([username])
   @@index([email])
@@ -220,6 +221,7 @@ model Product {
   forumThreads        ForumThread[]
   marketplaceListings MarketplaceListing[]
   questions           ProductQuestion[]
+  priceAlerts         PriceAlert[]
 
   @@index([slug])
   @@index([category])
@@ -656,6 +658,7 @@ enum NotificationType {
   FOLLOW
   NEW_FOLLOWER
   QUESTION_ANSWERED
+  PRICE_ALERT
 }
 
 // ---------------------------------------------------------------------------
@@ -1025,4 +1028,21 @@ model ProductAnswer {
 
   @@index([questionId])
   @@map("product_answers")
+}
+
+model PriceAlert {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  productId   String   @map("product_id")
+  targetPrice Float    @map("target_price")
+  currency    String   @default("GBP")
+  triggered   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId, triggered])
+  @@map("price_alerts")
 }

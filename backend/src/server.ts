@@ -10,6 +10,7 @@ import { sanitize } from './middleware/sanitize';
 import { errorHandler } from './middleware/error-handler';
 import routes from './routes';
 import { SearchService } from './services/search.service';
+import { checkPriceAlerts } from './jobs/check-price-alerts';
 
 const app = express();
 
@@ -71,6 +72,11 @@ app.listen(env.PORT, () => {
       ]).catch(err => console.warn('⚠️  Initial Meilisearch sync failed:', err));
     })
     .catch(() => {});
+
+  // Check price alerts every hour
+  setInterval(() => {
+    checkPriceAlerts().catch(err => console.error('Price alert check failed:', err));
+  }, 60 * 60 * 1000);
 });
 
 export default app;
