@@ -54,10 +54,11 @@ export class ForumService {
     imageUrls?: string[];
     isAnonymous?: boolean;
     flair?: string | null;
+    poll?: { question: string; options: string[]; expiresAt?: string };
   }) {
     const slug = slugify(data.title) + '-' + Date.now().toString(36);
 
-    return ForumRepository.createThread({
+    const thread = await ForumRepository.createThread({
       title: data.title,
       slug,
       body: data.body,
@@ -70,6 +71,18 @@ export class ForumService {
       ...(data.isAnonymous && { isAnonymous: true }),
       ...(data.flair && { flair: data.flair }),
     });
+
+    // Create poll if provided
+    if (data.poll && data.poll.question && data.poll.options?.length >= 2) {
+      await ForumRepository.createPoll({
+        threadId: thread.id,
+        question: data.poll.question,
+        expiresAt: data.poll.expiresAt ? new Date(data.poll.expiresAt) : null,
+        options: data.poll.options.slice(0, 6),
+      });
+    }
+
+    return thread;
   }
 
   static async getReplies(threadId: string) {

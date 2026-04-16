@@ -32,6 +32,7 @@ export class ForumRepository {
         take: limit,
         include: {
           user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true, pitCred: true } },
+          poll: { select: { id: true, question: true } },
         },
       }),
       prisma.forumThread.count({ where }),
@@ -46,6 +47,11 @@ export class ForumRepository {
       include: {
         user: { select: { id: true, username: true, avatarUrl: true, reputation: true, role: true, pitCred: true } },
         product: { select: { id: true, name: true, slug: true, category: true } },
+        poll: {
+          include: {
+            options: { orderBy: { votes: 'desc' } },
+          },
+        },
       },
     });
   }
@@ -337,6 +343,25 @@ export class ForumRepository {
     return prisma.forumThread.update({
       where: { id },
       data: { viewCount: { increment: 1 } },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Poll
+  // ---------------------------------------------------------------------------
+
+  /** Create a poll with options for a thread. */
+  static async createPoll(data: { threadId: string; question: string; expiresAt: Date | null; options: string[] }) {
+    return prisma.forumPoll.create({
+      data: {
+        threadId: data.threadId,
+        question: data.question,
+        expiresAt: data.expiresAt,
+        options: {
+          create: data.options.map((label) => ({ label })),
+        },
+      },
+      include: { options: true },
     });
   }
 

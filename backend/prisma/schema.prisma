@@ -156,6 +156,7 @@ model User {
   wishlistedListings          WishlistedListing[]       @relation("WishlistedListings")
   blockedUsers                UserBlock[]               @relation("BlockedUsers")
   blockedBy                   UserBlock[]               @relation("BlockedBy")
+  pollVotes                   ForumPollVote[]
 
   @@index([username])
   @@index([email])
@@ -474,6 +475,7 @@ model ForumThread {
   replies     ForumReply[]
   followers   ThreadFollower[]
   threadVotes ThreadVote[]
+  poll        ForumPoll?
 
   @@index([category, createdAt(sort: Desc)])
   @@index([productId])
@@ -899,4 +901,48 @@ model UserBlock {
   @@index([blockerId])
   @@index([blockedId])
   @@map("user_blocks")
+}
+
+// ---------------------------------------------------------------------------
+// Forum Polls
+// ---------------------------------------------------------------------------
+
+model ForumPoll {
+  id        String    @id @default(cuid())
+  threadId  String    @unique @map("thread_id")
+  question  String
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  thread  ForumThread       @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  options ForumPollOption[]
+
+  @@map("forum_polls")
+}
+
+model ForumPollOption {
+  id     String @id @default(cuid())
+  pollId String @map("poll_id")
+  label  String
+  votes  Int    @default(0)
+
+  poll      ForumPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollVotes ForumPollVote[]
+
+  @@index([pollId])
+  @@map("forum_poll_options")
+}
+
+model ForumPollVote {
+  id        String   @id @default(cuid())
+  optionId  String   @map("option_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  option ForumPollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+  @@index([userId])
+  @@map("forum_poll_votes")
 }

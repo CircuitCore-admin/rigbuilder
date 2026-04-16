@@ -36,4 +36,8 @@ router.get('/threads/:id/vote', searchLimiter, ForumController.getThreadVote);
 router.get('/notifications', authenticate, searchLimiter, ForumController.getNotifications);
 router.put('/notifications/read', authenticate, writeLimiter, ForumController.markNotificationsRead);
 
+// Polls
+router.post('/polls/:pollId/vote', authenticate, writeLimiter, ForumController.votePoll);
+router.get('/polls/:pollId/my-vote', optionalAuth, ForumController.getMyPollVote);
+
 export default router;

@@ -106,6 +106,7 @@ export class ForumController {
       imageUrls: req.body.imageUrls,
       isAnonymous: req.body.isAnonymous === true,
       flair: req.body.flair ?? null,
+      poll: req.body.poll,
     });
     res.status(201).json(thread);
   }
@@ -358,5 +359,72 @@ export class ForumController {
       data: { flair },
     });
     res.json({ flair: updated.flair });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Poll Endpoints
+  // ---------------------------------------------------------------------------
+
+  /** POST /api/v1/forum/polls/:pollId/vote */
+  static async votePoll(req: Request, res: Response) {
+    const session = (req as any).session;
+    const { optionId } = req.body;
+    if (!optionId) return res.status(400).json({ error: 'Option ID required' });
+
+    const option = await prisma.forumPollOption.findUnique({
+      where: { id: optionId },
+      include: { poll: true },
+    });
+    if (!option) return res.status(404).json({ error: 'Option not found' });
+    if (option.pollId !== req.params.pollId) return res.status(400).json({ error: 'Option does not belong to this poll' });
+
+    // Check if poll expired
+    if (option.poll.expiresAt && option.poll.expiresAt < new Date()) {
+      return res.status(400).json({ error: 'This poll has ended' });
+    }
+
+    // Check if user already voted on any option in this poll
+    const existingVote = await prisma.forumPollVote.findFirst({
+      where: {
+        userId: session.userId,
+        option: { pollId: req.params.pollId },
+      },
+    });
+
+    if (existingVote) {
+      // Change vote
+      if (existingVote.optionId === optionId) {
+        return res.status(400).json({ error: 'Already voted for this option' });
+      }
+      await prisma.$transaction([
+        prisma.forumPollVote.delete({ where: { id: existingVote.id } }),
+        prisma.forumPollOption.update({ where: { id: existingVote.optionId }, data: { votes: { decrement: 1 } } }),
+        prisma.forumPollVote.create({ data: { optionId, userId: session.userId } }),
+        prisma.forumPollOption.update({ where: { id: optionId }, data: { votes: { increment: 1 } } }),
+      ]);
+    } else {
+      await prisma.$transaction([
+        prisma.forumPollVote.create({ data: { optionId, userId: session.userId } }),
+        prisma.forumPollOption.update({ where: { id: optionId }, data: { votes: { increment: 1 } } }),
+      ]);
+    }
+
+    // Return updated poll
+    const poll = await prisma.forumPoll.findUnique({
+      where: { id: req.params.pollId },
+      include: { options: { orderBy: { votes: 'desc' } } },
+    });
+    res.json(poll);
+  }
+
+  /** GET /api/v1/forum/polls/:pollId/my-vote */
+  static async getMyPollVote(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.json({ votedOptionId: null });
+
+    const vote = await prisma.forumPollVote.findFirst({
+      where: { userId: session.userId, option: { pollId: req.params.pollId } },
+    });
+    res.json({ votedOptionId: vote?.optionId ?? null });
   }
 }
