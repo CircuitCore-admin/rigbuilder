@@ -2,6 +2,7 @@ import { ForumRepository } from '../repositories/forum.repository';
 import type { ForumListParams } from '../repositories/forum.repository';
 import { slugify } from '../utils/slug';
 import { extractMentions } from '../utils/mentions';
+import { BadgeService } from './badge.service';
 import { prisma } from '../prisma';
 
 export class NotFoundError extends Error {
@@ -87,6 +88,9 @@ export class ForumService {
     // Notify mentioned users in thread body (fire-and-forget)
     this.notifyMentions(data.body, data.userId, thread.id).catch(() => {});
 
+    // Check badges after creating a thread (fire-and-forget)
+    BadgeService.checkAndAward(data.userId).catch(() => {});
+
     return thread;
   }
 
@@ -112,6 +116,9 @@ export class ForumService {
 
     // Notify mentioned users in reply body (fire-and-forget)
     this.notifyMentions(data.body, data.userId, data.threadId, reply.id).catch(() => {});
+
+    // Check badges after creating a reply (fire-and-forget)
+    BadgeService.checkAndAward(data.userId).catch(() => {});
 
     return reply;
   }

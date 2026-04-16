@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { ForumService, NotFoundError } from '../services/forum.service';
 import { ForumRepository } from '../repositories/forum.repository';
+import { BadgeService } from '../services/badge.service';
 import { prisma } from '../prisma';
 import type { ForumCategory } from '@prisma/client';
 
@@ -166,6 +167,11 @@ export class ForumController {
 
     try {
       const result = await ForumService.voteReply(req.params.id, session.userId, numValue);
+
+      // Check badges for the reply author who received the vote (fire-and-forget)
+      const reply = await prisma.forumReply.findUnique({ where: { id: req.params.id }, select: { userId: true } });
+      if (reply) BadgeService.checkAndAward(reply.userId).catch(() => {});
+
       res.json(result);
     } catch (err) {
       console.error('voteReply error:', err);

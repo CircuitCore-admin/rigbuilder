@@ -11,6 +11,7 @@ import guideRoutes from './guide.routes';
 import uploadRoutes from './upload.routes';
 import marketplaceRoutes from './marketplace.routes';
 import notificationRoutes from './notification.routes';
+import leaderboardRoutes from './leaderboard.routes';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/guides', guideRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/marketplace', marketplaceRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/leaderboards', leaderboardRoutes);
 
 export default router;

@@ -420,10 +420,32 @@ enum GuideCategory {
 }
 
 enum BadgeType {
+  // Community
+  FIRST_POST
+  TEN_POSTS
+  FIFTY_POSTS
+  FIRST_REPLY
   HELPFUL
-  EXPERT
-  VERIFIED_OWNER
+  SUPER_HELPFUL
   TOP_CONTRIBUTOR
+  VERIFIED_OWNER
+  EXPERT
+
+  // Marketplace
+  FIRST_SALE
+  FIVE_SALES
+  TRUSTED_SELLER
+  FIRST_PURCHASE
+  BIG_SPENDER
+
+  // Social
+  POPULAR
+  INFLUENCER
+
+  // Account
+  EARLY_ADOPTER
+  VERIFIED_EMAIL
+  PROFILE_COMPLETE
 }
 
 // ---------------------------------------------------------------------------

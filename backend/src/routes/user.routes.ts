@@ -18,5 +18,6 @@ router.post('/:username/follow', authenticate, UserController.toggleFollow);
 router.get('/:username/followers', UserController.getFollowers);
 router.get('/:username/following', UserController.getFollowing);
 router.get('/:username/is-following', optionalAuth, UserController.isFollowing);
+router.get('/:username/badges', UserController.getUserBadges);
 
 export default router;

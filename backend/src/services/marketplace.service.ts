@@ -4,6 +4,7 @@ import type { ListingStatus, MarketplaceListingType } from '@prisma/client';
 import { prisma } from '../prisma';
 import { encryptMessage, decryptMessage, generateConversationId } from '../utils/marketplace-encryption';
 import { SearchService } from './search.service';
+import { BadgeService } from './badge.service';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -238,6 +239,9 @@ export class MarketplaceService {
       prisma.user.update({
         where: { id: listing.userId },
         data: { completedSales: { increment: 1 } },
+      }).then(() => {
+        // Check badges after incrementing sales (fire-and-forget)
+        BadgeService.checkAndAward(listing.userId).catch(() => {});
       }).catch(() => {});
     }
 
@@ -406,6 +410,10 @@ export class MarketplaceService {
         referenceId: offerId,
         message: `Your offer on "${offer.listing.title}" was accepted!`,
       }).catch(() => {});
+
+      // Check badges for buyer (accepted offer) and seller (fire-and-forget)
+      BadgeService.checkAndAward(offer.userId).catch(() => {});
+      BadgeService.checkAndAward(offer.listing.userId).catch(() => {});
 
       return MarketplaceRepository.findOfferById(offerId);
     }

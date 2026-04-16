@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
+import { BadgeService } from '../services/badge.service';
 import { prisma } from '../prisma';
 import { ZodError } from 'zod';
 
@@ -92,7 +93,10 @@ export class UserController {
   static async updateProfile(req: Request, res: Response) {
     try {
       const userId = (req as any).session.userId;
-      res.json(await UserService.updateProfile(userId, req.body));
+      const result = await UserService.updateProfile(userId, req.body);
+      // Check badges after profile update (fire-and-forget)
+      BadgeService.checkAndAward(userId).catch(() => {});
+      res.json(result);
     } catch (err) {
       if (err instanceof ZodError) return res.status(400).json({ error: 'Validation failed', issues: err.flatten().fieldErrors });
       res.status(400).json({ error: (err as Error).message });
@@ -176,6 +180,9 @@ export class UserController {
           },
         }).catch(() => {});
 
+        // Check badges for the followed user (social badges, fire-and-forget)
+        BadgeService.checkAndAward(target.id).catch(() => {});
+
         res.json({ following: true });
       }
     } catch { res.status(500).json({ error: 'Failed to toggle follow' }); }
@@ -224,5 +231,18 @@ export class UserController {
       });
       res.json({ following: !!existing });
     } catch { res.status(500).json({ error: 'Failed to check follow status' }); }
+  }
+
+  /** GET /api/v1/users/:username/badges */
+  static async getUserBadges(req: Request, res: Response) {
+    try {
+      const user = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      const badges = await prisma.userBadge.findMany({
+        where: { userId: user.id },
+        orderBy: { awardedAt: 'desc' },
+      });
+      res.json(badges);
+    } catch { res.status(500).json({ error: 'Failed to fetch badges' }); }
   }
 }

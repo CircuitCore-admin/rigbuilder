@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { EmailService } from '../services/email.service';
+import { BadgeService } from '../services/badge.service';
 import { prisma } from '../prisma';
 import * as argon2 from 'argon2';
 
@@ -83,8 +84,16 @@ export class AuthController {
     const token = req.query.token as string;
     if (!token) return res.status(400).json({ error: 'Token required' });
 
+    // Look up user before verifying so we can check badges after
+    const userForBadge = await prisma.user.findFirst({
+      where: { emailVerifyToken: token },
+      select: { id: true },
+    });
+
     const result = await EmailService.verifyEmail(token);
     if (result.success) {
+      // Check badges after email verification (fire-and-forget)
+      if (userForBadge) BadgeService.checkAndAward(userForBadge.id).catch(() => {});
       res.json({ ok: true, message: 'Email verified successfully' });
     } else {
       res.status(400).json({ error: result.error });
