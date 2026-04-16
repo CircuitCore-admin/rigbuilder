@@ -53,6 +53,7 @@ export class ForumService {
     metadata?: Record<string, unknown>;
     imageUrls?: string[];
     isAnonymous?: boolean;
+    flair?: string | null;
   }) {
     const slug = slugify(data.title) + '-' + Date.now().toString(36);
 
@@ -67,6 +68,7 @@ export class ForumService {
       ...(data.metadata && { metadata: data.metadata }),
       ...(data.imageUrls?.length && { imageUrls: data.imageUrls }),
       ...(data.isAnonymous && { isAnonymous: true }),
+      ...(data.flair && { flair: data.flair }),
     });
   }
 

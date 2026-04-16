@@ -22,6 +22,7 @@ router.delete('/:id', authenticate, writeLimiter, ForumController.deleteThread);
 router.post('/:slug/replies', authenticate, writeLimiter, ForumController.createReply);
 router.put('/:slug/pin', authenticate, writeLimiter, ForumController.togglePin);
 router.put('/:slug/lock', authenticate, writeLimiter, ForumController.toggleLock);
+router.put('/:slug/flair', authenticate, writeLimiter, ForumController.updateFlair);
 router.post('/replies/:id/upvote', authenticate, writeLimiter, ForumController.upvoteReply);
 router.post('/replies/:id/vote', authenticate, writeLimiter, ForumController.voteReply);
 

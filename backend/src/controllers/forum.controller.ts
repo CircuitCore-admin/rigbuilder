@@ -14,6 +14,7 @@ export class ForumController {
       limit,
       category: req.query.category as ForumCategory | undefined,
       productId: req.query.productId as string | undefined,
+      flair: req.query.flair as string | undefined,
       sortBy: (req.query.sortBy as any) || 'createdAt',
       sortDir: (req.query.sortDir as any) || 'desc',
     });
@@ -104,6 +105,7 @@ export class ForumController {
       metadata: req.body.metadata,
       imageUrls: req.body.imageUrls,
       isAnonymous: req.body.isAnonymous === true,
+      flair: req.body.flair ?? null,
     });
     res.status(201).json(thread);
   }
@@ -333,5 +335,28 @@ export class ForumController {
       data: { isLocked: !thread.isLocked },
     });
     res.json({ isLocked: updated.isLocked });
+  }
+
+  /** PUT /api/v1/forum/:slug/flair */
+  static async updateFlair(req: Request, res: Response) {
+    const session = (req as any).session;
+    const { flair } = req.body;
+    const validFlairs = ['SOLVED', 'QUESTION', 'WIP', 'REVIEW', 'PSA', 'GUIDE', null];
+    if (!validFlairs.includes(flair)) return res.status(400).json({ error: 'Invalid flair' });
+
+    const thread = await prisma.forumThread.findUnique({ where: { slug: req.params.slug } });
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    // Only author, admin, or mod can change flair
+    const isStaff = session.role === 'ADMIN' || session.role === 'MODERATOR';
+    if (thread.userId !== session.userId && !isStaff) {
+      return res.status(403).json({ error: 'Only the author or staff can change flair' });
+    }
+
+    const updated = await prisma.forumThread.update({
+      where: { slug: req.params.slug },
+      data: { flair },
+    });
+    res.json({ flair: updated.flair });
   }
 }

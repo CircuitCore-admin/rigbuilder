@@ -6,17 +6,19 @@ export interface ForumListParams {
   limit: number;
   category?: ForumCategory;
   productId?: string;
+  flair?: string;
   sortBy?: 'createdAt' | 'replyCount' | 'viewCount';
   sortDir?: 'asc' | 'desc';
 }
 
 export class ForumRepository {
   static async findThreads(params: ForumListParams) {
-    const { page, limit, category, productId, sortBy = 'createdAt', sortDir = 'desc' } = params;
+    const { page, limit, category, productId, flair, sortBy = 'createdAt', sortDir = 'desc' } = params;
 
     const where: Prisma.ForumThreadWhereInput = {
       ...(category && { category }),
       ...(productId && { productId }),
+      ...(flair && { flair }),
     };
 
     const [items, total] = await Promise.all([

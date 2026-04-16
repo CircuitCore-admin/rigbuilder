@@ -465,6 +465,7 @@ model ForumThread {
   metadata   Json? // category-specific blueprint data (BOM, tools, deal status, etc.)
   imageUrls  String[]      @default([]) @map("image_urls") // gallery images for SHOWROOM
   isAnonymous Boolean      @default(false) @map("is_anonymous")
+  flair       String? // SOLVED, QUESTION, WIP, REVIEW, PSA, GUIDE, null = none
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
