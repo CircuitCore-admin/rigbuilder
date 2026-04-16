@@ -1,6 +1,16 @@
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 
+/** Escape HTML special characters to prevent XSS in email templates */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT ?? '587'),
@@ -35,7 +45,7 @@ export class EmailService {
         subject: 'Verify your RigBuilder account',
         html: `
           <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-            <h1 style="font-size: 24px; color: #111;">Welcome to RigBuilder, ${username}!</h1>
+            <h1 style="font-size: 24px; color: #111;">Welcome to RigBuilder, ${escapeHtml(username)}!</h1>
             <p style="font-size: 16px; color: #444; line-height: 1.6;">
               Please verify your email address to unlock all features including marketplace listings and messaging.
             </p>
