@@ -1151,3 +1151,104 @@
   cursor: pointer;
   &:hover { background: var(--accent-primary-subtle); }
 }
+
+// ---------------------------------------------------------------------------
+// Poll Widget
+// ---------------------------------------------------------------------------
+
+.pollWidget {
+  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  margin: 16px 0;
+}
+
+.pollQuestion {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.pollOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pollOption {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  transition: all 150ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.pollOptionVoted {
+  border-color: var(--accent-primary);
+}
+
+.pollOptionShowResult {
+  cursor: default;
+}
+
+.pollBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--accent-primary-subtle);
+  border-radius: var(--radius-md);
+  transition: width 400ms ease;
+  z-index: 0;
+}
+
+.pollOptionLabel {
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
+}
+
+.pollOptionPct {
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.pollOptionCheck {
+  position: relative;
+  z-index: 1;
+  color: var(--accent-primary);
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+.pollFooter {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+}

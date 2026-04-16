@@ -1423,3 +1423,113 @@
   border-color: var(--accent-primary);
   background: var(--accent-primary-subtle);
 }
+
+// ---------------------------------------------------------------------------
+// Poll Creator (New Thread Form)
+// ---------------------------------------------------------------------------
+
+.pollToggle {
+  margin-bottom: 16px;
+}
+
+.pollToggleBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.pollToggleBtnActive {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.pollCreator {
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pollQuestionInput {
+  padding: 10px 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.pollOptionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pollOptionRow {
+  display: flex;
+  gap: 6px;
+}
+
+.pollOptionInput {
+  flex: 1;
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.pollRemoveBtn {
+  width: 32px;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  &:hover { color: var(--accent-hot); border-color: var(--accent-hot); }
+}
+
+.pollAddBtn {
+  padding: 6px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--accent-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  &:hover { text-decoration: underline; }
+}
+
+// ---------------------------------------------------------------------------
+// Poll Indicator on Thread Cards
+// ---------------------------------------------------------------------------
+
+.pollIndicator {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #6E56FF;
+  background: rgba(110, 86, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}

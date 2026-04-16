@@ -51,6 +51,12 @@ interface Thread {
   upvotes: number;
   downvotes: number;
   flair?: string | null;
+  poll?: {
+    id: string;
+    question: string;
+    expiresAt?: string | null;
+    options: { id: string; label: string; votes: number }[];
+  } | null;
   createdAt: string;
   user: ThreadUser;
   product: ThreadProduct | null;
@@ -161,6 +167,85 @@ function LightboxModal({
           <span className={styles.lightboxCounter}>{index + 1} of {images.length}</span>
         </>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PollWidget
+// ---------------------------------------------------------------------------
+
+function PollWidget({ poll }: { poll: NonNullable<Thread['poll']> }) {
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const [options, setOptions] = useState(poll.options);
+  const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
+  const [voting, setVoting] = useState(false);
+
+  const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
+  const isExpired = poll.expiresAt ? new Date(poll.expiresAt) < new Date() : false;
+
+  // Fetch user's existing vote
+  useEffect(() => {
+    if (!user) return;
+    api<{ votedOptionId: string | null }>(`/forum/polls/${poll.id}/my-vote`)
+      .then(d => setVotedOptionId(d.votedOptionId))
+      .catch(() => {});
+  }, [user, poll.id]);
+
+  const handleVote = async (optionId: string) => {
+    if (!user || voting || isExpired) return;
+    setVoting(true);
+    try {
+      const updated = await api<{ options: { id: string; label: string; votes: number }[] }>(`/forum/polls/${poll.id}/vote`, {
+        method: 'POST',
+        body: { optionId },
+      });
+      setOptions(updated.options);
+      setVotedOptionId(optionId);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to vote', 'error');
+    } finally {
+      setVoting(false);
+    }
+  };
+
+  const hasVoted = votedOptionId !== null;
+
+  return (
+    <div className={styles.pollWidget}>
+      <h4 className={styles.pollQuestion}>{poll.question}</h4>
+      <div className={styles.pollOptions}>
+        {options.map(opt => {
+          const pct = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+          const isVoted = opt.id === votedOptionId;
+
+          return (
+            <button
+              key={opt.id}
+              className={`${styles.pollOption} ${isVoted ? styles.pollOptionVoted : ''} ${hasVoted || isExpired ? styles.pollOptionShowResult : ''}`}
+              onClick={() => !hasVoted && !isExpired && handleVote(opt.id)}
+              disabled={voting || (hasVoted && !isVoted) || isExpired}
+            >
+              {(hasVoted || isExpired) && (
+                <div className={styles.pollBar} style={{ width: `${pct}%` }} />
+              )}
+              <span className={styles.pollOptionLabel}>{opt.label}</span>
+              {(hasVoted || isExpired) && (
+                <span className={styles.pollOptionPct}>{pct}%</span>
+              )}
+              {isVoted && <span className={styles.pollOptionCheck}>✓</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div className={styles.pollFooter}>
+        <span>{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
+        {isExpired && <span>Poll ended</span>}
+        {poll.expiresAt && !isExpired && (
+          <span>Ends {new Date(poll.expiresAt).toLocaleDateString()}</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -540,6 +625,11 @@ export function ForumThread({ slug }: ForumThreadProps) {
                   />
                 ))}
               </div>
+            )}
+
+            {/* Poll */}
+            {thread.poll && (
+              <PollWidget poll={thread.poll} />
             )}
 
             {/* Actions bar (Reddit-style) */}

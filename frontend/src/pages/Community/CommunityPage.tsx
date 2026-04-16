@@ -32,6 +32,7 @@ interface ThreadListItem {
   replyCount: number;
   score?: number;
   flair?: string | null;
+  poll?: { id: string; question: string } | null;
   createdAt: string;
   imageUrls?: string[];
   isPinned?: boolean;
@@ -479,6 +480,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                               {FLAIR_LABELS[t.flair]}
                             </span>
                           )}
+                          {t.poll && <span className={styles.pollIndicator}>Poll</span>}
                           <span className={styles.threadCardMeta}>
                             Posted by {t.user.id === 'anonymous' ? <em>Anonymous</em> : (
                               <a href={`/profile/${t.user.username}`} className={styles.threadCardAuthorLink} onClick={e => e.stopPropagation()}>
@@ -639,6 +641,9 @@ function NewThreadForm() {
   const [error, setError] = useState<string | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [flair, setFlair] = useState<string | null>(null);
+  const [showPoll, setShowPoll] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Image upload states
@@ -874,6 +879,12 @@ function NewThreadForm() {
           imageUrls: filteredImages.length > 0 ? filteredImages : undefined,
           isAnonymous: isAnonymous || undefined,
           flair: flair || undefined,
+          ...(showPoll && pollQuestion.trim() && pollOptions.filter(o => o.trim()).length >= 2 && {
+            poll: {
+              question: pollQuestion.trim(),
+              options: pollOptions.filter(o => o.trim()),
+            },
+          }),
         },
       });
       showToast('Thread created');
@@ -968,6 +979,48 @@ function NewThreadForm() {
             ))}
           </div>
         </div>
+
+        {/* Poll creator */}
+        <div className={styles.pollToggle}>
+          <button
+            type="button"
+            className={`${styles.pollToggleBtn} ${showPoll ? styles.pollToggleBtnActive : ''}`}
+            onClick={() => setShowPoll(!showPoll)}
+          >
+            {showPoll ? 'Remove Poll' : 'Add Poll'}
+          </button>
+        </div>
+
+        {showPoll && (
+          <div className={styles.pollCreator}>
+            <input
+              className={styles.pollQuestionInput}
+              placeholder="Poll question..."
+              value={pollQuestion}
+              onChange={e => setPollQuestion(e.target.value)}
+              maxLength={200}
+            />
+            <div className={styles.pollOptionsList}>
+              {pollOptions.map((opt, i) => (
+                <div key={i} className={styles.pollOptionRow}>
+                  <input
+                    className={styles.pollOptionInput}
+                    placeholder={`Option ${i + 1}`}
+                    value={opt}
+                    onChange={e => setPollOptions(pollOptions.map((o, j) => j === i ? e.target.value : o))}
+                    maxLength={100}
+                  />
+                  {pollOptions.length > 2 && (
+                    <button type="button" className={styles.pollRemoveBtn} onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {pollOptions.length < 6 && (
+              <button type="button" className={styles.pollAddBtn} onClick={() => setPollOptions([...pollOptions, ''])}>+ Add Option</button>
+            )}
+          </div>
+        )}
 
         {/* --- Category-specific fields --- */}
 
