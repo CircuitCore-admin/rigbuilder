@@ -195,6 +195,14 @@ export function SharedBuildPage() {
             )}
           </div>
         )}
+        <div className={styles.buildActions}>
+          <a
+            href={`/compare?ids=${buildId}`}
+            className={styles.compareBtn}
+          >
+            Compare
+          </a>
+        </div>
         <RigBuilderPage />
       </>
     );

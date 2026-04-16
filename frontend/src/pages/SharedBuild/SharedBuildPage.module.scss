@@ -99,3 +99,33 @@
     background: rgba(110, 86, 255, 0.25);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Build actions bar — compare button etc.
+// ---------------------------------------------------------------------------
+
+.buildActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 1600px;
+  margin: 12px auto 0;
+  padding: 0 16px;
+}
+
+.compareBtn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}

@@ -1,8 +1,45 @@
 import type { Request, Response } from 'express';
 import { BuildService } from '../services/build.service';
 import { ZodError } from 'zod';
+import { prisma } from '../prisma';
+import { BUILD_TEMPLATES } from '../config/build-templates';
 
 export class BuildController {
+  /** GET /api/v1/builds/compare?ids=id1,id2 */
+  static async compare(req: Request, res: Response) {
+    const idsParam = req.query.ids as string;
+    if (!idsParam) return res.status(400).json({ error: 'Provide build IDs as ?ids=id1,id2' });
+
+    const ids = idsParam.split(',').slice(0, 3);
+    if (ids.length < 2) return res.status(400).json({ error: 'Need at least 2 builds to compare' });
+
+    const builds = await prisma.build.findMany({
+      where: { id: { in: ids }, isPublic: true },
+      include: {
+        user: { select: { id: true, username: true, avatarUrl: true } },
+        parts: {
+          include: {
+            product: {
+              select: {
+                id: true, name: true, slug: true, manufacturer: true, category: true,
+                specs: true, images: true, avgRating: true, affiliateLinks: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (builds.length < 2) return res.status(404).json({ error: 'One or more builds not found or not public' });
+
+    res.json(builds);
+  }
+
+  /** GET /api/v1/builds/templates */
+  static async getTemplates(_req: Request, res: Response) {
+    res.json(BUILD_TEMPLATES);
+  }
+
   static async list(req: Request, res: Response) {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));

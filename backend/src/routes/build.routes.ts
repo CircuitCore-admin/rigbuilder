@@ -6,6 +6,8 @@ import { writeLimiter, searchLimiter } from '../config/rate-limit';
 
 const router = Router();
 
+router.get('/compare', searchLimiter, BuildController.compare);
+router.get('/templates', searchLimiter, BuildController.getTemplates);
 router.get('/', searchLimiter, BuildController.list);
 router.get('/:id', BuildController.getById);
 router.post('/', authenticate, writeLimiter, sanitize, BuildController.create);
