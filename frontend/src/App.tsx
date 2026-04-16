@@ -6,6 +6,7 @@ import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
 import { SharedBuildPage } from './pages/SharedBuild/SharedBuildPage';
 import { HomePage } from './pages/Home/HomePage';
 import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
+import { ProductComparePage } from './pages/ProductCompare/ProductComparePage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { LeaderboardPage } from './pages/Leaderboard/LeaderboardPage';
@@ -78,6 +79,9 @@ export function App() {
 
         {/* Shared build permalink — fetches from API and renders configurator inline */}
         <Route path="/list/:buildId" element={<SharedBuildPage />} />
+
+        {/* Product comparison (must be before :slug) */}
+        <Route path="/products/compare" element={<ProductComparePage />} />
 
         {/* Product detail */}
         <Route path="/products/:slug" element={<ProductDetailPage />} />

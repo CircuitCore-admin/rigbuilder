@@ -962,3 +962,99 @@
   gap: 8px;
   justify-content: flex-end;
 }
+
+// ---------------------------------------------------------------------------
+// Price Alert
+// ---------------------------------------------------------------------------
+
+.priceAlertSection {
+  margin-top: 12px;
+}
+
+.alertActive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--accent-primary-subtle);
+  border-radius: var(--radius-sm);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.removeAlertBtn {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover { color: var(--accent-hot); }
+}
+
+.alertForm {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.alertInput {
+  width: 140px;
+  padding: 8px 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.setAlertBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.cancelAlertBtn {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.createAlertBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+}
+
+.compareProductBtn {
+  padding: 8px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-top: 8px;
+  &:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+}

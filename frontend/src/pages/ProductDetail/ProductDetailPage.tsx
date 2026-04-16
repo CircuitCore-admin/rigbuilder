@@ -421,6 +421,40 @@ export function ProductDetailPage() {
     }
   };
 
+  // ── Price Alerts ──────────────────────────────────────────────────────
+  const [priceAlert, setPriceAlert] = useState<any>(null);
+  const [alertPrice, setAlertPrice] = useState('');
+  const [showAlertForm, setShowAlertForm] = useState(false);
+
+  useEffect(() => {
+    if (!user || !product) return;
+    api<{ alert: any }>(`/products/${product.slug}/price-alert`)
+      .then((d) => setPriceAlert(d.alert))
+      .catch(() => {});
+  }, [user, product]);
+
+  const handleSetAlert = async () => {
+    if (!alertPrice || !product) return;
+    try {
+      const alert = await api<any>(`/products/${product.slug}/price-alert`, {
+        method: 'POST',
+        body: { targetPrice: parseFloat(alertPrice), currency: 'GBP' },
+      });
+      setPriceAlert(alert);
+      setShowAlertForm(false);
+      showToast('Price alert set!', 'success');
+    } catch {
+      showToast('Failed to set price alert', 'error');
+    }
+  };
+
+  const handleRemoveAlert = async () => {
+    if (!product) return;
+    await api(`/products/${product.slug}/price-alert`, { method: 'DELETE' });
+    setPriceAlert(null);
+    showToast('Alert removed', 'success');
+  };
+
   // --- Not found ---
   if (loading) {
     return (
@@ -539,6 +573,45 @@ export function ProductDetailPage() {
           </button>
           {!slot && (
             <span className={styles.tooltip}>Open from Build page to add to your rig</span>
+          )}
+
+          <button
+            type="button"
+            className={styles.compareProductBtn}
+            onClick={() => {
+              navigate(`/products/compare?slugs=${product.slug}`);
+            }}
+          >
+            Compare
+          </button>
+
+          {user && (
+            <div className={styles.priceAlertSection}>
+              {priceAlert ? (
+                <div className={styles.alertActive}>
+                  <span>Alert set: £{priceAlert.targetPrice}</span>
+                  <button className={styles.removeAlertBtn} onClick={handleRemoveAlert}>Remove</button>
+                </div>
+              ) : showAlertForm ? (
+                <div className={styles.alertForm}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className={styles.alertInput}
+                    placeholder="Alert me when below..."
+                    value={alertPrice}
+                    onChange={(e) => setAlertPrice(e.target.value)}
+                  />
+                  <button className={styles.setAlertBtn} onClick={handleSetAlert}>Set Alert</button>
+                  <button className={styles.cancelAlertBtn} onClick={() => setShowAlertForm(false)}>Cancel</button>
+                </div>
+              ) : (
+                <button className={styles.createAlertBtn} onClick={() => setShowAlertForm(true)}>
+                  Set Price Alert
+                </button>
+              )}
+            </div>
           )}
         </div>
       </section>
