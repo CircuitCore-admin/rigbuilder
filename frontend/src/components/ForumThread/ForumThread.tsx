@@ -10,6 +10,11 @@ import { useToast } from '../Toast/Toast';
 import { CloseIcon, ChevronLeftIcon, ChevronRightIcon, UpArrowIcon, DownArrowIcon, ChatIcon, EyeIcon, ShareIcon } from '../Icons/ForumIcons';
 import styles from './ForumThread.module.scss';
 
+/** Convert @username mentions to markdown profile links */
+function renderMentions(text: string): string {
+  return text.replace(/@([a-zA-Z0-9_-]+)/g, '[@$1](/profile/$1)');
+}
+
 interface ThreadUser {
   id: string;
   username: string;
@@ -605,7 +610,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
             )}
 
             <div className={styles.threadBody}>
-              <Markdown>{thread.body}</Markdown>
+              <Markdown>{renderMentions(thread.body)}</Markdown>
             </div>
 
             {/* Images inline — part of the post content */}
@@ -885,7 +890,7 @@ function ReplyNode({
                   <time className={styles.replyTime}>{timeAgo}</time>
                 </div>
                 <div className={styles.replyBody}>
-                  <Markdown>{reply.body}</Markdown>
+                  <Markdown>{renderMentions(reply.body)}</Markdown>
                 </div>
                 <div className={styles.replyActions}>
                   <button

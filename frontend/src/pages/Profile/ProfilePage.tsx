@@ -122,6 +122,11 @@ export function ProfilePage() {
   // Block state
   const [isBlocked, setIsBlocked] = useState(false);
 
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editBio, setEditBio] = useState('');
@@ -151,6 +156,22 @@ export function ProfilePage() {
       .catch(() => {});
   }, [authUser, username, isOwnProfile]);
 
+  // Fetch follow data
+  useEffect(() => {
+    if (!username) return;
+    api<{ count: number }>(`/users/${encodeURIComponent(username)}/followers`)
+      .then(d => setFollowerCount(d.count))
+      .catch(() => {});
+    api<{ count: number }>(`/users/${encodeURIComponent(username)}/following`)
+      .then(d => setFollowingCount(d.count))
+      .catch(() => {});
+    if (authUser && !isOwnProfile) {
+      api<{ following: boolean }>(`/users/${encodeURIComponent(username)}/is-following`)
+        .then(d => setIsFollowing(d.following))
+        .catch(() => {});
+    }
+  }, [username, authUser, isOwnProfile]);
+
   const handleToggleBlock = async () => {
     if (!username) return;
     try {
@@ -158,6 +179,15 @@ export function ProfilePage() {
       setIsBlocked(result.blocked);
       showToast(result.blocked ? 'User blocked' : 'User unblocked', 'success');
     } catch { showToast('Failed', 'error'); }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!username) return;
+    try {
+      const result = await api<{ following: boolean }>(`/users/${encodeURIComponent(username)}/follow`, { method: 'POST' });
+      setIsFollowing(result.following);
+      setFollowerCount(prev => result.following ? prev + 1 : prev - 1);
+    } catch { showToast('Failed to follow', 'error'); }
   };
 
   // Fetch tab data
@@ -392,7 +422,24 @@ export function ProfilePage() {
               <span className={styles.statValue}>{profile.completedSales ?? 0}</span>
               <span className={styles.statLabel}>Sales</span>
             </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{followerCount}</span>
+              <span className={styles.statLabel}>Followers</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{followingCount}</span>
+              <span className={styles.statLabel}>Following</span>
+            </div>
           </div>
+
+          {!isOwnProfile && authUser && (
+            <button
+              className={`${styles.followBtn} ${isFollowing ? styles.followBtnActive : ''}`}
+              onClick={handleToggleFollow}
+            >
+              {isFollowing ? 'Following' : 'Follow'}
+            </button>
+          )}
 
           {isOwnProfile && !isEditing && (
             <button className={styles.editProfileBtn} onClick={() => {
