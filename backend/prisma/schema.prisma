@@ -159,6 +159,10 @@ model User {
 
   @@index([username])
   @@index([email])
+  @@index([role])
+  @@index([createdAt(sort: Desc)])
+  @@index([pitCred(sort: Desc)])
+  @@index([sellerRating(sort: Desc)])
   @@map("users")
 }
 
@@ -170,6 +174,7 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expiresAt])
   @@map("sessions")
 }
 
@@ -250,6 +255,7 @@ model Build {
   @@index([slug])
   @@index([isPublic, upvoteCount(sort: Desc)])
   @@index([isPublic, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
   @@map("builds")
 }
 
@@ -472,6 +478,11 @@ model ForumThread {
   @@index([productId])
   @@index([userId])
   @@index([slug])
+  @@index([category, isPinned(sort: Desc), createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([category, viewCount(sort: Desc)])
+  @@index([category, replyCount(sort: Desc)])
+  @@index([isAnonymous, userId])
   @@map("forum_threads")
 }
 
@@ -493,6 +504,7 @@ model ForumReply {
 
   @@index([threadId, createdAt])
   @@index([userId])
+  @@index([threadId, parentId, createdAt])
   @@map("forum_replies")
 }
 
@@ -741,6 +753,14 @@ model MarketplaceListing {
   @@index([category])
   @@index([type, status])
   @@index([productId])
+  @@index([status, category])
+  @@index([status, type])
+  @@index([status, condition])
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([category, status, createdAt(sort: Desc)])
+  @@index([status, price])
+  @@index([status, viewCount(sort: Desc)])
   @@map("marketplace_listings")
 }
 
@@ -760,6 +780,8 @@ model MarketplaceOffer {
 
   @@index([listingId])
   @@index([userId])
+  @@index([listingId, status])
+  @@index([userId, status])
   @@map("marketplace_offers")
 }
 
@@ -783,6 +805,9 @@ model MarketplaceMessage {
   @@index([listingId])
   @@index([senderId])
   @@index([recipientId])
+  @@index([senderId, createdAt(sort: Desc)])
+  @@index([recipientId, readAt])
+  @@index([conversationId, createdAt])
   @@map("marketplace_messages")
 }
 
@@ -841,6 +866,7 @@ model MarketplaceNotification {
 
   @@index([userId, read])
   @@index([createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
   @@map("marketplace_notifications")
 }
 
@@ -869,5 +895,7 @@ model UserBlock {
   blocked User @relation("BlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
   @@map("user_blocks")
 }
