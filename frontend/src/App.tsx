@@ -13,6 +13,7 @@ import { MarketplaceMessages } from './pages/Marketplace/MarketplaceMessages';
 import { NotificationsPage } from './pages/Notifications/NotificationsPage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
+import { VerifyEmailPage } from './pages/VerifyEmail/VerifyEmailPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
@@ -31,6 +32,7 @@ export function App() {
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Admin routes */}
         <Route
