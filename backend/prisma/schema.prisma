@@ -159,6 +159,8 @@ model User {
   pollVotes                   ForumPollVote[]
   following                   UserFollow[]               @relation("Following")
   followers                   UserFollow[]               @relation("Followers")
+  productQuestions            ProductQuestion[]          @relation("QuestionAuthor")
+  productAnswers              ProductAnswer[]            @relation("AnswerAuthor")
 
   @@index([username])
   @@index([email])
@@ -217,6 +219,7 @@ model Product {
   priceHistory        PriceHistory[]
   forumThreads        ForumThread[]
   marketplaceListings MarketplaceListing[]
+  questions           ProductQuestion[]
 
   @@index([slug])
   @@index([category])
@@ -652,6 +655,7 @@ enum NotificationType {
   MENTION
   FOLLOW
   NEW_FOLLOWER
+  QUESTION_ANSWERED
 }
 
 // ---------------------------------------------------------------------------
@@ -986,4 +990,39 @@ model UserFollow {
   @@index([followerId])
   @@index([followedId])
   @@map("user_follows")
+}
+
+// ---------------------------------------------------------------------------
+// Product Q&A
+// ---------------------------------------------------------------------------
+
+model ProductQuestion {
+  id        String   @id @default(cuid())
+  productId String   @map("product_id")
+  userId    String   @map("user_id")
+  question  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User             @relation("QuestionAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  answers ProductAnswer[]
+
+  @@index([productId, createdAt(sort: Desc)])
+  @@map("product_questions")
+}
+
+model ProductAnswer {
+  id         String   @id @default(cuid())
+  questionId String   @map("question_id")
+  userId     String   @map("user_id")
+  body       String
+  upvotes    Int      @default(0)
+  isAccepted Boolean  @default(false) @map("is_accepted")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  question ProductQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User            @relation("AnswerAuthor", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("product_answers")
 }

@@ -12,6 +12,7 @@ import uploadRoutes from './upload.routes';
 import marketplaceRoutes from './marketplace.routes';
 import notificationRoutes from './notification.routes';
 import leaderboardRoutes from './leaderboard.routes';
+import qaRoutes from './qa.routes';
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use('/uploads', uploadRoutes);
 router.use('/marketplace', marketplaceRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/leaderboards', leaderboardRoutes);
+router.use('/qa', qaRoutes);
 
 export default router;
