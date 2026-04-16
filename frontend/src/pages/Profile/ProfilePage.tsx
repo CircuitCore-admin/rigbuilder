@@ -72,6 +72,66 @@ interface MarketplaceReview {
 
 type TabKey = 'overview' | 'posts' | 'marketplace' | 'saved' | 'reviews';
 
+interface UserBadge {
+  id: string;
+  badge: string;
+  awardedAt: string;
+}
+
+const BADGE_LABELS: Record<string, string> = {
+  FIRST_POST: 'First Post',
+  TEN_POSTS: 'Regular',
+  FIFTY_POSTS: 'Prolific',
+  FIRST_REPLY: 'First Reply',
+  HELPFUL: 'Helpful',
+  SUPER_HELPFUL: 'Super Helpful',
+  TOP_CONTRIBUTOR: 'Top Contributor',
+  EXPERT: 'Expert',
+  FIRST_SALE: 'First Sale',
+  FIVE_SALES: 'Experienced Seller',
+  TRUSTED_SELLER: 'Trusted Seller',
+  FIRST_PURCHASE: 'First Purchase',
+  BIG_SPENDER: 'Big Spender',
+  POPULAR: 'Popular',
+  INFLUENCER: 'Influencer',
+  EARLY_ADOPTER: 'Early Adopter',
+  VERIFIED_EMAIL: 'Verified',
+  PROFILE_COMPLETE: 'Profile Complete',
+  VERIFIED_OWNER: 'Verified Owner',
+};
+
+const BADGE_DESCRIPTIONS: Record<string, string> = {
+  FIRST_POST: 'Created your first forum thread',
+  TEN_POSTS: 'Created 10 forum threads',
+  FIFTY_POSTS: 'Created 50 forum threads',
+  FIRST_REPLY: 'Posted your first reply',
+  HELPFUL: 'Received 10 upvotes on replies',
+  SUPER_HELPFUL: 'Received 50 upvotes on replies',
+  TOP_CONTRIBUTOR: 'Earned 100+ Pit Cred',
+  EXPERT: 'Earned 500+ Pit Cred',
+  FIRST_SALE: 'Completed your first sale',
+  FIVE_SALES: 'Completed 5 sales',
+  TRUSTED_SELLER: '10+ sales with 4.5+ rating',
+  FIRST_PURCHASE: 'Made your first purchase',
+  BIG_SPENDER: 'Made 5+ purchases',
+  POPULAR: 'Gained 10 followers',
+  INFLUENCER: 'Gained 50 followers',
+  EARLY_ADOPTER: 'Joined during early access',
+  VERIFIED_EMAIL: 'Email verified',
+  PROFILE_COMPLETE: 'Bio, avatar, and location set',
+  VERIFIED_OWNER: 'Verified product owner',
+};
+
+const BADGE_ICONS: Record<string, string> = {
+  FIRST_POST: '📝', TEN_POSTS: '✍️', FIFTY_POSTS: '🏆',
+  FIRST_REPLY: '💬', HELPFUL: '👍', SUPER_HELPFUL: '⭐',
+  TOP_CONTRIBUTOR: '🔥', EXPERT: '🧠', VERIFIED_OWNER: '✅',
+  FIRST_SALE: '🏷️', FIVE_SALES: '📦', TRUSTED_SELLER: '🛡️',
+  FIRST_PURCHASE: '🛒', BIG_SPENDER: '💰',
+  POPULAR: '👥', INFLUENCER: '🌟',
+  EARLY_ADOPTER: '🚀', VERIFIED_EMAIL: '📧', PROFILE_COMPLETE: '🎯',
+};
+
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: '\u00A3', EUR: '\u20AC', USD: '$', SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', CHF: 'CHF ' };
 
 function formatPrice(price: number | null, currency: string): string {
@@ -118,6 +178,9 @@ export function ProfilePage() {
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [reviews, setReviews] = useState<MarketplaceReview[]>([]);
   const [savedListings, setSavedListings] = useState<MarketplaceListing[]>([]);
+
+  // Badge state
+  const [badges, setBadges] = useState<UserBadge[]>([]);
 
   // Block state
   const [isBlocked, setIsBlocked] = useState(false);
@@ -171,6 +234,14 @@ export function ProfilePage() {
         .catch(() => {});
     }
   }, [username, authUser, isOwnProfile]);
+
+  // Fetch badges
+  useEffect(() => {
+    if (!username) return;
+    api<UserBadge[]>(`/users/${encodeURIComponent(username)}/badges`)
+      .then(setBadges)
+      .catch(() => {});
+  }, [username]);
 
   const handleToggleBlock = async () => {
     if (!username) return;
@@ -431,6 +502,20 @@ export function ProfilePage() {
               <span className={styles.statLabel}>Following</span>
             </div>
           </div>
+
+          {badges.length > 0 && (
+            <div className={styles.badgeSection}>
+              <h3 className={styles.badgeSectionTitle}>Achievements</h3>
+              <div className={styles.badgeGrid}>
+                {badges.map(b => (
+                  <div key={b.id} className={styles.badgeItem} title={BADGE_DESCRIPTIONS[b.badge] ?? b.badge}>
+                    <span className={styles.badgeIcon}>{BADGE_ICONS[b.badge] ?? '🏅'}</span>
+                    <span className={styles.badgeName}>{BADGE_LABELS[b.badge] ?? b.badge}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {!isOwnProfile && authUser && (
             <button

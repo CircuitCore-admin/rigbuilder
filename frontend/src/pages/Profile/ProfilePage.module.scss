@@ -766,3 +766,47 @@
   border: 1px solid var(--border-default);
   &:hover { border-color: var(--accent-hot); color: var(--accent-hot); }
 }
+
+// ---------- Badges ----------
+
+.badgeSection {
+  margin-bottom: 16px;
+}
+
+.badgeSectionTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.badgeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badgeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  cursor: default;
+  transition: border-color 150ms ease;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.badgeIcon {
+  font-size: 14px;
+}
+
+.badgeName {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}

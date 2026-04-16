@@ -8,6 +8,7 @@ import { HomePage } from './pages/Home/HomePage';
 import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
+import { LeaderboardPage } from './pages/Leaderboard/LeaderboardPage';
 import { MarketplacePage } from './pages/Marketplace/MarketplacePage';
 import { MarketplaceMessages } from './pages/Marketplace/MarketplaceMessages';
 import { NotificationsPage } from './pages/Notifications/NotificationsPage';
@@ -51,6 +52,9 @@ export function App() {
         {/* Community Forum */}
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:slug" element={<CommunityPage />} />
+
+        {/* Leaderboards */}
+        <Route path="/leaderboards" element={<LeaderboardPage />} />
 
         {/* Marketplace */}
         <Route path="/marketplace" element={<MarketplacePage />} />

@@ -609,6 +609,13 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             <span className={styles.statLabel}>Active</span>
           </div>
         </div>
+
+        <div className={styles.sidebarCard}>
+          <h3 className={styles.sidebarCardTitle}>Leaderboards</h3>
+          <a href="/leaderboards" className={styles.sidebarLink} onClick={e => { e.preventDefault(); navigate('/leaderboards'); }}>
+            View Leaderboards →
+          </a>
+        </div>
       </aside>
 
       {/* ---------- Mobile FAB ---------- */}

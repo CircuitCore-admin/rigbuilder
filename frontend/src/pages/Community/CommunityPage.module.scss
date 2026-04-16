@@ -668,6 +668,16 @@
   text-align: center;
 }
 
+.sidebarLink {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
 // ============================================================================
 // Search & Sort Controls
 // ============================================================================
