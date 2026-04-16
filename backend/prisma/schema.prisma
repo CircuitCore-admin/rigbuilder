@@ -422,6 +422,10 @@ enum GuideCategory {
   BEGINNER
   BUYING
   MAINTENANCE
+  SETUP
+  DIY
+  COMPARISON
+  TUTORIAL
 }
 
 enum BadgeType {
@@ -578,16 +582,20 @@ model Guide {
   title           String
   slug            String        @unique
   excerpt         String?
-  body            String // rich content from CMS
+  body            String        @db.Text
   category        GuideCategory
   coverImage      String?       @map("cover_image")
   authorId        String        @map("author_id")
   tags            String[]      @default([])
-  productMentions String[]      @default([]) @map("product_mentions") // product IDs mentioned
+  productMentions String[]      @default([]) @map("product_mentions")
   seoTitle        String?       @map("seo_title")
   seoDescription  String?       @map("seo_description")
+  status          String        @default("DRAFT")
+  rejectionReason String?       @map("rejection_reason")
   isPublished     Boolean       @default(false) @map("is_published")
   publishedAt     DateTime?     @map("published_at")
+  viewCount       Int           @default(0) @map("view_count")
+  upvoteCount     Int           @default(0) @map("upvote_count")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
@@ -596,6 +604,7 @@ model Guide {
   @@index([slug])
   @@index([category, isPublished])
   @@index([authorId])
+  @@index([status])
   @@map("guides")
 }
 
