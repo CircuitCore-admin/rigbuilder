@@ -70,7 +70,7 @@ interface MarketplaceReview {
   listing: { id: string; title: string };
 }
 
-type TabKey = 'overview' | 'posts' | 'marketplace' | 'saved' | 'reviews';
+type TabKey = 'overview' | 'posts' | 'marketplace' | 'saved' | 'reviews' | 'guides';
 
 interface UserBadge {
   id: string;
@@ -178,6 +178,7 @@ export function ProfilePage() {
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [reviews, setReviews] = useState<MarketplaceReview[]>([]);
   const [savedListings, setSavedListings] = useState<MarketplaceListing[]>([]);
+  const [guides, setGuides] = useState<any[]>([]);
 
   // Badge state
   const [badges, setBadges] = useState<UserBadge[]>([]);
@@ -284,6 +285,17 @@ export function ProfilePage() {
       api<{ items: MarketplaceListing[] }>('/marketplace/wishlisted')
         .then(d => setSavedListings(d.items))
         .catch(() => {});
+    }
+    if (activeTab === 'guides') {
+      if (isOwnProfile) {
+        api<any[]>('/guides/mine')
+          .then(setGuides)
+          .catch(() => {});
+      } else {
+        api<{ items: any[] }>(`/guides?authorId=${profile.id}`)
+          .then(d => setGuides(d.items ?? []))
+          .catch(() => {});
+      }
     }
   }, [username, profile, activeTab]);
 
@@ -548,15 +560,15 @@ export function ProfilePage() {
       {/* Tabs */}
       <div className={styles.tabBar}>
         {(isOwnProfile
-          ? ['overview', 'posts', 'marketplace', 'saved', 'reviews'] as const
-          : ['overview', 'posts', 'marketplace', 'reviews'] as const
+          ? ['overview', 'posts', 'marketplace', 'saved', 'reviews', 'guides'] as const
+          : ['overview', 'posts', 'marketplace', 'reviews', 'guides'] as const
         ).map(tab => (
           <button
             key={tab}
             className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'overview' ? 'Overview' : tab === 'posts' ? 'Forum Posts' : tab === 'marketplace' ? 'Marketplace' : tab === 'saved' ? 'Saved' : 'Reviews'}
+            {tab === 'overview' ? 'Overview' : tab === 'posts' ? 'Forum Posts' : tab === 'marketplace' ? 'Marketplace' : tab === 'saved' ? 'Saved' : tab === 'guides' ? 'Guides' : 'Reviews'}
           </button>
         ))}
       </div>
@@ -656,6 +668,46 @@ export function ProfilePage() {
             </div>
           ) : (
             <div className={styles.emptyState}>No reviews yet</div>
+          )
+        )}
+
+        {/* Guides tab */}
+        {activeTab === 'guides' && (
+          guides.length > 0 ? (
+            <div className={styles.guidesList}>
+              {guides.map((g: any) => (
+                <a key={g.id} href={g.isPublished ? `/guides/${g.slug}` : `/guides/edit/${g.id}`} className={styles.guideCard}>
+                  <div className={styles.guideCardBody}>
+                    <div className={styles.guideCardTop}>
+                      <span className={`${styles.guideStatusBadge} ${
+                        g.status === 'PUBLISHED' ? styles.statusPublished :
+                        g.status === 'PENDING_REVIEW' ? styles.statusPending :
+                        g.status === 'REJECTED' ? styles.statusRejected :
+                        styles.statusDraft
+                      }`}>
+                        {g.status === 'PUBLISHED' ? 'Published' :
+                         g.status === 'PENDING_REVIEW' ? 'Pending Review' :
+                         g.status === 'REJECTED' ? 'Needs Revision' : 'Draft'}
+                      </span>
+                      <span className={styles.guideMeta}>
+                        {g.publishedAt
+                          ? new Date(g.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : relativeTime(g.createdAt)}
+                      </span>
+                    </div>
+                    <h3 className={styles.guideCardTitle}>{g.title}</h3>
+                    {g.excerpt && <p className={styles.guideCardExcerpt}>{g.excerpt}</p>}
+                    {g.rejectionReason && (
+                      <p className={styles.guideRejectionNote}>Feedback: {g.rejectionReason}</p>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              {isOwnProfile ? 'No guides yet — write your first guide!' : 'No published guides'}
+            </div>
           )
         )}
       </div>

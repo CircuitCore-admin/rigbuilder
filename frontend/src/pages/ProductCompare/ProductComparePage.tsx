@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api, resolveImageUrl } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/Toast/Toast';
+import { useBuildStore, type CategorySlot, type SelectedPart } from '../../stores/buildStore';
 import styles from './ProductComparePage.module.scss';
 
 interface CompareProduct {
@@ -63,6 +64,7 @@ export function ProductComparePage() {
   const [selectedSlugs, setSelectedSlugs] = useState<string[]>(
     searchParams.get('slugs')?.split(',').filter(Boolean) ?? []
   );
+  const addPart = useBuildStore((s) => s.addPart);
 
   // Fetch products when slugs change
   useEffect(() => {
@@ -271,6 +273,32 @@ export function ProductComparePage() {
                   onClick={() => navigate(`/products/${p.slug}`)}
                 >
                   View Product
+                </button>
+                <button
+                  className={styles.addToBuildBtn}
+                  onClick={() => {
+                    const slot = p.category as CategorySlot;
+                    const part: SelectedPart = {
+                      id: p.id,
+                      name: p.name,
+                      thumbnail: p.images?.[0],
+                      keySpec: '',
+                      price: p.latestPrice?.price ?? 0,
+                      rating: p.avgRating ?? undefined,
+                      weight: p.weight ?? undefined,
+                    };
+                    addPart(slot, part);
+                    showToast(`${p.name} added to build`, 'success');
+                    navigate('/build');
+                  }}
+                >
+                  Add to Build
+                </button>
+                <button
+                  className={styles.priceAlertBtn}
+                  onClick={() => navigate(`/products/${p.slug}`)}
+                >
+                  Set Price Alert
                 </button>
               </div>
             </div>

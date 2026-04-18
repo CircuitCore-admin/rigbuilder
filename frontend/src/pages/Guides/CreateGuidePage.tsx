@@ -45,7 +45,7 @@ export function CreateGuidePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const showToast = useToast();
+  const { showToast } = useToast();
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('BEGINNER');
