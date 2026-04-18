@@ -20,9 +20,11 @@ import { NotificationsPage } from './pages/Notifications/NotificationsPage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
 import { VerifyEmailPage } from './pages/VerifyEmail/VerifyEmailPage';
+import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
+import { OnboardingRedirect } from './components/OnboardingRedirect/OnboardingRedirect';
 
 /**
  * Root application shell.
@@ -33,12 +35,16 @@ export function App() {
     <>
       <Navbar />
       <CommandPalette />
+      <OnboardingRedirect />
       <div className="appContent">
         <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+        {/* Onboarding */}
+        <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
 
         {/* Admin routes */}
         <Route

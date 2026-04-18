@@ -28,6 +28,9 @@ export function SettingsPage() {
   // Discord
   const [discord, setDiscord] = useState('');
 
+  // Digest
+  const [digestFrequency, setDigestFrequency] = useState('WEEKLY');
+
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
 
@@ -37,6 +40,7 @@ export function SettingsPage() {
       .then(p => {
         setVisibility(p.profileVisibility ?? 'PUBLIC');
         setDiscord(p.discordUsername ?? '');
+        setDigestFrequency(p.digestFrequency ?? 'WEEKLY');
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -122,6 +126,32 @@ export function SettingsPage() {
           <input className={styles.fieldInput} placeholder="@username" value={discord} onChange={e => setDiscord(e.target.value)} />
         </div>
         <button className={styles.saveBtn} onClick={handleSaveDiscord}>Save</button>
+      </section>
+
+      {/* Email Notifications */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Email Notifications</h2>
+        <p className={styles.sectionDesc}>
+          Get a summary of new listings matching your interests, trending discussions, and price drops on saved items.
+        </p>
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Weekly Digest</label>
+          <CustomSelect
+            value={digestFrequency}
+            onChange={async (val) => {
+              setDigestFrequency(val);
+              try {
+                await api('/users/profile', { method: 'PUT', body: { digestFrequency: val } });
+                showToast('Preference saved', 'success');
+              } catch { showToast('Failed to save', 'error'); }
+            }}
+            options={[
+              { value: 'WEEKLY', label: 'Weekly — Every Sunday' },
+              { value: 'DAILY', label: 'Daily — Every morning' },
+              { value: 'NEVER', label: 'Never — No digest emails' },
+            ]}
+          />
+        </div>
       </section>
 
       {/* Blocked Users */}
