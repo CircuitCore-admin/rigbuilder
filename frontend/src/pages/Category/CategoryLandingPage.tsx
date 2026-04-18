@@ -179,8 +179,6 @@ export function CategoryLandingPage() {
     );
   }
 
-  const firstPrice = getFirstPrice(data.topProducts);
-
   return (
     <div className={styles.page}>
       {/* Hero */}
@@ -193,13 +191,12 @@ export function CategoryLandingPage() {
               <span className={styles.heroStatValue}>{data.stats.productCount}</span>
               <span className={styles.heroStatLabel}>Products</span>
             </div>
-            {data.stats.avgPrice != null && (
+            {data.stats.avgPrice != null ? (
               <div className={styles.heroStat}>
                 <span className={styles.heroStatValue}>£{Math.round(data.stats.avgPrice)}</span>
                 <span className={styles.heroStatLabel}>Avg. Price</span>
               </div>
-            )}
-            {firstPrice == null && data.stats.avgPrice == null && (
+            ) : (
               <div className={styles.heroStat}>
                 <span className={styles.heroStatValue}>—</span>
                 <span className={styles.heroStatLabel}>Avg. Price</span>
@@ -367,17 +364,6 @@ export function CategoryLandingPage() {
       </section>
     </div>
   );
-}
-
-function getFirstPrice(products: CategoryProduct[]): number | null {
-  for (const p of products) {
-    if (p.affiliateLinks && Array.isArray(p.affiliateLinks)) {
-      for (const link of p.affiliateLinks) {
-        if (link.price) return link.price;
-      }
-    }
-  }
-  return null;
 }
 
 export default CategoryLandingPage;

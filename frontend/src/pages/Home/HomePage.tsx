@@ -94,7 +94,7 @@ export function HomePage() {
         title: homeData.featuredBuild.name,
         author: homeData.featuredBuild.user?.username ?? 'Unknown',
         quote: homeData.featuredBuild.description
-          ? `"${homeData.featuredBuild.description.replace(/<[^>]+>/g, '').slice(0, 200)}"`
+          ? `"${stripHtmlTags(homeData.featuredBuild.description).slice(0, 200)}"`
           : '"A carefully crafted sim racing rig."',
         thumbnail: homeData.featuredBuild.images?.[0],
         href: `/list/${homeData.featuredBuild.id}`,
@@ -285,3 +285,23 @@ export function HomePage() {
 }
 
 export default HomePage;
+
+/**
+ * Safely strip HTML tags from a string using the browser's DOM parser.
+ * Falls back to a simple regex for SSR/test contexts.
+ */
+function stripHtmlTags(html: string): string {
+  if (typeof document !== 'undefined') {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent ?? '';
+  }
+  // Fallback: iteratively strip tags to prevent partial tag bypass
+  let text = html;
+  let prev = '';
+  while (prev !== text) {
+    prev = text;
+    text = text.replace(/<[^>]*>/g, '');
+  }
+  return text;
+}
