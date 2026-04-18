@@ -12,6 +12,7 @@ import type { ProductInput } from '../../types/productSpecs';
 import { api, resolveImageUrl } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/Toast/Toast';
+import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -741,19 +742,19 @@ export function ProductDetailPage() {
 
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>How long have you owned this?</label>
-              <select
-                className={styles.ownershipSelect}
+              <CustomSelect
                 value={reviewOwnership}
-                onChange={(e) => setReviewOwnership(e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="less_than_month">Less than a month</option>
-                <option value="1_3_months">1-3 months</option>
-                <option value="3_6_months">3-6 months</option>
-                <option value="6_12_months">6-12 months</option>
-                <option value="1_2_years">1-2 years</option>
-                <option value="2_plus_years">2+ years</option>
-              </select>
+                onChange={setReviewOwnership}
+                placeholder="Select..."
+                options={[
+                  { value: 'less_than_month', label: 'Less than a month' },
+                  { value: '1_3_months', label: '1-3 months' },
+                  { value: '3_6_months', label: '3-6 months' },
+                  { value: '6_12_months', label: '6-12 months' },
+                  { value: '1_2_years', label: '1-2 years' },
+                  { value: '2_plus_years', label: '2+ years' },
+                ]}
+              />
             </div>
 
             <div className={styles.fieldGroup}>
