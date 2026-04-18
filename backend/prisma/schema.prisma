@@ -126,6 +126,10 @@ model User {
   emailVerified       Boolean   @default(false) @map("email_verified")
   emailVerifyToken    String?   @map("email_verify_token")
   emailVerifyExpiry   DateTime? @map("email_verify_expiry")
+  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  interests           String[]  @default([])
+  digestFrequency     String    @default("WEEKLY") @map("digest_frequency")
+  lastDigestSentAt    DateTime? @map("last_digest_sent_at")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 

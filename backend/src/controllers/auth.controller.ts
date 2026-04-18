@@ -48,10 +48,10 @@ export class AuthController {
     const session = (req as any).session;
     const user = await prisma.user.findUnique({
       where: { id: session.userId },
-      select: { id: true, username: true, role: true, emailVerified: true },
+      select: { id: true, username: true, role: true, emailVerified: true, onboardingCompleted: true },
     });
     if (!user) return res.status(401).json({ error: 'User not found' });
-    res.json({ userId: user.id, username: user.username, role: user.role, emailVerified: user.emailVerified });
+    res.json({ userId: user.id, username: user.username, role: user.role, emailVerified: user.emailVerified, onboardingCompleted: user.onboardingCompleted });
   }
 
   static async changePassword(req: Request, res: Response) {

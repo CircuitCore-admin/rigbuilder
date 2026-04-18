@@ -23,6 +23,9 @@ const FULL_PROFILE_SELECT = {
   avgResponseMinutes: true,
   discordUsername: true,
   profileVisibility: true,
+  onboardingCompleted: true,
+  interests: true,
+  digestFrequency: true,
   _count: { select: { forumThreads: true, marketplaceListings: true } },
 } as const;
 

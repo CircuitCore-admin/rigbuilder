@@ -9,6 +9,9 @@ export const updateProfileSchema = z.object({
   bannerColor: z.string().length(7).regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
   discordUsername: z.string().max(50).optional().nullable(),
   profileVisibility: z.enum(['PUBLIC', 'PRIVATE']).optional(),
+  onboardingCompleted: z.boolean().optional(),
+  interests: z.array(z.string().max(50)).max(20).optional(),
+  digestFrequency: z.enum(['WEEKLY', 'DAILY', 'NEVER']).optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

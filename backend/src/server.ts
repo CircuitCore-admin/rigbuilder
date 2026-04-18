@@ -11,6 +11,7 @@ import { errorHandler } from './middleware/error-handler';
 import routes from './routes';
 import { SearchService } from './services/search.service';
 import { checkPriceAlerts } from './jobs/check-price-alerts';
+import { sendWeeklyDigests } from './jobs/weekly-digest';
 
 const app = express();
 
@@ -77,6 +78,14 @@ app.listen(env.PORT, () => {
   setInterval(() => {
     checkPriceAlerts().catch(err => console.error('Price alert check failed:', err));
   }, 60 * 60 * 1000);
+
+  // Check for weekly digest sends every minute (fires on Sunday at 9am)
+  setInterval(() => {
+    const now = new Date();
+    if (now.getDay() === 0 && now.getHours() === 9 && now.getMinutes() === 0) {
+      sendWeeklyDigests().catch(err => console.error('Digest failed:', err));
+    }
+  }, 60000);
 });
 
 export default app;
