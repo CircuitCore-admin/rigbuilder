@@ -194,6 +194,15 @@ export function Navbar() {
             >
               Community
             </NavLink>
+
+            <NavLink
+              to="/blog"
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              News
+            </NavLink>
           </nav>
 
           {/* Secondary (right) */}

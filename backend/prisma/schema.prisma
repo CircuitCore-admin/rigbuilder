@@ -162,6 +162,7 @@ model User {
   productQuestions            ProductQuestion[]          @relation("QuestionAuthor")
   productAnswers              ProductAnswer[]            @relation("AnswerAuthor")
   priceAlerts                 PriceAlert[]
+  blogPosts                   BlogPost[]              @relation("BlogAuthor")
 
   @@index([username])
   @@index([email])
@@ -606,6 +607,38 @@ model Guide {
   @@index([authorId])
   @@index([status])
   @@map("guides")
+}
+
+// ---------------------------------------------------------------------------
+// Blog Posts (News & Articles)
+// ---------------------------------------------------------------------------
+
+model BlogPost {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  excerpt        String?
+  body           String    @db.Text
+  coverImage     String?   @map("cover_image")
+  authorId       String    @map("author_id")
+  category       String    // NEWS, PRODUCT_LAUNCH, FIRMWARE, ESPORTS, PLATFORM_UPDATE, EDITORIAL
+  tags           String[]  @default([])
+  isPublished    Boolean   @default(false) @map("is_published")
+  isFeatured     Boolean   @default(false) @map("is_featured")
+  publishedAt    DateTime? @map("published_at")
+  viewCount      Int       @default(0) @map("view_count")
+  seoTitle       String?   @map("seo_title")
+  seoDescription String?   @map("seo_description")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  author User @relation("BlogAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([slug])
+  @@index([isPublished, publishedAt(sort: Desc)])
+  @@index([category, isPublished])
+  @@index([authorId])
+  @@map("blog_posts")
 }
 
 // ---------------------------------------------------------------------------

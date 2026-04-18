@@ -13,6 +13,7 @@ import marketplaceRoutes from './marketplace.routes';
 import notificationRoutes from './notification.routes';
 import leaderboardRoutes from './leaderboard.routes';
 import qaRoutes from './qa.routes';
+import blogRoutes from './blog.routes';
 
 const router = Router();
 
@@ -35,5 +36,6 @@ router.use('/marketplace', marketplaceRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/leaderboards', leaderboardRoutes);
 router.use('/qa', qaRoutes);
+router.use('/blog', blogRoutes);
 
 export default router;
