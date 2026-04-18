@@ -310,3 +310,99 @@
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Browse by Category
+// ---------------------------------------------------------------------------
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: variables.$bp-tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: variables.$bp-mobile) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+.categoryLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  text-align: center;
+  transition:
+    border-color var(--transition-default),
+    transform var(--transition-default);
+
+  &:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+  }
+}
+
+.categoryLinkName {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.categoryLinkCount {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+// ---------------------------------------------------------------------------
+// Marketplace Listings (homepage section)
+// ---------------------------------------------------------------------------
+
+.listingCard {
+  display: block;
+  padding: 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--accent-primary);
+  }
+}
+
+.listingTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.listingPrice {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.listingMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}

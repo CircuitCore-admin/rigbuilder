@@ -10,6 +10,7 @@ import { ProductComparePage } from './pages/ProductCompare/ProductComparePage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
 import { CreateGuidePage } from './pages/Guides/CreateGuidePage';
 import { BlogPage } from './pages/Blog/BlogPage';
+import { CategoryLandingPage } from './pages/Category/CategoryLandingPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
 import { LeaderboardPage } from './pages/Leaderboard/LeaderboardPage';
 import { ComparePage } from './pages/Compare/ComparePage';
@@ -58,6 +59,9 @@ export function App() {
         {/* Blog / News */}
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPage />} />
+
+        {/* Category Landing Pages */}
+        <Route path="/category/:category" element={<CategoryLandingPage />} />
 
         {/* Community Forum */}
         <Route path="/community" element={<CommunityPage />} />

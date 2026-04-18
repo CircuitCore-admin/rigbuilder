@@ -14,6 +14,7 @@ import notificationRoutes from './notification.routes';
 import leaderboardRoutes from './leaderboard.routes';
 import qaRoutes from './qa.routes';
 import blogRoutes from './blog.routes';
+import landingRoutes from './landing.routes';
 
 const router = Router();
 
@@ -37,5 +38,6 @@ router.use('/notifications', notificationRoutes);
 router.use('/leaderboards', leaderboardRoutes);
 router.use('/qa', qaRoutes);
 router.use('/blog', blogRoutes);
+router.use('/landing', landingRoutes);
 
 export default router;
