@@ -27,9 +27,16 @@ export function csrf(req: Request, res: Response, next: NextFunction) {
   }
 
   const cookieToken = req.cookies?.[CSRF_COOKIE];
-  const headerToken = req.headers[CSRF_HEADER];
+  const headerToken = req.headers[CSRF_HEADER] as string | undefined;
 
-  if (!cookieToken || !headerToken || cookieToken !== headerToken) {
+  if (
+    !cookieToken ||
+    !headerToken ||
+    typeof cookieToken !== 'string' ||
+    typeof headerToken !== 'string' ||
+    cookieToken.length !== headerToken.length ||
+    !crypto.timingSafeEqual(Buffer.from(cookieToken), Buffer.from(headerToken))
+  ) {
     return res.status(403).json({ error: 'Invalid CSRF token' });
   }
 

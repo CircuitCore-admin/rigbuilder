@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { GuideController } from '../controllers/guide.controller';
 import { authenticate } from '../middleware/authenticate';
 import { requireAdmin } from '../middleware/require-admin';
+import { sanitize } from '../middleware/sanitize';
 import { searchLimiter, writeLimiter } from '../config/rate-limit';
 
 const router = Router();
@@ -18,8 +19,8 @@ router.get('/', searchLimiter, GuideController.list);
 router.get('/:slug', searchLimiter, GuideController.getBySlug);
 
 // Any authenticated user can create; admin can update/delete any
-router.post('/', authenticate, writeLimiter, GuideController.create);
-router.put('/:id', authenticate, requireAdmin, writeLimiter, GuideController.update);
+router.post('/', authenticate, writeLimiter, sanitize, GuideController.create);
+router.put('/:id', authenticate, requireAdmin, writeLimiter, sanitize, GuideController.update);
 router.delete('/:id', authenticate, requireAdmin, writeLimiter, GuideController.delete);
 
 export default router;

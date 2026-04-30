@@ -19,11 +19,12 @@ export class AuthController {
       const { sessionId, userId } = await AuthService.register(req.body);
       res.cookie('session_id', sessionId, COOKIE_OPTIONS);
       res.status(201).json({ userId });
-    } catch (err: any) {
-      if (err.code === 'P2002') {
-        return res.status(409).json({ error: 'Username or email already taken' });
+    } catch (err) {
+      const message = (err as Error).message;
+      if (message.includes('Unique constraint') || message.includes('unique') || message.includes('already exists') || (err as any).code === 'P2002') {
+        return res.status(409).json({ error: 'An account with this email or username may already exist.' });
       }
-      res.status(400).json({ error: err.message });
+      res.status(400).json({ error: message });
     }
   }
 

@@ -10,7 +10,7 @@ const router = Router();
 router.post('/register', authLimiter, authSlowDown, validate(registerSchema), AuthController.register);
 router.post('/login', authLimiter, authSlowDown, validate(loginSchema), AuthController.login);
 router.post('/logout', authenticate, AuthController.logout);
-router.post('/change-password', authenticate, AuthController.changePassword);
+router.post('/change-password', authenticate, authLimiter, authSlowDown, AuthController.changePassword);
 router.get('/me', authenticate, AuthController.me);
 router.get('/verify-email', AuthController.verifyEmail);
 router.post('/resend-verification', authenticate, AuthController.resendVerification);

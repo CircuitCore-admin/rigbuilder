@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ForumController } from '../controllers/forum.controller';
 import { authenticate, optionalAuth } from '../middleware/authenticate';
+import { sanitize } from '../middleware/sanitize';
 import { searchLimiter, writeLimiter } from '../config/rate-limit';
 
 const router = Router();
@@ -16,10 +17,10 @@ router.get('/:slug', searchLimiter, ForumController.getThread);
 router.get('/:slug/replies', searchLimiter, ForumController.getReplies);
 
 // Authenticated writes
-router.post('/', authenticate, writeLimiter, ForumController.createThread);
-router.put('/:id', authenticate, writeLimiter, ForumController.updateThread);
+router.post('/', authenticate, writeLimiter, sanitize, ForumController.createThread);
+router.put('/:id', authenticate, writeLimiter, sanitize, ForumController.updateThread);
 router.delete('/:id', authenticate, writeLimiter, ForumController.deleteThread);
-router.post('/:slug/replies', authenticate, writeLimiter, ForumController.createReply);
+router.post('/:slug/replies', authenticate, writeLimiter, sanitize, ForumController.createReply);
 router.put('/:slug/pin', authenticate, writeLimiter, ForumController.togglePin);
 router.put('/:slug/lock', authenticate, writeLimiter, ForumController.toggleLock);
 router.put('/:slug/flair', authenticate, writeLimiter, ForumController.updateFlair);
