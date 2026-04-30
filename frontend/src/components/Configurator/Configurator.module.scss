@@ -18,14 +18,12 @@
 // ---------------------------------------------------------------------------
 
 .specCol {
-  @media (max-width: 768px) { display: none; }
+  @media (max-width: variables.$bp-mobile) { display: none; }
 }
 
 .ratingCol {
   @media (max-width: 900px) { display: none; }
 }
-
-.priceCol {}
 
 .actionCol {
   @media (max-width: 600px) { display: none; }
@@ -45,7 +43,7 @@
   @media (max-width: 900px) {
     grid-template-columns: 150px 1fr 120px 110px 80px;
   }
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-template-columns: 130px 1fr 100px 80px;
   }
   @media (max-width: 600px) {
@@ -84,7 +82,7 @@
   @media (max-width: 900px) {
     grid-template-columns: 150px 1fr 120px 110px 80px;
   }
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-template-columns: 130px 1fr 100px 80px;
     min-height: 56px;
   }
@@ -128,7 +126,6 @@
 }
 
 .categoryName {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
@@ -193,7 +190,6 @@
   border: 1px dashed var(--border-default);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -289,7 +285,6 @@
 
 .buyBtn {
   padding: 5px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: var(--accent-secondary);
@@ -365,7 +360,6 @@
 }
 
 .totalText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);

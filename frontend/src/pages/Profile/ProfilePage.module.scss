@@ -1,3 +1,4 @@
+@use '../../styles/variables';
 .profilePage {
   max-width: 100%;
   min-height: 100vh;
@@ -8,7 +9,6 @@
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   color: var(--text-muted);
 }
@@ -35,7 +35,6 @@
 
 .bannerUploadBtn {
   padding: 10px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: white;
@@ -55,7 +54,6 @@
   gap: 8px;
 
   label {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 13px;
     color: rgba(255, 255, 255, 0.8);
   }
@@ -106,7 +104,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 36px;
   font-weight: 700;
   color: var(--text-secondary);
@@ -117,7 +114,6 @@
   bottom: 0;
   right: 0;
   padding: 4px 10px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: white;
@@ -138,7 +134,6 @@
 }
 
 .profileUsername {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -151,7 +146,6 @@
 
 .roleBadge,
 .proBadge {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
@@ -173,14 +167,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-muted);
   margin-bottom: 12px;
 }
 
 .profileBio {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-body);
@@ -209,21 +201,18 @@
 }
 
 .statValue {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .statLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
 
 .editProfileBtn {
   padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -241,7 +230,6 @@
 .privateNotice {
   text-align: center;
   padding: 48px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   color: var(--text-muted);
 }
@@ -263,7 +251,6 @@
 .editInput {
   flex: 1;
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -283,7 +270,6 @@
 
 .saveBtn {
   padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--bg-void, #05050a);
@@ -299,7 +285,6 @@
 
 .cancelEditBtn {
   padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
   background: none;
@@ -321,7 +306,6 @@
 
 .tab {
   padding: 12px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-muted);
@@ -349,7 +333,6 @@
 .emptyState {
   text-align: center;
   padding: 48px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   color: var(--text-muted);
 }
@@ -368,7 +351,6 @@
 }
 
 .overviewSectionTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
@@ -376,7 +358,6 @@
 }
 
 .viewAllBtn {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--accent-primary);
@@ -430,7 +411,6 @@
 }
 
 .categoryPill {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: var(--accent-primary);
@@ -441,13 +421,11 @@
 }
 
 .threadMeta {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
 
 .threadTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
@@ -458,7 +436,6 @@
 }
 
 .threadSnippet {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.4;
@@ -471,7 +448,6 @@
 .threadFooter {
   display: flex;
   gap: 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 4px;
@@ -540,7 +516,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -549,7 +524,6 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -568,7 +542,6 @@
 }
 
 .gridCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -578,7 +551,6 @@
 }
 
 .gridCardPrice {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--accent-primary);
@@ -587,7 +559,6 @@
 .gridCardMeta {
   display: flex;
   gap: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -618,7 +589,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -642,14 +612,12 @@
 }
 
 .reviewTime {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   margin-left: auto;
 }
 
 .reviewListing {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   text-decoration: none;
@@ -663,7 +631,6 @@
 }
 
 .reviewBody {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-body);
@@ -672,13 +639,13 @@
 
 /* ===== Responsive ===== */
 
-@media (max-width: 1024px) {
+@media (max-width: variables.$bp-tablet) {
   .listingsGrid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: variables.$bp-mobile) {
   .profileBanner {
     height: 160px;
   }
@@ -734,7 +701,6 @@
 
 .blockBtn {
   padding: 6px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--accent-hot);
   background: none;
@@ -747,7 +713,6 @@
 
 .followBtn {
   padding: 8px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -774,7 +739,6 @@
 }
 
 .badgeSectionTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
@@ -805,7 +769,6 @@
 }
 
 .badgeName {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -844,7 +807,6 @@
 }
 
 .guideStatusBadge {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -874,13 +836,11 @@
 }
 
 .guideMeta {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
 
 .guideCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
@@ -888,7 +848,6 @@
 }
 
 .guideCardExcerpt {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
   margin: 0;
@@ -896,7 +855,6 @@
 }
 
 .guideRejectionNote {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: #ef4444;
   margin: 4px 0 0;

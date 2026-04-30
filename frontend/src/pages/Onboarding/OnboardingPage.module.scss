@@ -1,3 +1,4 @@
+@use '../../styles/variables';
 .onboardingPage {
   min-height: calc(100vh - 64px);
   display: flex;
@@ -34,7 +35,6 @@
 }
 
 .onboardingTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -42,7 +42,6 @@
 }
 
 .onboardingSubtitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   color: var(--text-muted);
   margin: 0 0 32px;
@@ -85,7 +84,6 @@
 }
 
 .interestLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -109,7 +107,6 @@
 }
 
 .fieldLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -117,7 +114,6 @@
 
 .fieldInput {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -132,7 +128,6 @@
 
 .fieldTextarea {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -178,14 +173,12 @@
 }
 
 .ctaCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .ctaCardDesc {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   text-align: center;
@@ -193,7 +186,6 @@
 
 .continueBtn {
   padding: 12px 40px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--bg-void);
@@ -215,7 +207,6 @@
 .skipLink {
   display: block;
   margin-top: 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
   cursor: pointer;
@@ -227,7 +218,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: variables.$bp-mobile) {
   .ctaGrid {
     grid-template-columns: 1fr;
   }

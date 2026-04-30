@@ -5,13 +5,11 @@
 }
 
 .pageTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px; font-weight: 700; color: var(--text-primary); margin: 0;
 }
 
 .statusBadge {
   padding: 4px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px; font-weight: 600;
   border-radius: var(--radius-sm);
   text-transform: uppercase; letter-spacing: 0.04em;
@@ -28,7 +26,6 @@
   background: rgba(255, 82, 82, 0.08);
   border: 1px solid rgba(255, 82, 82, 0.25);
   border-radius: var(--radius-sm);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: #ff5252;
   line-height: 1.5;
@@ -37,7 +34,6 @@
 
 .emptyState {
   text-align: center; padding: 80px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px; color: var(--text-muted);
 }
 
@@ -46,7 +42,6 @@
 .field { display: flex; flex-direction: column; gap: 6px; }
 
 .label {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px; font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase; letter-spacing: 0.04em;
@@ -54,7 +49,6 @@
 
 .input, .textarea, .select {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -78,7 +72,6 @@
 
 .advancedToggle {
   align-self: flex-start;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px; font-weight: 500;
   color: var(--text-muted);
   background: none; border: none;
@@ -100,7 +93,6 @@
 
 .saveBtn {
   padding: 10px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px; font-weight: 600;
   color: var(--bg-void);
   background: var(--accent-primary);
@@ -111,7 +103,6 @@
 
 .submitBtn {
   padding: 10px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px; font-weight: 600;
   color: var(--accent-primary);
   background: rgba(0, 255, 163, 0.1);
@@ -124,7 +115,6 @@
 
 .cancelBtn {
   padding: 10px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px; font-weight: 500;
   color: var(--text-muted);
   background: none;

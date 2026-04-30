@@ -118,7 +118,6 @@
 }
 
 .productName {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 32px;
   font-weight: 700;
   color: var(--text-primary);
@@ -164,7 +163,6 @@
 }
 
 .priceValue {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--accent-primary);
@@ -206,7 +204,6 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   width: fit-content;
-  font-family: 'Space Grotesk', sans-serif;
 
   &:hover {
     filter: brightness(1.1);
@@ -238,7 +235,6 @@
 // ---------------------------------------------------------------------------
 
 .sectionTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
@@ -425,7 +421,6 @@
 }
 
 .buildCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -461,7 +456,6 @@
 }
 
 .reviewScore {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 48px;
   font-weight: 700;
   color: var(--text-primary);
@@ -547,7 +541,6 @@
 
 .writeReviewBtn {
   padding: 10px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -569,7 +562,6 @@
 }
 
 .reviewFormTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -583,7 +575,6 @@
 }
 
 .fieldLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -603,14 +594,12 @@
 .ratingScale {
   display: flex;
   justify-content: space-between;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
 }
 
 .ownershipSelect {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -623,7 +612,6 @@
 .reviewTextarea {
   width: 100%;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -638,7 +626,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   cursor: pointer;
@@ -653,7 +640,6 @@
 
 .cancelBtn {
   padding: 10px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
@@ -666,7 +652,6 @@
 
 .submitBtn {
   padding: 10px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -704,7 +689,6 @@
 }
 
 .reviewAuthor {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -713,7 +697,6 @@
 }
 
 .reviewRatingBadge {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 700;
   color: var(--accent-primary);
@@ -723,7 +706,6 @@
 }
 
 .reviewOwnership, .reviewDate {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -734,7 +716,6 @@
   gap: 16px;
 
   h5 {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
@@ -743,7 +724,6 @@
   }
 
   p {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
     color: var(--text-body);
     line-height: 1.5;
@@ -759,14 +739,12 @@
 }
 
 .wouldBuyYes {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-primary);
 }
 
 .wouldBuyNo {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-hot, #FF6B6B);
@@ -792,7 +770,6 @@
 .questionInput {
   flex: 1;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -804,7 +781,6 @@
 
 .askBtn {
   padding: 10px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -840,7 +816,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 700;
   border-radius: 50%;
@@ -850,7 +825,6 @@
 .answerLabel { color: var(--text-secondary); background: var(--bg-elevated); }
 
 .questionText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -862,7 +836,6 @@
   display: flex;
   gap: 12px;
   margin: 8px 0 12px 40px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   a { color: var(--text-muted); text-decoration: none; &:hover { color: var(--accent-primary); } }
@@ -885,7 +858,6 @@
 }
 
 .acceptedBadge {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   color: var(--accent-primary);
@@ -895,7 +867,6 @@
 }
 
 .answerText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   line-height: 1.5;
@@ -906,14 +877,12 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   a { color: var(--text-muted); text-decoration: none; &:hover { color: var(--accent-primary); } }
 }
 
 .acceptAnswerBtn {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: var(--accent-primary);
@@ -926,7 +895,6 @@
 .answerBtn {
   margin-left: 40px;
   margin-top: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--accent-primary);
   background: none;
@@ -946,7 +914,6 @@
 
 .answerTextarea {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -978,7 +945,6 @@
   padding: 8px 12px;
   background: var(--accent-primary-subtle);
   border-radius: var(--radius-sm);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--accent-primary);
   font-weight: 600;
@@ -1002,7 +968,6 @@
 .alertInput {
   width: 140px;
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -1014,7 +979,6 @@
 
 .setAlertBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--bg-void);
@@ -1034,7 +998,6 @@
 
 .createAlertBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -1047,7 +1010,6 @@
 
 .compareProductBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);

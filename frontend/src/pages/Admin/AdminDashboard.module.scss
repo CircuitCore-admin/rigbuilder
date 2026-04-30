@@ -16,7 +16,6 @@
 }
 
 .logo {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
@@ -44,7 +43,6 @@
 }
 
 .heading {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -68,7 +66,6 @@
 
 .adminTab {
   padding: 10px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-muted);
@@ -107,7 +104,6 @@
 .emptyQueue {
   text-align: center;
   padding: 60px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   color: var(--text-muted);
 }
@@ -133,7 +129,6 @@
 }
 
 .guideQueueTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
@@ -141,13 +136,11 @@
 }
 
 .guideQueueMeta {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
 
 .guideQueueExcerpt {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-secondary);
   margin: 0 0 12px;
@@ -163,7 +156,6 @@
 
 .previewLink {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -178,7 +170,6 @@
 
 .approveBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--bg-void);
@@ -193,7 +184,6 @@
 
 .rejectBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: #ef4444;
@@ -218,7 +208,6 @@
 .rejectTextarea {
   width: 100%;
   padding: 10px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: transparent;
@@ -238,7 +227,6 @@
 
 .rejectConfirmBtn {
   padding: 6px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: #fff;
@@ -250,7 +238,6 @@
 
 .rejectCancelBtn {
   padding: 6px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   background: none;

@@ -37,7 +37,6 @@
 // ---------------------------------------------------------------------------
 
 .logo {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
@@ -187,7 +186,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 700;
   color: var(--bg-void);
@@ -236,7 +234,6 @@
   border-bottom: 1px solid var(--border-subtle);
 
   h3 {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
@@ -245,7 +242,6 @@
 }
 
 .markAllRead {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--accent-primary);
   background: none;
@@ -278,7 +274,6 @@
 }
 
 .notifMessage {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   line-height: 1.4;
@@ -286,7 +281,6 @@
 }
 
 .notifTime {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -294,7 +288,6 @@
 .notifEmpty {
   padding: 32px;
   text-align: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-muted);
 }
@@ -303,7 +296,6 @@
   display: block;
   padding: 12px;
   text-align: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--accent-primary);
@@ -364,7 +356,6 @@
   display: block;
   width: 100%;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-body);
@@ -398,7 +389,6 @@
   color: var(--text-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   font-size: 12px;
   text-decoration: none;
@@ -419,7 +409,6 @@
   color: var(--bg-void);
   border: none;
   border-radius: var(--radius-sm);
-  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   font-size: 12px;
   text-decoration: none;
@@ -502,14 +491,12 @@
   padding: 10px 24px;
   background: rgba(255, 176, 32, 0.15);
   border-bottom: 1px solid rgba(255, 176, 32, 0.3);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: #FFB020;
 }
 
 .resendBtn {
   padding: 4px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--bg-void);

@@ -25,7 +25,7 @@
   padding: 0 16px;
   border-bottom: 2px solid rgba(110, 86, 255, 0.3);
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-template-columns: 1fr 100px;
   }
 }
@@ -48,7 +48,7 @@
     text-align: center;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     &.hideOnMobile {
       display: none;
     }
@@ -87,7 +87,7 @@
     border-left-color: var(--accent-primary);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-template-columns: 1fr 100px;
     min-height: 48px;
   }
@@ -193,7 +193,7 @@
   font-weight: 500;
   color: var(--text-body);
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     display: none;
   }
 }
@@ -205,7 +205,7 @@
   font-size: 13px;
   color: var(--text-secondary);
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     display: none;
   }
 }
@@ -240,7 +240,7 @@
   border-image: var(--gradient-hero) 1;
   background-color: var(--bg-surface);
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-template-columns: 1fr 100px;
   }
 }
@@ -254,7 +254,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-column: 1;
   }
 }
@@ -268,7 +268,7 @@
   font-weight: 700;
   color: var(--accent-primary);
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-column: 2;
     font-size: 22px;
   }
@@ -288,7 +288,7 @@
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border-subtle);
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-template-columns: 1fr 100px;
   }
 }
@@ -299,7 +299,7 @@
   font-size: 13px;
   color: var(--text-secondary);
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-column: 1;
   }
 }
@@ -312,7 +312,7 @@
   font-size: 14px;
   font-weight: 500;
 
-  @media (max-width: 768px) {
+  @media (max-width: variables.$bp-mobile) {
     grid-column: 2;
   }
 }
@@ -350,7 +350,6 @@
 }
 
 .tableTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
