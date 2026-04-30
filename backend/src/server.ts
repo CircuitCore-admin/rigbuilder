@@ -1,6 +1,9 @@
 import express from 'express';
 import path from 'node:path';
 import cookieParser from 'cookie-parser';
+import * as compressionLib from 'compression';
+import * as pinoHttpLib from 'pino-http';
+import pino from 'pino';
 import { env } from './config/env';
 import { corsConfig } from './config/cors';
 import { helmetConfig } from './config/helmet';
@@ -12,14 +15,43 @@ import { SearchService } from './services/search.service';
 import { checkPriceAlerts } from './jobs/check-price-alerts';
 import { sendWeeklyDigests } from './jobs/weekly-digest';
 import { prisma } from './prisma';
+import { meili } from './config/meilisearch';
+
+// CJS packages with `export =` need unwrapping under NodeNext ESM
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const compression = ((compressionLib as any).default ?? compressionLib) as unknown as Function;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pinoHttp = ((pinoHttpLib as any).default ?? pinoHttpLib) as unknown as Function;
 
 const app = express();
+
+// ---------------------------------------------------------------------------
+// Logger
+// ---------------------------------------------------------------------------
+const logger = pino(
+  env.NODE_ENV === 'development'
+    ? { transport: { target: 'pino-pretty', options: { colorize: true } } }
+    : {},
+);
 
 // ---------------------------------------------------------------------------
 // Global middleware (order matters)
 // ---------------------------------------------------------------------------
 app.use(helmetConfig);
 app.use(corsConfig);
+
+// Compression (1 KB threshold)
+app.use(compression({ threshold: 1024 }));
+
+// Request logging — skip health and CSRF endpoints
+app.use(pinoHttp({
+  logger,
+  autoLogging: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ignore: (req: any) => req.url === '/health' || req.url === '/api/v1/csrf',
+  },
+}));
+
 app.use(globalLimiter);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -46,8 +78,29 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads'), {
 // ---------------------------------------------------------------------------
 app.use('/api/v1', routes);
 
-// Health check
-app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+// Deep health check — verifies DB and Meilisearch connectivity
+app.get('/health', async (_req, res) => {
+  const checks: Record<string, string> = {};
+  let healthy = true;
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    checks.database = 'ok';
+  } catch {
+    checks.database = 'error';
+    healthy = false;
+  }
+
+  try {
+    await meili.health();
+    checks.meilisearch = 'ok';
+  } catch {
+    checks.meilisearch = 'error';
+    healthy = false;
+  }
+
+  res.status(healthy ? 200 : 503).json({ status: healthy ? 'ok' : 'degraded', checks });
+});
 
 // ---------------------------------------------------------------------------
 // Error handler (must be last)
