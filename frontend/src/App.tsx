@@ -21,10 +21,15 @@ import { ProfilePage } from './pages/Profile/ProfilePage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
 import { VerifyEmailPage } from './pages/VerifyEmail/VerifyEmailPage';
 import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
+import { ForgotPasswordPage } from './pages/ForgotPassword/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ForgotPassword/ResetPasswordPage';
+import { TermsPage } from './pages/Legal/TermsPage';
+import { PrivacyPage } from './pages/Legal/PrivacyPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
 import { OnboardingRedirect } from './components/OnboardingRedirect/OnboardingRedirect';
+import { CookieConsent } from './components/CookieConsent/CookieConsent';
 
 /**
  * Root application shell.
@@ -36,12 +41,19 @@ export function App() {
       <Navbar />
       <CommandPalette />
       <OnboardingRedirect />
+      <CookieConsent />
       <div className="appContent">
         <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* Legal */}
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
 
         {/* Onboarding */}
         <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />

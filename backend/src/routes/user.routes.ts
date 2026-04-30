@@ -7,6 +7,7 @@ const router = Router();
 
 router.get('/id/:id', UserController.getById);
 router.get('/blocked', authenticate, UserController.getBlockedUsers);
+router.delete('/account', authenticate, UserController.deleteAccount);
 router.put('/profile', authenticate, sanitize, UserController.updateProfile);
 router.get('/:username', optionalAuth, UserController.getByUsername);
 router.get('/:username/threads', UserController.getUserThreads);

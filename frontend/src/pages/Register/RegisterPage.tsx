@@ -10,11 +10,13 @@ export function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!termsAccepted) { setError('You must accept the Terms of Service and Privacy Policy'); return; }
     setError(null);
     setLoading(true);
     try {
@@ -75,7 +77,19 @@ export function RegisterPage() {
               minLength={10}
             />
           </div>
-          <button className={styles.submitBtn} type="submit" disabled={loading}>
+          <label className={styles.termsLabel}>
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={e => setTermsAccepted(e.target.checked)}
+              required
+            />
+            <span>
+              I agree to the <Link to="/terms" target="_blank">Terms of Service</Link> and{' '}
+              <Link to="/privacy" target="_blank">Privacy Policy</Link>
+            </span>
+          </label>
+          <button className={styles.submitBtn} type="submit" disabled={loading || !termsAccepted}>
             {loading ? 'Creating account…' : 'Create Account'}
           </button>
         </form>

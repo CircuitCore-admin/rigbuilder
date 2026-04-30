@@ -104,4 +104,35 @@ export class EmailService {
 
     await EmailService.sendVerificationEmail(user.id, user.email, user.username);
   }
+
+  /** Send a password reset email with a one-time token link */
+  static async sendPasswordResetEmail(userId: string, email: string, username: string, token: string): Promise<void> {
+    const resetUrl = `${APP_URL}/reset-password?token=${encodeURIComponent(token)}`;
+    try {
+      await transporter.sendMail({
+        from: `"RigBuilder" <${FROM_EMAIL}>`,
+        to: email,
+        subject: 'Reset your RigBuilder password',
+        html: `
+          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
+            <h1 style="font-size: 24px; color: #111;">Password Reset</h1>
+            <p style="font-size: 16px; color: #444; line-height: 1.6;">
+              Hi ${escapeHtml(username)}, we received a request to reset your RigBuilder password.
+            </p>
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 32px; background: #00FFA3; color: #05050A; font-weight: 600; font-size: 16px; text-decoration: none; border-radius: 8px; margin: 16px 0;">
+              Reset Password
+            </a>
+            <p style="font-size: 14px; color: #888; margin-top: 24px;">
+              This link expires in 1 hour. If you didn't request this, you can safely ignore this email.
+            </p>
+            <p style="font-size: 12px; color: #aaa; margin-top: 32px;">
+              RigBuilder &mdash; Sim Racing Hardware Platform
+            </p>
+          </div>
+        `,
+      });
+    } catch (err) {
+      console.error('Failed to send password reset email:', err);
+    }
+  }
 }

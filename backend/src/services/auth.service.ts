@@ -6,7 +6,7 @@ import type { RegisterInput, LoginInput } from '../validators/auth.schema';
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-const ARGON2_OPTIONS: argon2.Options = {
+export const ARGON2_OPTIONS: argon2.Options = {
   type: argon2.argon2id,
   memoryCost: 65536,  // 64 MB
   timeCost: 3,
@@ -73,5 +73,37 @@ export class AuthService {
       },
     });
     return sessionId;
+  }
+
+  /** Request a password reset email. Always returns success to prevent email enumeration. */
+  static async requestPasswordReset(email: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user) return;
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetToken: token, passwordResetExpiry: expiry },
+    });
+
+    await EmailService.sendPasswordResetEmail(user.id, user.email, user.username, token);
+  }
+
+  /** Reset a user's password using a valid reset token. Invalidates all existing sessions. */
+  static async resetPassword(token: string, newPassword: string): Promise<void> {
+    const user = await prisma.user.findFirst({ where: { passwordResetToken: token } });
+    if (!user) throw new Error('Invalid or expired reset link');
+    if (user.passwordResetExpiry && user.passwordResetExpiry < new Date()) {
+      throw new Error('Reset link has expired. Please request a new one.');
+    }
+
+    const passwordHash = await argon2.hash(newPassword, ARGON2_OPTIONS);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, passwordResetToken: null, passwordResetExpiry: null },
+    });
+    await prisma.session.deleteMany({ where: { userId: user.id } });
   }
 }

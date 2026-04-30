@@ -112,4 +112,27 @@ export class AuthController {
       res.status(400).json({ error: (err as Error).message });
     }
   }
+
+  /** POST /api/v1/auth/forgot-password */
+  static async forgotPassword(req: Request, res: Response) {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    await AuthService.requestPasswordReset(email).catch(() => {});
+    res.json({ ok: true, message: 'If an account with that email exists, a reset link has been sent.' });
+  }
+
+  /** POST /api/v1/auth/reset-password */
+  static async resetPassword(req: Request, res: Response) {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
+    if (typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+    try {
+      await AuthService.resetPassword(token, password);
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  }
 }

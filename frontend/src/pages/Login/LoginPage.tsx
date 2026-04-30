@@ -62,6 +62,7 @@ export function LoginPage() {
           <button className={styles.submitBtn} type="submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
+          <a href="/forgot-password" className={styles.forgotPasswordLink}>Forgot your password?</a>
         </form>
         <div className={styles.footer}>
           Don't have an account? <Link to="/register">Create one</Link>

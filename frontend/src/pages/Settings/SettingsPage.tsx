@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/Toast/Toast';
@@ -14,6 +15,7 @@ interface BlockedUser {
 export function SettingsPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   // Privacy
@@ -30,6 +32,11 @@ export function SettingsPage() {
 
   // Digest
   const [digestFrequency, setDigestFrequency] = useState('WEEKLY');
+
+  // Account deletion
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
@@ -72,6 +79,22 @@ export function SettingsPage() {
       await api('/users/profile', { method: 'PUT', body: { discordUsername: discord || null } });
       showToast('Discord updated', 'success');
     } catch { showToast('Failed to save', 'error'); }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== 'DELETE MY ACCOUNT') {
+      showToast('Please type DELETE MY ACCOUNT to confirm', 'error');
+      return;
+    }
+    if (!deletePassword) { showToast('Password required', 'error'); return; }
+    setDeleting(true);
+    try {
+      await api('/users/account', { method: 'DELETE', body: { password: deletePassword } });
+      navigate('/');
+      window.location.reload();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete account', 'error');
+    } finally { setDeleting(false); }
   };
 
   if (loading) return <div className={styles.loading}>Loading...</div>;
@@ -180,6 +203,42 @@ export function SettingsPage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Danger Zone */}
+      <section className={styles.dangerSection}>
+        <h2 className={styles.dangerTitle}>Danger Zone</h2>
+        <p className={styles.sectionDesc}>
+          Permanently delete your account and all associated data. This action cannot be undone and is irreversible.
+          Your listings, posts, and messages will be removed.
+        </p>
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Confirm Password</label>
+          <input
+            type="password"
+            className={styles.fieldInput}
+            placeholder="Enter your password"
+            value={deletePassword}
+            onChange={e => setDeletePassword(e.target.value)}
+          />
+        </div>
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Type <strong>DELETE MY ACCOUNT</strong> to confirm</label>
+          <input
+            type="text"
+            className={styles.fieldInput}
+            placeholder="DELETE MY ACCOUNT"
+            value={deleteConfirm}
+            onChange={e => setDeleteConfirm(e.target.value)}
+          />
+        </div>
+        <button
+          className={styles.deleteBtn}
+          onClick={handleDeleteAccount}
+          disabled={deleting || deleteConfirm !== 'DELETE MY ACCOUNT' || !deletePassword}
+        >
+          {deleting ? 'Deleting…' : 'Delete My Account'}
+        </button>
       </section>
     </div>
   );

@@ -245,4 +245,28 @@ export class UserController {
       res.json(badges);
     } catch { res.status(500).json({ error: 'Failed to fetch badges' }); }
   }
+
+  /** DELETE /api/v1/users/account — GDPR right to erasure */
+  static async deleteAccount(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      const { password } = req.body;
+      if (!password) return res.status(400).json({ error: 'Password required to confirm deletion' });
+
+      const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { passwordHash: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const argon2 = await import('argon2');
+      const valid = await argon2.verify(user.passwordHash, password);
+      if (!valid) return res.status(400).json({ error: 'Incorrect password' });
+
+      await prisma.$transaction([
+        prisma.session.deleteMany({ where: { userId: session.userId } }),
+        prisma.user.delete({ where: { id: session.userId } }),
+      ]);
+
+      res.clearCookie('session_id');
+      res.json({ ok: true, message: 'Account deleted' });
+    } catch { res.status(500).json({ error: 'Failed to delete account' }); }
+  }
 }
