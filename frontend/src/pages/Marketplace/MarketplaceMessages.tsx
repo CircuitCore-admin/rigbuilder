@@ -338,7 +338,7 @@ export function MarketplaceMessages() {
                 >
                   <div className={styles.avatar}>
                     {other.avatarUrl ? (
-                      <img src={resolveImageUrl(other.avatarUrl)} alt="" />
+                      <img src={resolveImageUrl(other.avatarUrl)} alt="" loading="lazy" decoding="async" />
                     ) : (
                       <span>{other.username[0]?.toUpperCase()}</span>
                     )}
@@ -389,7 +389,7 @@ export function MarketplaceMessages() {
                   <div className={styles.messageHeaderUser}>
                     <div className={styles.avatarSmall}>
                       {otherUser.avatarUrl ? (
-                        <img src={resolveImageUrl(otherUser.avatarUrl)} alt="" />
+                        <img src={resolveImageUrl(otherUser.avatarUrl)} alt="" loading="lazy" decoding="async" />
                       ) : (
                         <span>{otherUser.username[0]?.toUpperCase()}</span>
                       )}

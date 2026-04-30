@@ -6,6 +6,7 @@ import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
+import { ThreadCardSkeleton } from '../../components/Skeleton/Skeleton';
 import {
   FolderIcon, SearchIcon, UploadIcon, ImageIcon, ChatIcon, EyeIcon, UpArrowIcon, DownArrowIcon,
 } from '../../components/Icons/ForumIcons';
@@ -387,7 +388,9 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             </div>
 
             {loading ? (
-              <div className={styles.loadingState}>Loading discussions…</div>
+              <div className={styles.skeletonList}>
+                {Array.from({ length: 5 }).map((_, i) => <ThreadCardSkeleton key={i} />)}
+              </div>
             ) : threads.length === 0 ? (
               <div className={styles.emptyState}>No discussions found</div>
             ) : isShowroom ? (
@@ -400,6 +403,8 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                           src={resolveImageUrl(t.imageUrls[0])}
                           alt={`Showroom photo for ${t.title}`}
                           className={styles.showroomImage}
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                       {t.imageUrls && t.imageUrls.length > 1 && (
@@ -1282,7 +1287,7 @@ function NewThreadForm() {
                     onDragOver={(e) => handleThumbDragOver(e, i)}
                     onDragEnd={handleThumbDragEnd}
                   >
-                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} />
+                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} loading="lazy" decoding="async" />
                     <button
                       type="button"
                       className={styles.thumbRemove}

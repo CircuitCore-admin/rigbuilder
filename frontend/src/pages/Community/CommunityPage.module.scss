@@ -112,6 +112,13 @@
   color: var(--text-muted);
 }
 
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+}
+
 // ---------- Thread list rows (high density) ----------
 
 .threadList {

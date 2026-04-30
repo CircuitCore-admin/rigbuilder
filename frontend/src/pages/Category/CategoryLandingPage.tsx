@@ -218,7 +218,7 @@ export function CategoryLandingPage() {
                 <Link to={`/products/${p.slug}`} key={p.id} className={styles.productCard}>
                   <div className={styles.productImage}>
                     {p.images[0] ? (
-                      <img src={resolveImageUrl(p.images[0])} alt={p.name} loading="lazy" />
+                      <img src={resolveImageUrl(p.images[0])} alt={p.name} loading="lazy" decoding="async" />
                     ) : (
                       <div className={styles.productPlaceholder}>
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="24" rx="4" stroke="currentColor" strokeWidth="1.5" /></svg>
@@ -255,7 +255,7 @@ export function CategoryLandingPage() {
                 <Link to={`/guides/${g.slug}`} key={g.id} className={styles.guideCard}>
                   {g.coverImage && (
                     <div className={styles.guideImage}>
-                      <img src={resolveImageUrl(g.coverImage)} alt="" loading="lazy" />
+                      <img src={resolveImageUrl(g.coverImage)} alt="" loading="lazy" decoding="async" />
                     </div>
                   )}
                   <div className={styles.guideBody}>
@@ -308,7 +308,7 @@ export function CategoryLandingPage() {
                 <Link to={`/marketplace/${l.id}`} key={l.id} className={styles.listingCard}>
                   <div className={styles.listingImage}>
                     {l.imageUrls[0] ? (
-                      <img src={resolveImageUrl(l.imageUrls[0])} alt={l.title} loading="lazy" />
+                      <img src={resolveImageUrl(l.imageUrls[0])} alt={l.title} loading="lazy" decoding="async" />
                     ) : (
                       <div className={styles.productPlaceholder}>
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="24" rx="4" stroke="currentColor" strokeWidth="1.5" /></svg>

@@ -136,7 +136,7 @@ function BlogListView() {
       {featured && !category && page === 1 && (
         <Link to={`/blog/${featured.slug}`} className={styles.featuredCard}>
           {featured.coverImage && (
-            <img src={featured.coverImage} alt="" className={styles.featuredImage} />
+            <img src={featured.coverImage} alt="" className={styles.featuredImage} loading="eager" fetchPriority="high" />
           )}
           <div className={styles.featuredOverlay}>
             <span className={styles.featuredBadge}>Featured</span>
@@ -163,7 +163,7 @@ function BlogListView() {
             .map(post => (
             <Link key={post.id} to={`/blog/${post.slug}`} className={styles.card}>
               {post.coverImage && (
-                <img src={post.coverImage} alt="" className={styles.cardImage} />
+                <img src={post.coverImage} alt="" className={styles.cardImage} loading="lazy" decoding="async" />
               )}
               <div className={styles.cardBody}>
                 <span className={styles.cardCategory}>
@@ -237,7 +237,7 @@ function BlogPostDetail({ slug }: { slug: string }) {
       {/* Cover image */}
       {post.coverImage && (
         <div className={styles.articleCover}>
-          <img src={post.coverImage} alt="" className={styles.articleCoverImg} />
+          <img src={post.coverImage} alt="" className={styles.articleCoverImg} loading="eager" fetchPriority="high" />
         </div>
       )}
 
@@ -258,7 +258,7 @@ function BlogPostDetail({ slug }: { slug: string }) {
         {/* Author */}
         <div className={styles.articleAuthor}>
           {post.author.avatarUrl ? (
-            <img src={post.author.avatarUrl} alt="" className={styles.authorAvatar} />
+            <img src={post.author.avatarUrl} alt="" className={styles.authorAvatar} loading="lazy" decoding="async" />
           ) : (
             <div className={styles.authorAvatarFallback}>
               {post.author.username[0]?.toUpperCase()}
@@ -295,7 +295,7 @@ function BlogPostDetail({ slug }: { slug: string }) {
           <div className={styles.relatedGrid}>
             {related.map(r => (
               <Link key={r.id} to={`/blog/${r.slug}`} className={styles.card}>
-                {r.coverImage && <img src={r.coverImage} alt="" className={styles.cardImage} />}
+                {r.coverImage && <img src={r.coverImage} alt="" className={styles.cardImage} loading="lazy" decoding="async" />}
                 <div className={styles.cardBody}>
                   <span className={styles.cardCategory}>
                     {CATEGORY_LABELS[r.category] ?? r.category}

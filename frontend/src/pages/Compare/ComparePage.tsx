@@ -167,7 +167,7 @@ export function ComparePage() {
                       {part ? (
                         <div className={styles.partCell}>
                           {part.product.images?.[0] && (
-                            <img src={resolveImageUrl(part.product.images[0])} alt="" className={styles.partImage} />
+                            <img src={resolveImageUrl(part.product.images[0])} alt="" className={styles.partImage} loading="lazy" decoding="async" />
                           )}
                           <a href={`/products/${part.product.slug}`} className={styles.partName}>
                             {part.product.name}

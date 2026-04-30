@@ -167,7 +167,7 @@ export function ProductComparePage() {
           {products.map((p) => (
             <div key={p.id} className={styles.compareHeader}>
               {p.images?.[0] && (
-                <img src={resolveImageUrl(p.images[0])} alt={p.name} className={styles.productImage} />
+                <img src={resolveImageUrl(p.images[0])} alt={p.name} className={styles.productImage} loading="lazy" decoding="async" />
               )}
               <a href={`/products/${p.slug}`} className={styles.compareProductName}>{p.name}</a>
               <span className={styles.compareProductMfr}>{p.manufacturer}</span>

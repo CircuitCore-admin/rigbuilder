@@ -8,6 +8,7 @@ import { EmbedBuildCard } from '../EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../MarkdownEditor/MarkdownEditor';
 import { useToast } from '../Toast/Toast';
 import { CloseIcon, ChevronLeftIcon, ChevronRightIcon, UpArrowIcon, DownArrowIcon, ChatIcon, EyeIcon, ShareIcon } from '../Icons/ForumIcons';
+import { ConfirmDialog } from '../ConfirmDialog/ConfirmDialog';
 import styles from './ForumThread.module.scss';
 
 /** Convert @username mentions to markdown profile links */
@@ -285,6 +286,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [replySort, setReplySort] = useState<'top' | 'newest' | 'oldest'>('top');
   const [threadVoting, setThreadVoting] = useState(false);
   const [replyVotingIds, setReplyVotingIds] = useState<Set<string>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -428,7 +430,6 @@ export function ForumThread({ slug }: ForumThreadProps) {
 
   const handleDelete = async () => {
     if (!thread) return;
-    if (!window.confirm('Are you sure you want to delete this thread?')) return;
     try {
       await api(`/forum/${thread.id}`, { method: 'DELETE' });
       showToast('Thread deleted', 'success');
@@ -660,7 +661,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
               {canModify && (
                 <>
                   <button className={`${styles.actionBtn} ${styles.actionBtnEdit}`} onClick={handleStartEdit}>Edit</button>
-                  <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={handleDelete}>Delete</button>
+                  <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => setShowDeleteConfirm(true)}>Delete</button>
                   {thread.flair !== 'SOLVED' && (
                     <button
                       className={styles.markSolvedBtn}
@@ -823,6 +824,15 @@ export function ForumThread({ slug }: ForumThreadProps) {
           </div>
         )}
       </section>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Thread"
+        message="Are you sure you want to permanently delete this thread? All replies will be removed."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => { setShowDeleteConfirm(false); handleDelete(); }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
@@ -975,7 +985,7 @@ function UserBadge({ user }: { user: ThreadUser }) {
   const isAnon = user.id === 'anonymous' || user.username === 'Anonymous';
   return (
     <span className={styles.userBadge}>
-      {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} />}
+      {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} loading="lazy" decoding="async" />}
       {isAnon ? (
         <span className={styles.userNameAnon}>{user.username}</span>
       ) : (

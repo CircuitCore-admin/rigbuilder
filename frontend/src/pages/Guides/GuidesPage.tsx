@@ -99,7 +99,7 @@ function GuidesListView() {
         <div className={styles.grid}>
           {guides.map((guide) => (
             <a key={guide.id} href={`/guides/${guide.slug}`} className={styles.card}>
-              {guide.coverImage && <img src={guide.coverImage} alt="" className={styles.cardImage} />}
+              {guide.coverImage && <img src={guide.coverImage} alt="" className={styles.cardImage} loading="lazy" decoding="async" />}
               <div className={styles.cardBody}>
                 <span className={styles.cardCategory}>
                   {CATEGORIES.find((c) => c.value === guide.category)?.label ?? guide.category}

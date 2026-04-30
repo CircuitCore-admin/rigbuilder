@@ -301,7 +301,7 @@ export function MarkdownEditor({
                     }}
                   >
                     <span className={styles.mentionAvatar}>
-                      {u.avatarUrl ? <img src={u.avatarUrl} alt="" /> : u.username[0]?.toUpperCase()}
+                      {u.avatarUrl ? <img src={u.avatarUrl} alt="" loading="lazy" decoding="async" /> : u.username[0]?.toUpperCase()}
                     </span>
                     <span className={styles.mentionName}>{u.username}</span>
                   </button>

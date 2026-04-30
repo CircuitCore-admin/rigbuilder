@@ -73,7 +73,7 @@ export function LeaderboardPage() {
       </div>
 
       {loading ? (
-        <div className={styles.loadingState}>Loading...</div>
+        <div className={styles.loadingState}>Loading…</div>
       ) : data.length === 0 ? (
         <div className={styles.emptyState}>No data yet</div>
       ) : (
@@ -89,7 +89,7 @@ export function LeaderboardPage() {
               </span>
               <div className={styles.leaderboardAvatar}>
                 {user.avatarUrl ? (
-                  <img src={resolveImageUrl(user.avatarUrl)} alt="" />
+                  <img src={resolveImageUrl(user.avatarUrl)} alt="" loading="lazy" decoding="async" />
                 ) : (
                   <span>{user.username[0]?.toUpperCase()}</span>
                 )}

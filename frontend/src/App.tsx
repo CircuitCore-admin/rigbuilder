@@ -30,6 +30,7 @@ import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
 import { OnboardingRedirect } from './components/OnboardingRedirect/OnboardingRedirect';
 import { CookieConsent } from './components/CookieConsent/CookieConsent';
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 
 /**
  * Root application shell.
@@ -43,6 +44,7 @@ export function App() {
       <OnboardingRedirect />
       <CookieConsent />
       <div className="appContent">
+        <ErrorBoundary>
         <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
@@ -122,6 +124,7 @@ export function App() {
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </ErrorBoundary>
       </div>
     </>
   );

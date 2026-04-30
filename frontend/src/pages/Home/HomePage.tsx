@@ -151,7 +151,7 @@ export function HomePage() {
           <div className={styles.featuredBuild}>
             <div className={styles.featuredImage}>
               {featuredBuild.thumbnail ? (
-                <img src={featuredBuild.thumbnail} alt={featuredBuild.title} loading="lazy" />
+                <img src={featuredBuild.thumbnail} alt={featuredBuild.title} loading="eager" fetchPriority="high" />
               ) : (
                 <div className={styles.featuredPlaceholder} aria-hidden="true">
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none">

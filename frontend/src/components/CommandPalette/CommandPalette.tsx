@@ -155,7 +155,7 @@ function UserHit({ user, onSelect }: { user: SearchUser; onSelect: (url: string)
   return (
     <button className={styles.hit} onClick={() => onSelect(`/profile/${user.username}`)}>
       <div className={styles.hitAvatar}>
-        {user.avatarUrl ? <img src={resolveImageUrl(user.avatarUrl)} alt="" /> : <span>{user.username[0]?.toUpperCase()}</span>}
+        {user.avatarUrl ? <img src={resolveImageUrl(user.avatarUrl)} alt="" loading="lazy" decoding="async" /> : <span>{user.username[0]?.toUpperCase()}</span>}
       </div>
       <div className={styles.hitInfo}>
         <span className={styles.hitName}>{user.username}</span>

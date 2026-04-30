@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/Toast/Toast';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { VerifiedCreatorBadge } from '../../components/VerifiedCreatorBadge/VerifiedCreatorBadge';
+import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import styles from './ProfilePage.module.scss';
 
 // ---------------------------------------------------------------------------
@@ -185,6 +186,7 @@ export function ProfilePage() {
 
   // Block state
   const [isBlocked, setIsBlocked] = useState(false);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
 
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -375,7 +377,7 @@ export function ProfilePage() {
         <div className={styles.profileHeaderContent}>
           <div className={styles.avatarWrapper}>
             {profile.avatarUrl ? (
-              <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} />
+              <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} loading="eager" fetchPriority="high" />
             ) : (
               <div className={styles.avatarPlaceholder}>{profile.username[0].toUpperCase()}</div>
             )}
@@ -390,6 +392,7 @@ export function ProfilePage() {
   }
 
   return (
+    <>
     <div className={styles.profilePage}>
       {/* Banner */}
       <div
@@ -417,7 +420,7 @@ export function ProfilePage() {
       <div className={styles.profileHeaderContent}>
         <div className={styles.avatarWrapper}>
           {profile.avatarUrl ? (
-            <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} />
+            <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} loading="eager" fetchPriority="high" />
           ) : (
             <div className={styles.avatarPlaceholder}>{profile.username[0].toUpperCase()}</div>
           )}
@@ -550,7 +553,10 @@ export function ProfilePage() {
             </button>
           )}
           {!isOwnProfile && authUser && (
-            <button className={styles.blockBtn} onClick={handleToggleBlock}>
+            <button className={styles.blockBtn} onClick={() => {
+              if (isBlocked) handleToggleBlock(); // Unblock doesn't need confirmation
+              else setShowBlockConfirm(true);
+            }}>
               {isBlocked ? 'Unblock User' : 'Block User'}
             </button>
           )}
@@ -712,9 +718,18 @@ export function ProfilePage() {
         )}
       </div>
     </div>
+    <ConfirmDialog
+      open={showBlockConfirm}
+      title="Block User"
+      message={`Block @${username}? They won't be able to message you or see your content.`}
+      confirmLabel="Block"
+      variant="danger"
+      onConfirm={() => { setShowBlockConfirm(false); handleToggleBlock(); }}
+      onCancel={() => setShowBlockConfirm(false)}
+    />
+    </>
   );
 }
-
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -740,7 +755,7 @@ function ThreadCard({ thread: t, onClick }: { thread: ForumThread; onClick: () =
       </div>
       {t.imageUrls?.[0] && (
         <div className={styles.threadCardImages}>
-          <img src={resolveImageUrl(t.imageUrls[0])} alt="" className={styles.threadCardImageMain} />
+          <img src={resolveImageUrl(t.imageUrls[0])} alt="" className={styles.threadCardImageMain} loading="lazy" decoding="async" />
         </div>
       )}
     </a>
@@ -752,7 +767,7 @@ function ListingCard({ listing: l, onClick }: { listing: MarketplaceListing; onC
     <a href={`/marketplace/${l.id}`} className={styles.gridCard} onClick={e => { e.preventDefault(); onClick(); }}>
       <div className={styles.gridCardImageWrap}>
         {l.imageUrls?.[0] ? (
-          <img src={resolveImageUrl(l.imageUrls[0])} alt="" className={styles.gridCardImage} />
+          <img src={resolveImageUrl(l.imageUrls[0])} alt="" className={styles.gridCardImage} loading="lazy" decoding="async" />
         ) : (
           <div className={styles.gridCardNoImage}>No image</div>
         )}
@@ -778,7 +793,7 @@ function ReviewCard({ review: r }: { review: MarketplaceReview }) {
       <div className={styles.reviewHeader}>
         <a href={`/profile/${r.reviewer.username}`} className={styles.reviewAuthor}>
           {r.reviewer.avatarUrl && (
-            <img src={resolveImageUrl(r.reviewer.avatarUrl)} alt="" className={styles.reviewAvatar} />
+            <img src={resolveImageUrl(r.reviewer.avatarUrl)} alt="" className={styles.reviewAvatar} loading="lazy" decoding="async" />
           )}
           <span>{r.reviewer.username}</span>
         </a>

@@ -4,6 +4,7 @@ import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/Toast/Toast';
 import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
+import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import styles from './SettingsPage.module.scss';
 
 interface BlockedUser {
@@ -37,6 +38,7 @@ export function SettingsPage() {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
@@ -97,9 +99,10 @@ export function SettingsPage() {
     } finally { setDeleting(false); }
   };
 
-  if (loading) return <div className={styles.loading}>Loading...</div>;
+  if (loading) return <div className={styles.loading}>Loading settings…</div>;
 
   return (
+    <>
     <div className={styles.settingsPage}>
       <h1 className={styles.pageTitle}>Account Settings</h1>
 
@@ -241,5 +244,15 @@ export function SettingsPage() {
         </button>
       </section>
     </div>
+    <ConfirmDialog
+      open={showDeleteConfirm}
+      title="Delete Account"
+      message="This will permanently delete your account, listings, posts, and all data. This cannot be undone."
+      confirmLabel="Continue to Delete"
+      variant="danger"
+      onConfirm={() => setShowDeleteConfirm(false)}
+      onCancel={() => setShowDeleteConfirm(false)}
+    />
+    </>
   );
 }
