@@ -1170,7 +1170,7 @@ function CreateListingPage() {
       </header>
 
       <form className={styles.listingForm} onSubmit={handleSubmit}>
-        {error && <div className={styles.formError}>{error}</div>}
+        {error && <div id="listing-form-error" className={styles.formError} role="alert">{error}</div>}
 
         <div className={styles.formGrid}>
           {/* Title — full width */}
@@ -1185,6 +1185,7 @@ function CreateListingPage() {
               onChange={e => setTitle(e.target.value)}
               maxLength={200}
               required
+              aria-describedby={error ? 'listing-form-error' : undefined}
             />
           </div>
 

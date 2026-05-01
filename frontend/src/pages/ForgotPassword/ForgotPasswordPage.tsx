@@ -40,11 +40,12 @@ export function ForgotPasswordPage() {
           </div>
         ) : (
           <form className={styles.body} onSubmit={handleSubmit}>
-            {error && <div className={styles.error}>{error}</div>}
+            {error && <div id="forgot-error" className={styles.error} role="alert">{error}</div>}
             <p className={styles.hint}>Enter your email and we'll send you a link to reset your password.</p>
             <div className={styles.field}>
-              <label className={styles.label}>Email</label>
+              <label className={styles.label} htmlFor="forgot-email">Email</label>
               <input
+                id="forgot-email"
                 className={styles.input}
                 type="email"
                 value={email}
@@ -52,6 +53,7 @@ export function ForgotPasswordPage() {
                 placeholder="you@example.com"
                 required
                 autoComplete="email"
+                aria-describedby={error ? 'forgot-error' : undefined}
               />
             </div>
             <button className={styles.submitBtn} type="submit" disabled={loading}>

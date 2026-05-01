@@ -51,10 +51,11 @@ export function ResetPasswordPage() {
           <p className={styles.subtitle}>Set a new password</p>
         </div>
         <form className={styles.body} onSubmit={handleSubmit}>
-          {error && <div className={styles.error}>{error}</div>}
+          {error && <div id="reset-error" className={styles.error} role="alert">{error}</div>}
           <div className={styles.field}>
-            <label className={styles.label}>New Password</label>
+            <label className={styles.label} htmlFor="reset-password">New Password</label>
             <input
+              id="reset-password"
               className={styles.input}
               type="password"
               value={password}
@@ -63,11 +64,13 @@ export function ResetPasswordPage() {
               required
               minLength={8}
               autoComplete="new-password"
+              aria-describedby={error ? 'reset-error' : undefined}
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Confirm New Password</label>
+            <label className={styles.label} htmlFor="reset-confirm">Confirm New Password</label>
             <input
+              id="reset-confirm"
               className={styles.input}
               type="password"
               value={confirmPassword}
@@ -75,6 +78,7 @@ export function ResetPasswordPage() {
               placeholder="Repeat password"
               required
               autoComplete="new-password"
+              aria-describedby={error ? 'reset-error' : undefined}
             />
           </div>
           <button className={styles.submitBtn} type="submit" disabled={loading}>
