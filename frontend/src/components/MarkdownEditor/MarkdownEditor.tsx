@@ -102,6 +102,15 @@ export function MarkdownEditor({
   const [mentionIndex, setMentionIndex] = useState(0);
   const editorWrapRef = useRef<HTMLDivElement>(null);
 
+  // Refs so the editor's handleKeyDown closure always sees current values
+  const mentionResultsRef = useRef(mentionResults);
+  const mentionIndexRef = useRef(mentionIndex);
+  useEffect(() => { mentionResultsRef.current = mentionResults; }, [mentionResults]);
+  useEffect(() => { mentionIndexRef.current = mentionIndex; }, [mentionIndex]);
+
+  // Stable ref to insertMention so handleKeyDown can call it without recreating the editor
+  const insertMentionRef = useRef<(username: string) => void>(() => {});
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -139,6 +148,35 @@ export function MarkdownEditor({
       attributes: {
         ...(id ? { id } : {}),
         style: `min-height: ${rows * 24}px`,
+      },
+      handleKeyDown: (_view, event) => {
+        // Handle keyboard navigation inside the mention dropdown using refs to avoid stale closures
+        const results = mentionResultsRef.current;
+        if (results.length === 0) return false;
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          setMentionIndex(i => (i + 1) % results.length);
+          return true;
+        }
+        if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          setMentionIndex(i => (i - 1 + results.length) % results.length);
+          return true;
+        }
+        if (event.key === 'Enter' || event.key === 'Tab') {
+          const selected = results[mentionIndexRef.current];
+          if (selected) {
+            event.preventDefault();
+            insertMentionRef.current(selected.username);
+            return true;
+          }
+        }
+        if (event.key === 'Escape') {
+          setMentionQuery(null);
+          setMentionResults([]);
+          return true;
+        }
+        return false;
       },
     },
   });
@@ -186,6 +224,9 @@ export function MarkdownEditor({
     setMentionQuery(null);
     setMentionResults([]);
   }, [editor]);
+
+  // Keep insertMentionRef current so handleKeyDown can call it without recreating the editor
+  useEffect(() => { insertMentionRef.current = insertMention; }, [insertMention]);
 
   const executeAction = useCallback(
     (action: string) => {

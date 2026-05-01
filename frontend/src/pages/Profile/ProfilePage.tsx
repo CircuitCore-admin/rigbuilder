@@ -192,6 +192,7 @@ export function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [followHovered, setFollowHovered] = useState(false);
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -534,10 +535,12 @@ export function ProfilePage() {
 
           {!isOwnProfile && authUser && (
             <button
-              className={`${styles.followBtn} ${isFollowing ? styles.followBtnActive : ''}`}
+              className={`${styles.followBtn} ${isFollowing ? styles.followBtnActive : ''} ${isFollowing && followHovered ? styles.followBtnUnfollow : ''}`}
               onClick={handleToggleFollow}
+              onMouseEnter={() => setFollowHovered(true)}
+              onMouseLeave={() => setFollowHovered(false)}
             >
-              {isFollowing ? 'Following' : 'Follow'}
+              {isFollowing && followHovered ? 'Unfollow' : isFollowing ? 'Following' : 'Follow'}
             </button>
           )}
 
