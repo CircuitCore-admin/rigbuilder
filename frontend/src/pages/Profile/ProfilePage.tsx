@@ -564,13 +564,17 @@ export function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className={styles.tabBar}>
+      <div className={styles.tabBar} role="tablist" aria-label="Profile sections">
         {(isOwnProfile
           ? ['overview', 'posts', 'marketplace', 'saved', 'reviews', 'guides'] as const
           : ['overview', 'posts', 'marketplace', 'reviews', 'guides'] as const
         ).map(tab => (
           <button
             key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
+            aria-controls={`profile-panel-${tab}`}
+            id={`profile-tab-${tab}`}
             className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
             onClick={() => setActiveTab(tab)}
           >
@@ -580,7 +584,12 @@ export function ProfilePage() {
       </div>
 
       {/* Tab content */}
-      <div className={styles.tabContent}>
+      <div
+        id={`profile-panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`profile-tab-${activeTab}`}
+        className={styles.tabContent}
+      >
         {/* Overview tab */}
         {activeTab === 'overview' && (
           <>

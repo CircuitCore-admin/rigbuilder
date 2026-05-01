@@ -43,7 +43,7 @@ export function App() {
       <CommandPalette />
       <OnboardingRedirect />
       <CookieConsent />
-      <div className="appContent">
+      <div id="main-content" className="appContent">
         <ErrorBoundary>
         <Routes>
         {/* Public routes */}

@@ -37,10 +37,11 @@ export function RegisterPage() {
           <p className={styles.subtitle}>Create your account</p>
         </div>
         <form className={styles.body} onSubmit={handleSubmit}>
-          {error && <div className={styles.error}>{error}</div>}
+          {error && <span id="register-error" className={styles.error} role="alert">{error}</span>}
           <div className={styles.field}>
-            <label className={styles.label}>Username</label>
+            <label className={styles.label} htmlFor="register-username">Username</label>
             <input
+              id="register-username"
               className={styles.input}
               type="text"
               value={username}
@@ -50,11 +51,13 @@ export function RegisterPage() {
               autoComplete="username"
               minLength={3}
               maxLength={24}
+              aria-describedby={error ? 'register-error' : undefined}
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Email</label>
+            <label className={styles.label} htmlFor="register-email">Email</label>
             <input
+              id="register-email"
               className={styles.input}
               type="email"
               value={email}
@@ -62,11 +65,13 @@ export function RegisterPage() {
               placeholder="you@example.com"
               required
               autoComplete="email"
+              aria-describedby={error ? 'register-error' : undefined}
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Password</label>
+            <label className={styles.label} htmlFor="register-password">Password</label>
             <input
+              id="register-password"
               className={styles.input}
               type="password"
               value={password}
@@ -75,6 +80,7 @@ export function RegisterPage() {
               required
               autoComplete="new-password"
               minLength={10}
+              aria-describedby={error ? 'register-error' : undefined}
             />
           </div>
           <label className={styles.termsLabel}>

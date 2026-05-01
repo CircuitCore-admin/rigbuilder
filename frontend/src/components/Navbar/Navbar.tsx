@@ -114,6 +114,7 @@ export function Navbar() {
 
   return (
     <>
+      <a href="#main-content" className={styles.skipLink}>Skip to content</a>
       {/* Email verification banner */}
       {user && user.emailVerified === false && (
         <div className={styles.verifyBanner}>
@@ -227,8 +228,15 @@ export function Navbar() {
                 </a>
 
                 {/* Notifications */}
-                <div className={styles.notifWrapper} ref={notifRef}>
-                  <button type="button" className={styles.navIconBtn} onClick={handleOpenNotifs} aria-label="Notifications">
+                <div className={styles.notifWrapper} ref={notifRef} role="region" aria-label="Notifications">
+                  <button
+                    type="button"
+                    className={styles.navIconBtn}
+                    onClick={handleOpenNotifs}
+                    aria-expanded={showNotifDropdown}
+                    aria-label={unreadNotifs > 0 ? `Notifications, ${unreadNotifs} unread` : 'Notifications'}
+                    aria-haspopup="true"
+                  >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                       <path d="M13.73 21a2 2 0 01-3.46 0"/>
@@ -239,7 +247,7 @@ export function Navbar() {
                   </button>
 
                   {showNotifDropdown && (
-                    <div className={styles.notifDropdown}>
+                    <div className={styles.notifDropdown} role="menu" aria-label="Notifications">
                       <div className={styles.notifDropdownHeader}>
                         <h3>Notifications</h3>
                         {unreadNotifs > 0 && (
@@ -254,6 +262,7 @@ export function Navbar() {
                             <a
                               key={n.id}
                               href={getNotificationLink(n)}
+                              role="menuitem"
                               className={`${styles.notifItem} ${!n.read ? styles.notifItemUnread : ''}`}
                               onClick={() => {
                                 api('/notifications/read', { method: 'PUT', body: { ids: [n.id], source: n.source } }).catch(() => {});

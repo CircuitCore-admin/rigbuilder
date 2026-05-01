@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../../hooks/useSearch';
 import { resolveImageUrl } from '../../utils/api';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import type { SearchProduct, SearchBuild, SearchThread, SearchListing, SearchUser } from '../../hooks/useSearch';
 import styles from './CommandPalette.module.scss';
 
@@ -11,6 +12,7 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { results, loading } = useSearch(query);
   const navigate = useNavigate();
+  const trapRef = useFocusTrap<HTMLDivElement>(open);
 
   // Cmd+K / Ctrl+K / '/' keyboard shortcut
   useEffect(() => {
@@ -63,7 +65,7 @@ export function CommandPalette() {
 
   return (
     <div className={styles.overlay} onClick={close}>
-      <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.palette} ref={trapRef} onClick={(e) => e.stopPropagation()}>
         <div className={styles.inputRow}>
           <svg className={styles.searchIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />

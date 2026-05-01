@@ -57,16 +57,28 @@ export function LeaderboardPage() {
     <div className={styles.page}>
       <h1 className={styles.pageTitle}>Leaderboards</h1>
 
-      <div className={styles.tabBar}>
+      <div className={styles.tabBar} role="tablist" aria-label="Leaderboard categories">
         <button
+          role="tab"
+          aria-selected={activeTab === 'contributors'}
+          aria-controls="leaderboard-panel"
+          id="tab-contributors"
           className={`${styles.tab} ${activeTab === 'contributors' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('contributors')}
         >Top Contributors</button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'sellers'}
+          aria-controls="leaderboard-panel"
+          id="tab-sellers"
           className={`${styles.tab} ${activeTab === 'sellers' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('sellers')}
         >Top Sellers</button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'helpers'}
+          aria-controls="leaderboard-panel"
+          id="tab-helpers"
           className={`${styles.tab} ${activeTab === 'helpers' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('helpers')}
         >Most Helpful</button>
@@ -75,9 +87,19 @@ export function LeaderboardPage() {
       {loading ? (
         <div className={styles.loadingState}>Loading…</div>
       ) : data.length === 0 ? (
-        <div className={styles.emptyState}>No data yet</div>
+        <div
+          id="leaderboard-panel"
+          role="tabpanel"
+          aria-labelledby={`tab-${activeTab}`}
+          className={styles.emptyState}
+        >No data yet</div>
       ) : (
-        <div className={styles.leaderboardList}>
+        <div
+          id="leaderboard-panel"
+          role="tabpanel"
+          aria-labelledby={`tab-${activeTab}`}
+          className={styles.leaderboardList}
+        >
           {data.map((user, idx) => (
             <button
               key={user.id}

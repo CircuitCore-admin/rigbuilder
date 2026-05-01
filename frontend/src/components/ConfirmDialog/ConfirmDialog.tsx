@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './ConfirmDialog.module.scss';
 
 interface ConfirmDialogProps {
@@ -23,6 +24,7 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const trapRef = useFocusTrap<HTMLDivElement>(open);
 
   useEffect(() => {
     if (open) {
@@ -43,7 +45,7 @@ export function ConfirmDialog({
 
   return (
     <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-      <div className={styles.dialog} onClick={e => e.stopPropagation()}>
+      <div className={styles.dialog} ref={trapRef} onClick={e => e.stopPropagation()}>
         <h2 id="confirm-title" className={styles.title}>{title}</h2>
         <p className={styles.message}>{message}</p>
         <div className={styles.actions}>

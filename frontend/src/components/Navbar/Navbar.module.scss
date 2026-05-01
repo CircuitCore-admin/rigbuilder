@@ -5,6 +5,32 @@
 // ============================================================================
 
 // ---------------------------------------------------------------------------
+// Skip navigation link
+// ---------------------------------------------------------------------------
+
+.skipLink {
+  position: absolute;
+  top: -100%;
+  left: 8px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:focus {
+    top: 8px;
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Desktop top bar
 // ---------------------------------------------------------------------------
 

@@ -9,6 +9,7 @@ import { MarkdownEditor } from '../MarkdownEditor/MarkdownEditor';
 import { useToast } from '../Toast/Toast';
 import { CloseIcon, ChevronLeftIcon, ChevronRightIcon, UpArrowIcon, DownArrowIcon, ChatIcon, EyeIcon, ShareIcon } from '../Icons/ForumIcons';
 import { ConfirmDialog } from '../ConfirmDialog/ConfirmDialog';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './ForumThread.module.scss';
 
 /** Convert @username mentions to markdown profile links */
@@ -123,6 +124,7 @@ function LightboxModal({
 }) {
   const [index, setIndex] = useState(startIndex);
   const [transitioning, setTransitioning] = useState(false);
+  const trapRef = useFocusTrap<HTMLDivElement>(true);
 
   const navigate = useCallback((newIndex: number) => {
     setTransitioning(true);
@@ -146,7 +148,7 @@ function LightboxModal({
   }, [onClose, goPrev, goNext]);
 
   return (
-    <div className={styles.lightbox} onClick={onClose}>
+    <div className={styles.lightbox} ref={trapRef} role="dialog" aria-modal="true" aria-label="Image lightbox" onClick={onClose}>
       <button className={styles.lightboxClose} onClick={onClose}><CloseIcon size={24} /></button>
       {images.length > 1 && (
         <button

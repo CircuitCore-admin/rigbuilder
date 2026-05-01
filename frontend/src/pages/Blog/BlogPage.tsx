@@ -114,10 +114,12 @@ function BlogListView() {
       </header>
 
       {/* Category filters */}
-      <div className={styles.filters}>
+      <div className={styles.filters} role="tablist" aria-label="Post categories">
         {CATEGORIES.map(cat => (
           <button
             key={cat.value}
+            role="tab"
+            aria-selected={category === cat.value}
             className={`${styles.filterBtn} ${category === cat.value ? styles.active : ''}`}
             onClick={() => {
               const next = new URLSearchParams(searchParams);
@@ -152,6 +154,11 @@ function BlogListView() {
       )}
 
       {/* Post grid */}
+      <div
+        role="tabpanel"
+        aria-label={CATEGORIES.find(c => c.value === category)?.label ?? 'All posts'}
+        id="blog-post-panel"
+      >
       {loading ? (
         <div className={styles.loadingState}>Loading posts…</div>
       ) : posts.length === 0 ? (
@@ -180,6 +187,7 @@ function BlogListView() {
           ))}
         </div>
       )}
+      </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
