@@ -34,10 +34,11 @@ export function LoginPage() {
           <p className={styles.subtitle}>Sign in to your account</p>
         </div>
         <form className={styles.body} onSubmit={handleSubmit}>
-          {error && <div className={styles.error}>{error}</div>}
+          {error && <div id="login-error" className={styles.error} role="alert">{error}</div>}
           <div className={styles.field}>
-            <label className={styles.label}>Email</label>
+            <label className={styles.label} htmlFor="login-email">Email</label>
             <input
+              id="login-email"
               className={styles.input}
               type="email"
               value={email}
@@ -45,11 +46,13 @@ export function LoginPage() {
               placeholder="you@example.com"
               required
               autoComplete="email"
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Password</label>
+            <label className={styles.label} htmlFor="login-password">Password</label>
             <input
+              id="login-password"
               className={styles.input}
               type="password"
               value={password}
@@ -57,11 +60,13 @@ export function LoginPage() {
               placeholder="••••••••••"
               required
               autoComplete="current-password"
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </div>
           <button className={styles.submitBtn} type="submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
+          <a href="/forgot-password" className={styles.forgotPasswordLink}>Forgot your password?</a>
         </form>
         <div className={styles.footer}>
           Don't have an account? <Link to="/register">Create one</Link>

@@ -8,7 +8,14 @@ import { EmbedBuildCard } from '../EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../MarkdownEditor/MarkdownEditor';
 import { useToast } from '../Toast/Toast';
 import { CloseIcon, ChevronLeftIcon, ChevronRightIcon, UpArrowIcon, DownArrowIcon, ChatIcon, EyeIcon, ShareIcon } from '../Icons/ForumIcons';
+import { ConfirmDialog } from '../ConfirmDialog/ConfirmDialog';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import styles from './ForumThread.module.scss';
+
+/** Convert @username mentions to markdown profile links */
+function renderMentions(text: string): string {
+  return text.replace(/@([a-zA-Z0-9_-]+)/g, '[@$1](/profile/$1)');
+}
 
 interface ThreadUser {
   id: string;
@@ -50,6 +57,13 @@ interface Thread {
   score: number;
   upvotes: number;
   downvotes: number;
+  flair?: string | null;
+  poll?: {
+    id: string;
+    question: string;
+    expiresAt?: string | null;
+    options: { id: string; label: string; votes: number }[];
+  } | null;
   createdAt: string;
   user: ThreadUser;
   product: ThreadProduct | null;
@@ -57,6 +71,8 @@ interface Thread {
   imageUrls?: string[];
   link?: string | null;
   isAnonymous?: boolean;
+  isPinned?: boolean;
+  isLocked?: boolean;
 }
 
 interface ForumThreadProps {
@@ -71,6 +87,15 @@ const CATEGORY_LABELS: Record<string, string> = {
   TELEMETRY: 'Telemetry',
   DEALS: 'Deals',
   GENERAL: 'General',
+};
+
+const FLAIR_LABELS: Record<string, string> = {
+  SOLVED: 'Solved',
+  QUESTION: 'Question',
+  WIP: 'WIP',
+  REVIEW: 'Review',
+  PSA: 'PSA',
+  GUIDE: 'Guide',
 };
 
 function getBadges(reputation: number, role?: string): string[] {
@@ -99,6 +124,7 @@ function LightboxModal({
 }) {
   const [index, setIndex] = useState(startIndex);
   const [transitioning, setTransitioning] = useState(false);
+  const trapRef = useFocusTrap<HTMLDivElement>(true);
 
   const navigate = useCallback((newIndex: number) => {
     setTransitioning(true);
@@ -122,7 +148,7 @@ function LightboxModal({
   }, [onClose, goPrev, goNext]);
 
   return (
-    <div className={styles.lightbox} onClick={onClose}>
+    <div className={styles.lightbox} ref={trapRef} role="dialog" aria-modal="true" aria-label="Image lightbox" onClick={onClose}>
       <button className={styles.lightboxClose} onClick={onClose}><CloseIcon size={24} /></button>
       {images.length > 1 && (
         <button
@@ -149,6 +175,85 @@ function LightboxModal({
           <span className={styles.lightboxCounter}>{index + 1} of {images.length}</span>
         </>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PollWidget
+// ---------------------------------------------------------------------------
+
+function PollWidget({ poll }: { poll: NonNullable<Thread['poll']> }) {
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const [options, setOptions] = useState(poll.options);
+  const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
+  const [voting, setVoting] = useState(false);
+
+  const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
+  const isExpired = poll.expiresAt ? new Date(poll.expiresAt) < new Date() : false;
+
+  // Fetch user's existing vote
+  useEffect(() => {
+    if (!user) return;
+    api<{ votedOptionId: string | null }>(`/forum/polls/${poll.id}/my-vote`)
+      .then(d => setVotedOptionId(d.votedOptionId))
+      .catch(() => {});
+  }, [user, poll.id]);
+
+  const handleVote = async (optionId: string) => {
+    if (!user || voting || isExpired) return;
+    setVoting(true);
+    try {
+      const updated = await api<{ options: { id: string; label: string; votes: number }[] }>(`/forum/polls/${poll.id}/vote`, {
+        method: 'POST',
+        body: { optionId },
+      });
+      setOptions(updated.options);
+      setVotedOptionId(optionId);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to vote', 'error');
+    } finally {
+      setVoting(false);
+    }
+  };
+
+  const hasVoted = votedOptionId !== null;
+
+  return (
+    <div className={styles.pollWidget}>
+      <h4 className={styles.pollQuestion}>{poll.question}</h4>
+      <div className={styles.pollOptions}>
+        {options.map(opt => {
+          const pct = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+          const isVoted = opt.id === votedOptionId;
+
+          return (
+            <button
+              key={opt.id}
+              className={`${styles.pollOption} ${isVoted ? styles.pollOptionVoted : ''} ${hasVoted || isExpired ? styles.pollOptionShowResult : ''}`}
+              onClick={() => !hasVoted && !isExpired && handleVote(opt.id)}
+              disabled={voting || (hasVoted && !isVoted) || isExpired}
+            >
+              {(hasVoted || isExpired) && (
+                <div className={styles.pollBar} style={{ width: `${pct}%` }} />
+              )}
+              <span className={styles.pollOptionLabel}>{opt.label}</span>
+              {(hasVoted || isExpired) && (
+                <span className={styles.pollOptionPct}>{pct}%</span>
+              )}
+              {isVoted && <span className={styles.pollOptionCheck}>✓</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div className={styles.pollFooter}>
+        <span>{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
+        {isExpired && <span>Poll ended</span>}
+        {poll.expiresAt && !isExpired && (
+          <span>Ends {new Date(poll.expiresAt).toLocaleDateString()}</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -183,6 +288,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
   const [replySort, setReplySort] = useState<'top' | 'newest' | 'oldest'>('top');
   const [threadVoting, setThreadVoting] = useState(false);
   const [replyVotingIds, setReplyVotingIds] = useState<Set<string>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -326,7 +432,6 @@ export function ForumThread({ slug }: ForumThreadProps) {
 
   const handleDelete = async () => {
     if (!thread) return;
-    if (!window.confirm('Are you sure you want to delete this thread?')) return;
     try {
       await api(`/forum/${thread.id}`, { method: 'DELETE' });
       showToast('Thread deleted', 'success');
@@ -479,6 +584,11 @@ export function ForumThread({ slug }: ForumThreadProps) {
               <span className={styles.categoryTag}>
                 {CATEGORY_LABELS[thread.category] ?? thread.category}
               </span>
+              {thread.flair && (
+                <span className={`${styles.flairBadge} ${styles[`flair${thread.flair}`]}`}>
+                  {FLAIR_LABELS[thread.flair]}
+                </span>
+              )}
               <span className={styles.threadMetaText}>
                 Posted by <UserBadge user={thread.user} />
                 {thread.user.id !== 'anonymous' && thread.user.pitCred != null && (
@@ -503,7 +613,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
             )}
 
             <div className={styles.threadBody}>
-              <Markdown>{thread.body}</Markdown>
+              <Markdown>{renderMentions(thread.body)}</Markdown>
             </div>
 
             {/* Images inline — part of the post content */}
@@ -523,6 +633,11 @@ export function ForumThread({ slug }: ForumThreadProps) {
                   />
                 ))}
               </div>
+            )}
+
+            {/* Poll */}
+            {thread.poll && (
+              <PollWidget poll={thread.poll} />
             )}
 
             {/* Actions bar (Reddit-style) */}
@@ -548,8 +663,50 @@ export function ForumThread({ slug }: ForumThreadProps) {
               {canModify && (
                 <>
                   <button className={`${styles.actionBtn} ${styles.actionBtnEdit}`} onClick={handleStartEdit}>Edit</button>
-                  <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={handleDelete}>Delete</button>
+                  <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => setShowDeleteConfirm(true)}>Delete</button>
+                  {thread.flair !== 'SOLVED' && (
+                    <button
+                      className={styles.markSolvedBtn}
+                      onClick={async () => {
+                        try {
+                          await api(`/forum/${thread.slug}/flair`, { method: 'PUT', body: { flair: 'SOLVED' } });
+                          setThread((prev: Thread | null) => prev ? { ...prev, flair: 'SOLVED' } : prev);
+                          showToast('Marked as solved', 'success');
+                        } catch { showToast('Failed to update flair', 'error'); }
+                      }}
+                    >
+                      ✓ Mark as Solved
+                    </button>
+                  )}
                 </>
+              )}
+              {(authUser?.role === 'ADMIN' || authUser?.role === 'MODERATOR') && (
+                <div className={styles.adminActions}>
+                  <button
+                    className={`${styles.adminBtn} ${thread.isPinned ? styles.adminBtnActive : ''}`}
+                    onClick={async () => {
+                      try {
+                        const result = await api<{ isPinned: boolean }>(`/forum/${thread.slug}/pin`, { method: 'PUT' });
+                        setThread(prev => prev ? { ...prev, isPinned: result.isPinned } : prev);
+                        showToast(result.isPinned ? 'Thread pinned' : 'Thread unpinned', 'success');
+                      } catch { showToast('Failed', 'error'); }
+                    }}
+                  >
+                    {thread.isPinned ? 'Unpin' : 'Pin'}
+                  </button>
+                  <button
+                    className={`${styles.adminBtn} ${thread.isLocked ? styles.adminBtnActive : ''}`}
+                    onClick={async () => {
+                      try {
+                        const result = await api<{ isLocked: boolean }>(`/forum/${thread.slug}/lock`, { method: 'PUT' });
+                        setThread(prev => prev ? { ...prev, isLocked: result.isLocked } : prev);
+                        showToast(result.isLocked ? 'Thread locked' : 'Thread unlocked', 'success');
+                      } catch { showToast('Failed', 'error'); }
+                    }}
+                  >
+                    {thread.isLocked ? 'Unlock' : 'Lock'}
+                  </button>
+                </div>
               )}
             </div>
 
@@ -622,11 +779,20 @@ export function ForumThread({ slug }: ForumThreadProps) {
               onInlineReplySubmit={handleSubmitInlineReply}
               onInlineReplyCancel={handleCancelInlineReply}
               submitting={submitting}
+              isLocked={!!thread.isLocked}
             />
           ))}
         </div>
 
-        {authUser ? (
+        {thread.isLocked ? (
+          <div className={styles.lockedNotice}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ color: 'var(--text-muted)' }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+            <span>This thread has been locked. No new replies can be posted.</span>
+          </div>
+        ) : authUser ? (
           <div className={styles.replyForm}>
             {inlineReplyId ? (
               <div className={styles.replyDisabled}>Replying to a comment above…</div>
@@ -660,6 +826,15 @@ export function ForumThread({ slug }: ForumThreadProps) {
           </div>
         )}
       </section>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Thread"
+        message="Are you sure you want to permanently delete this thread? All replies will be removed."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => { setShowDeleteConfirm(false); handleDelete(); }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
@@ -667,7 +842,7 @@ export function ForumThread({ slug }: ForumThreadProps) {
 function ReplyNode({
   reply, depth, onReply, onVote, onShareReply, replyVotes, replyVotingIds, collapsedReplies, toggleCollapse,
   inlineReplyId, inlineReplyBody, onInlineReplyBodyChange,
-  onInlineReplySubmit, onInlineReplyCancel, submitting,
+  onInlineReplySubmit, onInlineReplyCancel, submitting, isLocked,
 }: {
   reply: Reply & { children?: Reply[] };
   depth: number;
@@ -684,6 +859,7 @@ function ReplyNode({
   onInlineReplySubmit: () => void;
   onInlineReplyCancel: () => void;
   submitting: boolean;
+  isLocked?: boolean;
 }) {
   const badges = getBadges(reply.user.reputation, reply.user.role);
   const showInlineForm = inlineReplyId === reply.id;
@@ -726,7 +902,7 @@ function ReplyNode({
                   <time className={styles.replyTime}>{timeAgo}</time>
                 </div>
                 <div className={styles.replyBody}>
-                  <Markdown>{reply.body}</Markdown>
+                  <Markdown>{renderMentions(reply.body)}</Markdown>
                 </div>
                 <div className={styles.replyActions}>
                   <button
@@ -746,15 +922,17 @@ function ReplyNode({
                   >
                     <DownArrowIcon size={14} />
                   </button>
-                  <button className={styles.replyActionBtn} onClick={() => onReply(reply.id)}>
-                    <ChatIcon size={14} /> Reply
-                  </button>
+                  {!isLocked && (
+                    <button className={styles.replyActionBtn} onClick={() => onReply(reply.id)}>
+                      <ChatIcon size={14} /> Reply
+                    </button>
+                  )}
                   <button className={styles.replyActionBtn} onClick={() => onShareReply(reply.id)}>
                     <ShareIcon size={14} /> Share
                   </button>
                 </div>
               </div>
-              {showInlineForm && (
+              {showInlineForm && !isLocked && (
                 <div className={styles.inlineReplyForm}>
                   <MarkdownEditor
                     value={inlineReplyBody}
@@ -794,6 +972,7 @@ function ReplyNode({
                   onInlineReplySubmit={onInlineReplySubmit}
                   onInlineReplyCancel={onInlineReplyCancel}
                   submitting={submitting}
+                  isLocked={isLocked}
                 />
               ))}
             </>
@@ -808,7 +987,7 @@ function UserBadge({ user }: { user: ThreadUser }) {
   const isAnon = user.id === 'anonymous' || user.username === 'Anonymous';
   return (
     <span className={styles.userBadge}>
-      {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} />}
+      {user.avatarUrl && <img src={user.avatarUrl} alt="" className={styles.userAvatar} loading="lazy" decoding="async" />}
       {isAnon ? (
         <span className={styles.userNameAnon}>{user.username}</span>
       ) : (

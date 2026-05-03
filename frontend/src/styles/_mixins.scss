@@ -1,0 +1,249 @@
+// ============================================================================
+// RigBuilder — Shared SCSS Mixins
+// Import with: @use '../../styles/mixins' as m;  then  @include m.card;
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// Card — standard surface container
+// ---------------------------------------------------------------------------
+
+@mixin card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+// ---------------------------------------------------------------------------
+// Card interactive — card with hover feedback
+// ---------------------------------------------------------------------------
+
+@mixin card-interactive {
+  @include card;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-default);
+    background: var(--bg-elevated);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Input
+// ---------------------------------------------------------------------------
+
+@mixin input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast);
+  outline: none;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:focus {
+    border-color: var(--accent-secondary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Textarea
+// ---------------------------------------------------------------------------
+
+@mixin textarea {
+  @include input;
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+
+// ---------------------------------------------------------------------------
+// Button — primary (accent green)
+// ---------------------------------------------------------------------------
+
+@mixin button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent-primary);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+
+  &:hover {
+    opacity: 0.88;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Button — secondary (outline / ghost)
+// ---------------------------------------------------------------------------
+
+@mixin button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    border-color: var(--accent-secondary);
+    background: var(--accent-secondary-subtle);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Button — danger (destructive action)
+// ---------------------------------------------------------------------------
+
+@mixin button-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--accent-hot);
+  border: 1px solid var(--accent-hot);
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: var(--accent-hot-subtle);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Badge — small status/label chip
+// ---------------------------------------------------------------------------
+
+@mixin badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// Avatar — circular user image
+// ---------------------------------------------------------------------------
+
+@mixin avatar($size: 36px) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Avatar placeholder — fallback initials circle
+// ---------------------------------------------------------------------------
+
+@mixin avatar-placeholder($size: 36px) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  background: var(--accent-secondary-subtle);
+  border: 1px solid var(--accent-secondary-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc($size * 0.4);
+  font-weight: 600;
+  color: var(--accent-secondary);
+  flex-shrink: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Section title — sub-heading inside a card/section
+// ---------------------------------------------------------------------------
+
+@mixin section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+// ---------------------------------------------------------------------------
+// Label — form field label
+// ---------------------------------------------------------------------------
+
+@mixin label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+// ---------------------------------------------------------------------------
+// Mono — IBM Plex Mono typeface
+// ---------------------------------------------------------------------------
+
+@mixin mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+// ---------------------------------------------------------------------------
+// Truncate — single-line text overflow ellipsis
+// ---------------------------------------------------------------------------
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

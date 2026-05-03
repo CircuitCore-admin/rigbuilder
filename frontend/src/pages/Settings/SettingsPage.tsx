@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/Toast/Toast';
 import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
+import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import styles from './SettingsPage.module.scss';
 
 interface BlockedUser {
@@ -14,6 +16,7 @@ interface BlockedUser {
 export function SettingsPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   // Privacy
@@ -28,6 +31,15 @@ export function SettingsPage() {
   // Discord
   const [discord, setDiscord] = useState('');
 
+  // Digest
+  const [digestFrequency, setDigestFrequency] = useState('WEEKLY');
+
+  // Account deletion
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
 
@@ -37,6 +49,7 @@ export function SettingsPage() {
       .then(p => {
         setVisibility(p.profileVisibility ?? 'PUBLIC');
         setDiscord(p.discordUsername ?? '');
+        setDigestFrequency(p.digestFrequency ?? 'WEEKLY');
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -70,9 +83,26 @@ export function SettingsPage() {
     } catch { showToast('Failed to save', 'error'); }
   };
 
-  if (loading) return <div className={styles.loading}>Loading...</div>;
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== 'DELETE MY ACCOUNT') {
+      showToast('Please type DELETE MY ACCOUNT to confirm', 'error');
+      return;
+    }
+    if (!deletePassword) { showToast('Password required', 'error'); return; }
+    setDeleting(true);
+    try {
+      await api('/users/account', { method: 'DELETE', body: { password: deletePassword } });
+      navigate('/');
+      window.location.reload();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete account', 'error');
+    } finally { setDeleting(false); }
+  };
+
+  if (loading) return <div className={styles.loading}>Loading settings…</div>;
 
   return (
+    <>
     <div className={styles.settingsPage}>
       <h1 className={styles.pageTitle}>Account Settings</h1>
 
@@ -124,6 +154,32 @@ export function SettingsPage() {
         <button className={styles.saveBtn} onClick={handleSaveDiscord}>Save</button>
       </section>
 
+      {/* Email Notifications */}
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Email Notifications</h2>
+        <p className={styles.sectionDesc}>
+          Get a summary of new listings matching your interests, trending discussions, and price drops on saved items.
+        </p>
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Weekly Digest</label>
+          <CustomSelect
+            value={digestFrequency}
+            onChange={async (val) => {
+              setDigestFrequency(val);
+              try {
+                await api('/users/profile', { method: 'PUT', body: { digestFrequency: val } });
+                showToast('Preference saved', 'success');
+              } catch { showToast('Failed to save', 'error'); }
+            }}
+            options={[
+              { value: 'WEEKLY', label: 'Weekly — Every Sunday' },
+              { value: 'DAILY', label: 'Daily — Every morning' },
+              { value: 'NEVER', label: 'Never — No digest emails' },
+            ]}
+          />
+        </div>
+      </section>
+
       {/* Blocked Users */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Blocked Users</h2>
@@ -151,6 +207,52 @@ export function SettingsPage() {
           </div>
         )}
       </section>
+
+      {/* Danger Zone */}
+      <section className={styles.dangerSection}>
+        <h2 className={styles.dangerTitle}>Danger Zone</h2>
+        <p className={styles.sectionDesc}>
+          Permanently delete your account and all associated data. This action cannot be undone and is irreversible.
+          Your listings, posts, and messages will be removed.
+        </p>
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Confirm Password</label>
+          <input
+            type="password"
+            className={styles.fieldInput}
+            placeholder="Enter your password"
+            value={deletePassword}
+            onChange={e => setDeletePassword(e.target.value)}
+          />
+        </div>
+        <div className={styles.fieldGroup}>
+          <label className={styles.fieldLabel}>Type <strong>DELETE MY ACCOUNT</strong> to confirm</label>
+          <input
+            type="text"
+            className={styles.fieldInput}
+            placeholder="DELETE MY ACCOUNT"
+            value={deleteConfirm}
+            onChange={e => setDeleteConfirm(e.target.value)}
+          />
+        </div>
+        <button
+          className={styles.deleteBtn}
+          onClick={handleDeleteAccount}
+          disabled={deleting || deleteConfirm !== 'DELETE MY ACCOUNT' || !deletePassword}
+        >
+          {deleting ? 'Deleting…' : 'Delete My Account'}
+        </button>
+      </section>
     </div>
+    <ConfirmDialog
+      open={showDeleteConfirm}
+      title="Delete Account"
+      message="This will permanently delete your account, listings, posts, and all data. This cannot be undone."
+      confirmLabel="Continue to Delete"
+      variant="danger"
+      onConfirm={() => setShowDeleteConfirm(false)}
+      onCancel={() => setShowDeleteConfirm(false)}
+    />
+    </>
   );
 }

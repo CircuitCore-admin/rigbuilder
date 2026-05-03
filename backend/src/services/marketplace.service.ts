@@ -3,6 +3,8 @@ import type { ListingListParams } from '../repositories/marketplace.repository';
 import type { ListingStatus, MarketplaceListingType } from '@prisma/client';
 import { prisma } from '../prisma';
 import { encryptMessage, decryptMessage, generateConversationId } from '../utils/marketplace-encryption';
+import { SearchService } from './search.service';
+import { BadgeService } from './badge.service';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -79,9 +81,10 @@ export class MarketplaceService {
     },
     userId: string,
   ) {
-    // Check account age (at least 5 minutes old)
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true } });
+    // Check account age (at least 5 minutes old) and email verification
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true, emailVerified: true } });
     if (!user) throw new NotFoundError('User not found');
+    if (!user.emailVerified) throw new ForbiddenError('Please verify your email to create a listing');
     const accountAgeMs = Date.now() - user.createdAt.getTime();
     if (accountAgeMs < MIN_ACCOUNT_AGE_MS) {
       throw new BadRequestError('Your account must be at least 5 minutes old to create a listing');
@@ -112,6 +115,9 @@ export class MarketplaceService {
     // Fire-and-forget matching
     this.runMatching(listing).catch(() => {});
 
+    // Sync to search index
+    SearchService.syncMarketplaceListing(listing.id).catch(() => {});
+
     return listing;
   }
 
@@ -141,6 +147,8 @@ export class MarketplaceService {
 
     const updated = await MarketplaceRepository.updateListing(id, prismaData);
 
+    // Sync to search index
+    SearchService.syncMarketplaceListing(id).catch(() => {});
     // Check for price drop — notify wishlisters
     if (data.price !== undefined && oldPrice !== null && Number(data.price) < oldPrice) {
       try {
@@ -225,11 +233,16 @@ export class MarketplaceService {
 
     const updated = await MarketplaceRepository.updateListingStatus(id, status);
 
+    // Sync to search index (removes from index if no longer active)
+    SearchService.syncMarketplaceListing(id).catch(() => {});
     // Increment completedSales when marking as SOLD or FOUND
     if (status === 'SOLD' || status === 'FOUND') {
       prisma.user.update({
         where: { id: listing.userId },
         data: { completedSales: { increment: 1 } },
+      }).then(() => {
+        // Check badges after incrementing sales (fire-and-forget)
+        BadgeService.checkAndAward(listing.userId).catch(() => {});
       }).catch(() => {});
     }
 
@@ -267,6 +280,10 @@ export class MarketplaceService {
   ) {
     const listing = await MarketplaceRepository.findListingById(listingId);
     if (!listing) throw new NotFoundError('Listing not found');
+
+    // Check email verification
+    const offeringUser = await prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } });
+    if (offeringUser && !offeringUser.emailVerified) throw new ForbiddenError('Please verify your email to make an offer');
 
     if (listing.userId === userId) {
       throw new BadRequestError('You cannot make an offer on your own listing');
@@ -398,6 +415,10 @@ export class MarketplaceService {
         referenceId: offerId,
         message: `Your offer on "${offer.listing.title}" was accepted!`,
       }).catch(() => {});
+
+      // Check badges for buyer (accepted offer) and seller (fire-and-forget)
+      BadgeService.checkAndAward(offer.userId).catch(() => {});
+      BadgeService.checkAndAward(offer.listing.userId).catch(() => {});
 
       return MarketplaceRepository.findOfferById(offerId);
     }
@@ -580,6 +601,10 @@ export class MarketplaceService {
     if (userId === data.recipientId) {
       throw new BadRequestError('You cannot send a message to yourself');
     }
+
+    // Check email verification
+    const messagingUser = await prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } });
+    if (messagingUser && !messagingUser.emailVerified) throw new ForbiddenError('Please verify your email to send messages');
 
     // Verify listing exists
     const listing = await MarketplaceRepository.findListingById(data.listingId);

@@ -1,0 +1,68 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as m;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(5, 5, 10, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.dialog {
+  @include m.card;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: dialogIn 150ms ease forwards;
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.message {
+  font-size: 14px;
+  color: var(--text-body);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.cancelBtn {
+  @include m.button-secondary;
+  font-size: 14px;
+  padding: 8px 18px;
+}
+
+.confirmBtn {
+  @include m.button-primary;
+  font-size: 14px;
+  padding: 8px 18px;
+}
+
+.confirmBtnDanger {
+  @include m.button-danger;
+  font-size: 14px;
+  padding: 8px 18px;
+}

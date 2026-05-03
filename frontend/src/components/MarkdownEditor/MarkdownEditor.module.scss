@@ -21,7 +21,6 @@
 
 .tab {
   padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
@@ -89,7 +88,6 @@
 .tiptapWrap {
   :global(.ProseMirror) {
     padding: 12px 14px;
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 15px;
     line-height: 1.7;
     color: var(--text-body);
@@ -126,7 +124,6 @@
     }
 
     h1, h2, h3, h4 {
-      font-family: 'Space Grotesk', sans-serif;
       color: var(--text-primary);
       margin: 16px 0 8px;
     }
@@ -200,7 +197,6 @@
 .preview {
   padding: 14px 16px;
   min-height: 120px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   line-height: 1.7;
   color: var(--text-body);
@@ -244,7 +240,6 @@
   }
 
   h1, h2, h3, h4 {
-    font-family: 'Space Grotesk', sans-serif;
     color: var(--text-primary);
     margin: 16px 0 8px;
   }
@@ -298,7 +293,6 @@
 }
 
 .helpToggle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   background: none;
@@ -346,4 +340,60 @@
 .helpToggle:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
+}
+
+.mentionDropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 24px;
+  width: 240px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.mentionItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font-family: inherit;
+  &:hover { background: var(--surface-hover); }
+  &:last-child { border-bottom: none; }
+}
+
+.mentionItemActive {
+  background: var(--surface-hover);
+}
+
+.mentionAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.mentionName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
 }

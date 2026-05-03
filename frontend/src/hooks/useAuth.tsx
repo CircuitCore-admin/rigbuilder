@@ -18,6 +18,8 @@ export interface AuthUser {
   userId: string;
   username: string;
   role: UserRole;
+  emailVerified?: boolean;
+  onboardingCompleted?: boolean;
 }
 
 interface AuthContextValue {
@@ -27,6 +29,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,10 +77,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const data = await api<AuthUser>('/auth/me');
+      setUser(data);
+    } catch {
+      setUser(null);
+    }
+  }, []);
+
   const isAdmin = user?.role === 'ADMIN';
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

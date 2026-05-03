@@ -1,6 +1,9 @@
 import { ForumRepository } from '../repositories/forum.repository';
 import type { ForumListParams } from '../repositories/forum.repository';
 import { slugify } from '../utils/slug';
+import { extractMentions } from '../utils/mentions';
+import { BadgeService } from './badge.service';
+import { prisma } from '../prisma';
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -53,10 +56,12 @@ export class ForumService {
     metadata?: Record<string, unknown>;
     imageUrls?: string[];
     isAnonymous?: boolean;
+    flair?: string | null;
+    poll?: { question: string; options: string[]; expiresAt?: string };
   }) {
     const slug = slugify(data.title) + '-' + Date.now().toString(36);
 
-    return ForumRepository.createThread({
+    const thread = await ForumRepository.createThread({
       title: data.title,
       slug,
       body: data.body,
@@ -67,7 +72,26 @@ export class ForumService {
       ...(data.metadata && { metadata: data.metadata }),
       ...(data.imageUrls?.length && { imageUrls: data.imageUrls }),
       ...(data.isAnonymous && { isAnonymous: true }),
+      ...(data.flair && { flair: data.flair }),
     });
+
+    // Create poll if provided
+    if (data.poll && data.poll.question && data.poll.options?.length >= 2) {
+      await ForumRepository.createPoll({
+        threadId: thread.id,
+        question: data.poll.question,
+        expiresAt: data.poll.expiresAt ? new Date(data.poll.expiresAt) : null,
+        options: data.poll.options.slice(0, 6),
+      });
+    }
+
+    // Notify mentioned users in thread body (fire-and-forget)
+    this.notifyMentions(data.body, data.userId, thread.id).catch(() => {});
+
+    // Check badges after creating a thread (fire-and-forget)
+    BadgeService.checkAndAward(data.userId).catch(() => {});
+
+    return thread;
   }
 
   static async getReplies(threadId: string) {
@@ -89,6 +113,12 @@ export class ForumService {
 
     // Notify thread owner + followers (fire-and-forget)
     this.notifyOnReply(data.threadId, data.userId, reply.id).catch(() => {});
+
+    // Notify mentioned users in reply body (fire-and-forget)
+    this.notifyMentions(data.body, data.userId, data.threadId, reply.id).catch(() => {});
+
+    // Check badges after creating a reply (fire-and-forget)
+    BadgeService.checkAndAward(data.userId).catch(() => {});
 
     return reply;
   }
@@ -172,6 +202,37 @@ export class ForumService {
 
   static async getNotifications(userId: string, params: { page: number; limit: number; unreadOnly?: boolean }) {
     return ForumRepository.findNotifications(userId, params);
+  }
+
+  /** Notify users mentioned via @username in thread/reply body. */
+  private static async notifyMentions(body: string, authorId: string, threadId: string, replyId?: string) {
+    const usernames = extractMentions(body);
+    if (usernames.length === 0) return;
+
+    const mentionedUsers = await prisma.user.findMany({
+      where: { username: { in: usernames } },
+      select: { id: true, username: true },
+    });
+
+    const thread = await ForumRepository.findThreadById(threadId);
+    if (!thread) return;
+
+    const author = await prisma.user.findUnique({ where: { id: authorId }, select: { username: true } });
+    const authorName = author?.username ?? 'Someone';
+
+    const recipientIds = mentionedUsers
+      .filter((u) => u.id !== authorId) // Don't notify yourself
+      .map((u) => u.id);
+
+    if (recipientIds.length === 0) return;
+
+    await ForumRepository.createNotifications({
+      userIds: recipientIds,
+      type: 'MENTION',
+      threadId,
+      replyId,
+      message: `${authorName} mentioned you in "${thread.title}"`,
+    });
   }
 
   static async markNotificationsRead(userId: string, ids?: string[]) {

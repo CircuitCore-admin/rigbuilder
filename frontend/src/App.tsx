@@ -6,16 +6,31 @@ import { RigBuilderPage } from './pages/RigBuilder/RigBuilderPage';
 import { SharedBuildPage } from './pages/SharedBuild/SharedBuildPage';
 import { HomePage } from './pages/Home/HomePage';
 import { ProductDetailPage } from './pages/ProductDetail/ProductDetailPage';
+import { ProductComparePage } from './pages/ProductCompare/ProductComparePage';
 import { GuidesPage } from './pages/Guides/GuidesPage';
+import { CreateGuidePage } from './pages/Guides/CreateGuidePage';
+import { BlogPage } from './pages/Blog/BlogPage';
+import { CategoryLandingPage } from './pages/Category/CategoryLandingPage';
 import { CommunityPage } from './pages/Community/CommunityPage';
+import { LeaderboardPage } from './pages/Leaderboard/LeaderboardPage';
+import { ComparePage } from './pages/Compare/ComparePage';
 import { MarketplacePage } from './pages/Marketplace/MarketplacePage';
 import { MarketplaceMessages } from './pages/Marketplace/MarketplaceMessages';
 import { NotificationsPage } from './pages/Notifications/NotificationsPage';
 import { ProfilePage } from './pages/Profile/ProfilePage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
+import { VerifyEmailPage } from './pages/VerifyEmail/VerifyEmailPage';
+import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
+import { ForgotPasswordPage } from './pages/ForgotPassword/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ForgotPassword/ResetPasswordPage';
+import { TermsPage } from './pages/Legal/TermsPage';
+import { PrivacyPage } from './pages/Legal/PrivacyPage';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { Navbar } from './components/Navbar/Navbar';
+import { OnboardingRedirect } from './components/OnboardingRedirect/OnboardingRedirect';
+import { CookieConsent } from './components/CookieConsent/CookieConsent';
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
 
 /**
  * Root application shell.
@@ -26,11 +41,24 @@ export function App() {
     <>
       <Navbar />
       <CommandPalette />
-      <div className="appContent">
+      <OnboardingRedirect />
+      <CookieConsent />
+      <div id="main-content" className="appContent">
+        <ErrorBoundary>
         <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* Legal */}
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+
+        {/* Onboarding */}
+        <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
 
         {/* Admin routes */}
         <Route
@@ -43,12 +71,27 @@ export function App() {
         />
 
         {/* Guides */}
+        <Route path="/guides/new" element={<ProtectedRoute><CreateGuidePage /></ProtectedRoute>} />
+        <Route path="/guides/edit/:id" element={<ProtectedRoute><CreateGuidePage /></ProtectedRoute>} />
         <Route path="/guides" element={<GuidesPage />} />
         <Route path="/guides/:slug" element={<GuidesPage />} />
+
+        {/* Blog / News */}
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPage />} />
+
+        {/* Category Landing Pages */}
+        <Route path="/category/:category" element={<CategoryLandingPage />} />
 
         {/* Community Forum */}
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:slug" element={<CommunityPage />} />
+
+        {/* Leaderboards */}
+        <Route path="/leaderboards" element={<LeaderboardPage />} />
+
+        {/* Build Comparison */}
+        <Route path="/compare" element={<ComparePage />} />
 
         {/* Marketplace */}
         <Route path="/marketplace" element={<MarketplacePage />} />
@@ -69,6 +112,9 @@ export function App() {
         {/* Shared build permalink — fetches from API and renders configurator inline */}
         <Route path="/list/:buildId" element={<SharedBuildPage />} />
 
+        {/* Product comparison (must be before :slug) */}
+        <Route path="/products/compare" element={<ProductComparePage />} />
+
         {/* Product detail */}
         <Route path="/products/:slug" element={<ProductDetailPage />} />
 
@@ -78,6 +124,7 @@ export function App() {
         {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </ErrorBoundary>
       </div>
     </>
   );

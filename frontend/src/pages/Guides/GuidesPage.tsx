@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { api } from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 import { GuideTemplate } from '../../components/GuideTemplate/GuideTemplate';
 import styles from './GuidesPage.module.scss';
 
@@ -26,6 +27,10 @@ const CATEGORIES = [
   { value: 'BEGINNER', label: 'Beginner' },
   { value: 'BUYING', label: 'Buying Guides' },
   { value: 'MAINTENANCE', label: 'Maintenance' },
+  { value: 'SETUP', label: 'Setup' },
+  { value: 'DIY', label: 'DIY' },
+  { value: 'COMPARISON', label: 'Comparison' },
+  { value: 'TUTORIAL', label: 'Tutorial' },
 ];
 
 export function GuidesPage() {
@@ -39,6 +44,7 @@ function GuidesListView() {
   const [guides, setGuides] = useState<GuideListItem[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const category = searchParams.get('category') ?? '';
   const page = parseInt(searchParams.get('page') ?? '1') || 1;
@@ -57,8 +63,15 @@ function GuidesListView() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Guides & Articles</h1>
-        <p className={styles.subtitle}>Expert guides on sim racing hardware, setup tips, and maintenance</p>
+        <div className={styles.headerTop}>
+          <div>
+            <h1 className={styles.title}>Guides & Articles</h1>
+            <p className={styles.subtitle}>Expert guides on sim racing hardware, setup tips, and maintenance</p>
+          </div>
+          {user && (
+            <Link to="/guides/new" className={styles.writeGuideBtn}>Write a Guide</Link>
+          )}
+        </div>
       </header>
 
       <div className={styles.filters}>
@@ -86,7 +99,7 @@ function GuidesListView() {
         <div className={styles.grid}>
           {guides.map((guide) => (
             <a key={guide.id} href={`/guides/${guide.slug}`} className={styles.card}>
-              {guide.coverImage && <img src={guide.coverImage} alt="" className={styles.cardImage} />}
+              {guide.coverImage && <img src={guide.coverImage} alt="" className={styles.cardImage} loading="lazy" decoding="async" />}
               <div className={styles.cardBody}>
                 <span className={styles.cardCategory}>
                   {CATEGORIES.find((c) => c.value === guide.category)?.label ?? guide.category}

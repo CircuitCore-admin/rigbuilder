@@ -5,7 +5,6 @@
 }
 
 .pageTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -19,7 +18,6 @@
 }
 
 .sectionTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -27,7 +25,6 @@
 }
 
 .sectionDesc {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-muted);
   margin: 0 0 16px;
@@ -41,7 +38,6 @@
 }
 
 .fieldLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -49,7 +45,6 @@
 
 .fieldInput {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -61,7 +56,6 @@
 
 .saveBtn {
   padding: 10px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -78,7 +72,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
   color: var(--text-muted);
 }
 
@@ -97,14 +90,12 @@
   padding: 8px 12px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
 }
 
 .unblockBtn {
   padding: 4px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   background: none;
@@ -112,4 +103,33 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   &:hover { color: var(--text-secondary); border-color: var(--border-strong); }
+}
+
+// ---------- Danger Zone ----------
+
+.dangerSection {
+  margin-top: 40px;
+  padding: 24px;
+  border: 1px solid var(--accent-hot, #ff4455);
+  border-radius: var(--radius-lg);
+}
+
+.dangerTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent-hot, #ff4455);
+  margin: 0 0 6px;
+}
+
+.deleteBtn {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent-hot, #ff4455);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
 }

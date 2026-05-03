@@ -131,7 +131,7 @@ export function NotificationsPage() {
 
       <div className={styles.list}>
         {loading && notifications.length === 0 ? (
-          <div className={styles.emptyState}><p>Loading...</p></div>
+          <div className={styles.emptyState}><p>Loading notifications…</p></div>
         ) : notifications.length === 0 ? (
           <div className={styles.emptyState}>
             <p>{filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}</p>

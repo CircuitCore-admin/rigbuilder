@@ -123,6 +123,15 @@ model User {
   sellerReviewCount Int      @default(0) @map("seller_review_count")
   completedSales    Int      @default(0) @map("completed_sales")
   avgResponseMinutes Int?    @map("avg_response_minutes")
+  emailVerified       Boolean   @default(false) @map("email_verified")
+  emailVerifyToken    String?   @map("email_verify_token")
+  emailVerifyExpiry   DateTime? @map("email_verify_expiry")
+  onboardingCompleted   Boolean   @default(false) @map("onboarding_completed")
+  interests             String[]  @default([])
+  digestFrequency       String    @default("WEEKLY") @map("digest_frequency")
+  lastDigestSentAt      DateTime? @map("last_digest_sent_at")
+  passwordResetToken    String?   @map("password_reset_token")
+  passwordResetExpiry   DateTime? @map("password_reset_expiry")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
@@ -153,9 +162,20 @@ model User {
   wishlistedListings          WishlistedListing[]       @relation("WishlistedListings")
   blockedUsers                UserBlock[]               @relation("BlockedUsers")
   blockedBy                   UserBlock[]               @relation("BlockedBy")
+  pollVotes                   ForumPollVote[]
+  following                   UserFollow[]               @relation("Following")
+  followers                   UserFollow[]               @relation("Followers")
+  productQuestions            ProductQuestion[]          @relation("QuestionAuthor")
+  productAnswers              ProductAnswer[]            @relation("AnswerAuthor")
+  priceAlerts                 PriceAlert[]
+  blogPosts                   BlogPost[]              @relation("BlogAuthor")
 
   @@index([username])
   @@index([email])
+  @@index([role])
+  @@index([createdAt(sort: Desc)])
+  @@index([pitCred(sort: Desc)])
+  @@index([sellerRating(sort: Desc)])
   @@map("users")
 }
 
@@ -167,6 +187,7 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expiresAt])
   @@map("sessions")
 }
 
@@ -206,6 +227,8 @@ model Product {
   priceHistory        PriceHistory[]
   forumThreads        ForumThread[]
   marketplaceListings MarketplaceListing[]
+  questions           ProductQuestion[]
+  priceAlerts         PriceAlert[]
 
   @@index([slug])
   @@index([category])
@@ -247,6 +270,7 @@ model Build {
   @@index([slug])
   @@index([isPublic, upvoteCount(sort: Desc)])
   @@index([isPublic, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
   @@map("builds")
 }
 
@@ -405,13 +429,39 @@ enum GuideCategory {
   BEGINNER
   BUYING
   MAINTENANCE
+  SETUP
+  DIY
+  COMPARISON
+  TUTORIAL
 }
 
 enum BadgeType {
+  // Community
+  FIRST_POST
+  TEN_POSTS
+  FIFTY_POSTS
+  FIRST_REPLY
   HELPFUL
-  EXPERT
-  VERIFIED_OWNER
+  SUPER_HELPFUL
   TOP_CONTRIBUTOR
+  VERIFIED_OWNER
+  EXPERT
+
+  // Marketplace
+  FIRST_SALE
+  FIVE_SALES
+  TRUSTED_SELLER
+  FIRST_PURCHASE
+  BIG_SPENDER
+
+  // Social
+  POPULAR
+  INFLUENCER
+
+  // Account
+  EARLY_ADOPTER
+  VERIFIED_EMAIL
+  PROFILE_COMPLETE
 }
 
 // ---------------------------------------------------------------------------
@@ -456,6 +506,7 @@ model ForumThread {
   metadata   Json? // category-specific blueprint data (BOM, tools, deal status, etc.)
   imageUrls  String[]      @default([]) @map("image_urls") // gallery images for SHOWROOM
   isAnonymous Boolean      @default(false) @map("is_anonymous")
+  flair       String? // SOLVED, QUESTION, WIP, REVIEW, PSA, GUIDE, null = none
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
@@ -464,11 +515,17 @@ model ForumThread {
   replies     ForumReply[]
   followers   ThreadFollower[]
   threadVotes ThreadVote[]
+  poll        ForumPoll?
 
   @@index([category, createdAt(sort: Desc)])
   @@index([productId])
   @@index([userId])
   @@index([slug])
+  @@index([category, isPinned(sort: Desc), createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([category, viewCount(sort: Desc)])
+  @@index([category, replyCount(sort: Desc)])
+  @@index([isAnonymous, userId])
   @@map("forum_threads")
 }
 
@@ -490,6 +547,7 @@ model ForumReply {
 
   @@index([threadId, createdAt])
   @@index([userId])
+  @@index([threadId, parentId, createdAt])
   @@map("forum_replies")
 }
 
@@ -531,16 +589,20 @@ model Guide {
   title           String
   slug            String        @unique
   excerpt         String?
-  body            String // rich content from CMS
+  body            String        @db.Text
   category        GuideCategory
   coverImage      String?       @map("cover_image")
   authorId        String        @map("author_id")
   tags            String[]      @default([])
-  productMentions String[]      @default([]) @map("product_mentions") // product IDs mentioned
+  productMentions String[]      @default([]) @map("product_mentions")
   seoTitle        String?       @map("seo_title")
   seoDescription  String?       @map("seo_description")
+  status          String        @default("DRAFT")
+  rejectionReason String?       @map("rejection_reason")
   isPublished     Boolean       @default(false) @map("is_published")
   publishedAt     DateTime?     @map("published_at")
+  viewCount       Int           @default(0) @map("view_count")
+  upvoteCount     Int           @default(0) @map("upvote_count")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
@@ -549,7 +611,40 @@ model Guide {
   @@index([slug])
   @@index([category, isPublished])
   @@index([authorId])
+  @@index([status])
   @@map("guides")
+}
+
+// ---------------------------------------------------------------------------
+// Blog Posts (News & Articles)
+// ---------------------------------------------------------------------------
+
+model BlogPost {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  excerpt        String?
+  body           String    @db.Text
+  coverImage     String?   @map("cover_image")
+  authorId       String    @map("author_id")
+  category       String    // NEWS, PRODUCT_LAUNCH, FIRMWARE, ESPORTS, PLATFORM_UPDATE, EDITORIAL
+  tags           String[]  @default([])
+  isPublished    Boolean   @default(false) @map("is_published")
+  isFeatured     Boolean   @default(false) @map("is_featured")
+  publishedAt    DateTime? @map("published_at")
+  viewCount      Int       @default(0) @map("view_count")
+  seoTitle       String?   @map("seo_title")
+  seoDescription String?   @map("seo_description")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  author User @relation("BlogAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([slug])
+  @@index([isPublished, publishedAt(sort: Desc)])
+  @@index([category, isPublished])
+  @@index([authorId])
+  @@map("blog_posts")
 }
 
 // ---------------------------------------------------------------------------
@@ -593,6 +688,7 @@ model Notification {
   type      NotificationType
   threadId  String?          @map("thread_id")
   replyId   String?          @map("reply_id")
+  actorId   String?          @map("actor_id")
   message   String
   isRead    Boolean          @default(false) @map("is_read")
   createdAt DateTime         @default(now()) @map("created_at")
@@ -608,6 +704,9 @@ enum NotificationType {
   REPLY
   MENTION
   FOLLOW
+  NEW_FOLLOWER
+  QUESTION_ANSWERED
+  PRICE_ALERT
 }
 
 // ---------------------------------------------------------------------------
@@ -738,6 +837,14 @@ model MarketplaceListing {
   @@index([category])
   @@index([type, status])
   @@index([productId])
+  @@index([status, category])
+  @@index([status, type])
+  @@index([status, condition])
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([category, status, createdAt(sort: Desc)])
+  @@index([status, price])
+  @@index([status, viewCount(sort: Desc)])
   @@map("marketplace_listings")
 }
 
@@ -757,6 +864,8 @@ model MarketplaceOffer {
 
   @@index([listingId])
   @@index([userId])
+  @@index([listingId, status])
+  @@index([userId, status])
   @@map("marketplace_offers")
 }
 
@@ -780,6 +889,9 @@ model MarketplaceMessage {
   @@index([listingId])
   @@index([senderId])
   @@index([recipientId])
+  @@index([senderId, createdAt(sort: Desc)])
+  @@index([recipientId, readAt])
+  @@index([conversationId, createdAt])
   @@map("marketplace_messages")
 }
 
@@ -838,6 +950,7 @@ model MarketplaceNotification {
 
   @@index([userId, read])
   @@index([createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
   @@map("marketplace_notifications")
 }
 
@@ -866,5 +979,118 @@ model UserBlock {
   blocked User @relation("BlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
   @@map("user_blocks")
+}
+
+// ---------------------------------------------------------------------------
+// Forum Polls
+// ---------------------------------------------------------------------------
+
+model ForumPoll {
+  id        String    @id @default(cuid())
+  threadId  String    @unique @map("thread_id")
+  question  String
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  thread  ForumThread       @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  options ForumPollOption[]
+
+  @@map("forum_polls")
+}
+
+model ForumPollOption {
+  id     String @id @default(cuid())
+  pollId String @map("poll_id")
+  label  String
+  votes  Int    @default(0)
+
+  poll      ForumPoll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollVotes ForumPollVote[]
+
+  @@index([pollId])
+  @@map("forum_poll_options")
+}
+
+model ForumPollVote {
+  id        String   @id @default(cuid())
+  optionId  String   @map("option_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  option ForumPollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+  @@index([userId])
+  @@map("forum_poll_votes")
+}
+
+model UserFollow {
+  id         String   @id @default(cuid())
+  followerId String   @map("follower_id")
+  followedId String   @map("followed_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  follower User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("Followers", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+  @@map("user_follows")
+}
+
+// ---------------------------------------------------------------------------
+// Product Q&A
+// ---------------------------------------------------------------------------
+
+model ProductQuestion {
+  id        String   @id @default(cuid())
+  productId String   @map("product_id")
+  userId    String   @map("user_id")
+  question  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User             @relation("QuestionAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  answers ProductAnswer[]
+
+  @@index([productId, createdAt(sort: Desc)])
+  @@map("product_questions")
+}
+
+model ProductAnswer {
+  id         String   @id @default(cuid())
+  questionId String   @map("question_id")
+  userId     String   @map("user_id")
+  body       String
+  upvotes    Int      @default(0)
+  isAccepted Boolean  @default(false) @map("is_accepted")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  question ProductQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User            @relation("AnswerAuthor", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("product_answers")
+}
+
+model PriceAlert {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  productId   String   @map("product_id")
+  targetPrice Float    @map("target_price")
+  currency    String   @default("GBP")
+  triggered   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([productId, triggered])
+  @@map("price_alerts")
 }

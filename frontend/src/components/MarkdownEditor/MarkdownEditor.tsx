@@ -7,6 +7,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Markdown from 'react-markdown';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
+import { api } from '../../utils/api';
 import {
   BoldIcon, ItalicIcon, StrikethroughIcon, UnderlineIcon, HeadingIcon,
   LinkIcon, ListBulletIcon, ListNumberedIcon, QuoteIcon, CodeIcon, CodeBlockIcon,
@@ -95,6 +96,21 @@ export function MarkdownEditor({
   const suppressUpdate = useRef(false);
   const lastValueRef = useRef(value);
 
+  // Mention autocomplete state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionResults, setMentionResults] = useState<Array<{ id: string; username: string; avatarUrl: string | null }>>([]);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const editorWrapRef = useRef<HTMLDivElement>(null);
+
+  // Refs so the editor's handleKeyDown closure always sees current values
+  const mentionResultsRef = useRef(mentionResults);
+  const mentionIndexRef = useRef(mentionIndex);
+  useEffect(() => { mentionResultsRef.current = mentionResults; }, [mentionResults]);
+  useEffect(() => { mentionIndexRef.current = mentionIndex; }, [mentionIndex]);
+
+  // Stable ref to insertMention so handleKeyDown can call it without recreating the editor
+  const insertMentionRef = useRef<(username: string) => void>(() => {});
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -113,6 +129,18 @@ export function MarkdownEditor({
       const md = turndown.turndown(html);
       lastValueRef.current = md;
       onChange(md);
+
+      // Detect @mention query from text before cursor
+      const { from } = ed.state.selection;
+      const textBefore = ed.state.doc.textBetween(Math.max(0, from - 30), from, ' ');
+      const atMatch = textBefore.match(/@(\w*)$/);
+      if (atMatch && atMatch[1].length >= 1) {
+        setMentionQuery(atMatch[1]);
+        setMentionIndex(0);
+      } else {
+        setMentionQuery(null);
+        setMentionResults([]);
+      }
     },
     onFocus: () => setFocused(true),
     onBlur: () => setFocused(false),
@@ -120,6 +148,35 @@ export function MarkdownEditor({
       attributes: {
         ...(id ? { id } : {}),
         style: `min-height: ${rows * 24}px`,
+      },
+      handleKeyDown: (_view, event) => {
+        // Handle keyboard navigation inside the mention dropdown using refs to avoid stale closures
+        const results = mentionResultsRef.current;
+        if (results.length === 0) return false;
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          setMentionIndex(i => (i + 1) % results.length);
+          return true;
+        }
+        if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          setMentionIndex(i => (i - 1 + results.length) % results.length);
+          return true;
+        }
+        if (event.key === 'Enter' || event.key === 'Tab') {
+          const selected = results[mentionIndexRef.current];
+          if (selected) {
+            event.preventDefault();
+            insertMentionRef.current(selected.username);
+            return true;
+          }
+        }
+        if (event.key === 'Escape') {
+          setMentionQuery(null);
+          setMentionResults([]);
+          return true;
+        }
+        return false;
       },
     },
   });
@@ -134,6 +191,42 @@ export function MarkdownEditor({
     editor.commands.setContent(html);
     suppressUpdate.current = false;
   }, [value, editor]);
+
+  // Fetch mention results when query changes
+  useEffect(() => {
+    if (mentionQuery === null || mentionQuery.length < 1) {
+      setMentionResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      api<{ users: Array<{ id: string; username: string; avatarUrl: string | null }> }>(
+        `/search?q=${encodeURIComponent(mentionQuery)}&limit=5`
+      )
+        .then(data => setMentionResults(data.users?.slice(0, 5) ?? []))
+        .catch(() => {});
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [mentionQuery]);
+
+  // Insert mention into the editor
+  const insertMention = useCallback((username: string) => {
+    if (!editor) return;
+    const { from } = editor.state.selection;
+    // Find the @ symbol position
+    const textBefore = editor.state.doc.textBetween(Math.max(0, from - 30), from, ' ');
+    const atMatch = textBefore.match(/@(\w*)$/);
+    if (!atMatch) return;
+    const deleteFrom = from - atMatch[0].length;
+    editor.chain().focus()
+      .deleteRange({ from: deleteFrom, to: from })
+      .insertContent(`@${username} `)
+      .run();
+    setMentionQuery(null);
+    setMentionResults([]);
+  }, [editor]);
+
+  // Keep insertMentionRef current so handleKeyDown can call it without recreating the editor
+  useEffect(() => { insertMentionRef.current = insertMention; }, [insertMention]);
 
   const executeAction = useCallback(
     (action: string) => {
@@ -234,7 +327,29 @@ export function MarkdownEditor({
           </div>
 
           {/* TipTap editor */}
-          <EditorContent editor={editor} className={styles.tiptapWrap} />
+          <div ref={editorWrapRef} style={{ position: 'relative' }}>
+            <EditorContent editor={editor} className={styles.tiptapWrap} />
+            {mentionResults.length > 0 && (
+              <div className={styles.mentionDropdown}>
+                {mentionResults.map((u, i) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    className={`${styles.mentionItem} ${i === mentionIndex ? styles.mentionItemActive : ''}`}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      insertMention(u.username);
+                    }}
+                  >
+                    <span className={styles.mentionAvatar}>
+                      {u.avatarUrl ? <img src={u.avatarUrl} alt="" loading="lazy" decoding="async" /> : u.username[0]?.toUpperCase()}
+                    </span>
+                    <span className={styles.mentionName}>{u.username}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <div className={`${styles.preview} ${!value.trim() ? styles.previewEmpty : ''}`}>

@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../Toast/Toast';
 import { api } from '../../utils/api';
 import styles from './Navbar.module.scss';
 
@@ -45,6 +46,7 @@ interface NavNotification {
  */
 export function Navbar() {
   const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -112,6 +114,25 @@ export function Navbar() {
 
   return (
     <>
+      <a href="#main-content" className={styles.skipLink}>Skip to content</a>
+      {/* Email verification banner */}
+      {user && user.emailVerified === false && (
+        <div className={styles.verifyBanner}>
+          <span>Please verify your email to access all features.</span>
+          <button
+            className={styles.resendBtn}
+            onClick={async () => {
+              try {
+                await api('/auth/resend-verification', { method: 'POST' });
+                showToast('Verification email sent!', 'success');
+              } catch { showToast('Failed to send', 'error'); }
+            }}
+          >
+            Resend Email
+          </button>
+        </div>
+      )}
+
       {/* ── Desktop / Tablet top bar ── */}
       <header className={styles.topBar}>
         <div className={styles.inner}>
@@ -174,11 +195,20 @@ export function Navbar() {
             >
               Community
             </NavLink>
+
+            <NavLink
+              to="/blog"
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.active : ''}`
+              }
+            >
+              News
+            </NavLink>
           </nav>
 
           {/* Secondary (right) */}
           <div className={styles.secondaryNav}>
-            <button type="button" className={styles.searchBtn} aria-label="Search">
+            <button type="button" className={styles.searchBtn} aria-label="Search" onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                 <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M12 12l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -198,8 +228,15 @@ export function Navbar() {
                 </a>
 
                 {/* Notifications */}
-                <div className={styles.notifWrapper} ref={notifRef}>
-                  <button type="button" className={styles.navIconBtn} onClick={handleOpenNotifs} aria-label="Notifications">
+                <div className={styles.notifWrapper} ref={notifRef} role="region" aria-label="Notifications">
+                  <button
+                    type="button"
+                    className={styles.navIconBtn}
+                    onClick={handleOpenNotifs}
+                    aria-expanded={showNotifDropdown}
+                    aria-label={unreadNotifs > 0 ? `Notifications, ${unreadNotifs} unread` : 'Notifications'}
+                    aria-haspopup="true"
+                  >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                       <path d="M13.73 21a2 2 0 01-3.46 0"/>
@@ -210,7 +247,7 @@ export function Navbar() {
                   </button>
 
                   {showNotifDropdown && (
-                    <div className={styles.notifDropdown}>
+                    <div className={styles.notifDropdown} role="menu" aria-label="Notifications">
                       <div className={styles.notifDropdownHeader}>
                         <h3>Notifications</h3>
                         {unreadNotifs > 0 && (
@@ -225,6 +262,7 @@ export function Navbar() {
                             <a
                               key={n.id}
                               href={getNotificationLink(n)}
+                              role="menuitem"
                               className={`${styles.notifItem} ${!n.read ? styles.notifItemUnread : ''}`}
                               onClick={() => {
                                 api('/notifications/read', { method: 'PUT', body: { ids: [n.id], source: n.source } }).catch(() => {});

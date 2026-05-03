@@ -63,4 +63,55 @@ export class GuideController {
       throw err;
     }
   }
+
+  /** POST /api/v1/guides/:id/submit */
+  static async submitForReview(req: Request, res: Response) {
+    const session = (req as any).session;
+    try {
+      const guide = await GuideService.submitForReview(req.params.id, session.userId);
+      res.json(guide);
+    } catch (err) {
+      if (err instanceof NotFoundError) return res.status(404).json({ error: (err as Error).message });
+      res.status(400).json({ error: (err as Error).message });
+    }
+  }
+
+  /** PUT /api/v1/guides/:id/publish */
+  static async publish(req: Request, res: Response) {
+    const session = (req as any).session;
+    try {
+      const guide = await GuideService.publish(req.params.id, session.userId, session.role);
+      res.json(guide);
+    } catch (err) {
+      if (err instanceof NotFoundError) return res.status(404).json({ error: (err as Error).message });
+      res.status(400).json({ error: (err as Error).message });
+    }
+  }
+
+  /** PUT /api/v1/guides/:id/reject */
+  static async reject(req: Request, res: Response) {
+    const session = (req as any).session;
+    try {
+      const guide = await GuideService.reject(req.params.id, session.userId, session.role, req.body.reason ?? '');
+      res.json(guide);
+    } catch (err) {
+      if (err instanceof NotFoundError) return res.status(404).json({ error: (err as Error).message });
+      res.status(400).json({ error: (err as Error).message });
+    }
+  }
+
+  /** GET /api/v1/guides/pending */
+  static async pendingReview(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (session.role !== 'ADMIN' && session.role !== 'MODERATOR') return res.status(403).json({ error: 'Not authorized' });
+    const guides = await GuideService.getPendingReview();
+    res.json(guides);
+  }
+
+  /** GET /api/v1/guides/mine */
+  static async myGuides(req: Request, res: Response) {
+    const session = (req as any).session;
+    const guides = await GuideService.getMyGuides(session.userId);
+    res.json(guides);
+  }
 }

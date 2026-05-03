@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import { ForumService, NotFoundError } from '../services/forum.service';
 import { ForumRepository } from '../repositories/forum.repository';
+import { BadgeService } from '../services/badge.service';
+import { prisma } from '../prisma';
 import type { ForumCategory } from '@prisma/client';
 
 export class ForumController {
@@ -13,6 +15,7 @@ export class ForumController {
       limit,
       category: req.query.category as ForumCategory | undefined,
       productId: req.query.productId as string | undefined,
+      flair: req.query.flair as string | undefined,
       sortBy: (req.query.sortBy as any) || 'createdAt',
       sortDir: (req.query.sortDir as any) || 'desc',
     });
@@ -103,6 +106,8 @@ export class ForumController {
       metadata: req.body.metadata,
       imageUrls: req.body.imageUrls,
       isAnonymous: req.body.isAnonymous === true,
+      flair: req.body.flair ?? null,
+      poll: req.body.poll,
     });
     res.status(201).json(thread);
   }
@@ -162,6 +167,11 @@ export class ForumController {
 
     try {
       const result = await ForumService.voteReply(req.params.id, session.userId, numValue);
+
+      // Check badges for the reply author who received the vote (fire-and-forget)
+      const reply = await prisma.forumReply.findUnique({ where: { id: req.params.id }, select: { userId: true } });
+      if (reply) BadgeService.checkAndAward(reply.userId).catch(() => {});
+
       res.json(result);
     } catch (err) {
       console.error('voteReply error:', err);
@@ -298,5 +308,129 @@ export class ForumController {
     const ids = req.body.ids as string[] | undefined;
     await ForumService.markNotificationsRead(session.userId, ids);
     res.json({ success: true });
+  }
+
+  /** PUT /api/v1/forum/:slug/pin */
+  static async togglePin(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (session.role !== 'ADMIN' && session.role !== 'MODERATOR') {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    const thread = await prisma.forumThread.findUnique({ where: { slug: req.params.slug } });
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    const updated = await prisma.forumThread.update({
+      where: { slug: req.params.slug },
+      data: { isPinned: !thread.isPinned },
+    });
+    res.json({ isPinned: updated.isPinned });
+  }
+
+  /** PUT /api/v1/forum/:slug/lock */
+  static async toggleLock(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (session.role !== 'ADMIN' && session.role !== 'MODERATOR') {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    const thread = await prisma.forumThread.findUnique({ where: { slug: req.params.slug } });
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    const updated = await prisma.forumThread.update({
+      where: { slug: req.params.slug },
+      data: { isLocked: !thread.isLocked },
+    });
+    res.json({ isLocked: updated.isLocked });
+  }
+
+  /** PUT /api/v1/forum/:slug/flair */
+  static async updateFlair(req: Request, res: Response) {
+    const session = (req as any).session;
+    const { flair } = req.body;
+    const validFlairs = ['SOLVED', 'QUESTION', 'WIP', 'REVIEW', 'PSA', 'GUIDE', null];
+    if (!validFlairs.includes(flair)) return res.status(400).json({ error: 'Invalid flair' });
+
+    const thread = await prisma.forumThread.findUnique({ where: { slug: req.params.slug } });
+    if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+    // Only author, admin, or mod can change flair
+    const isStaff = session.role === 'ADMIN' || session.role === 'MODERATOR';
+    if (thread.userId !== session.userId && !isStaff) {
+      return res.status(403).json({ error: 'Only the author or staff can change flair' });
+    }
+
+    const updated = await prisma.forumThread.update({
+      where: { slug: req.params.slug },
+      data: { flair },
+    });
+    res.json({ flair: updated.flair });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Poll Endpoints
+  // ---------------------------------------------------------------------------
+
+  /** POST /api/v1/forum/polls/:pollId/vote */
+  static async votePoll(req: Request, res: Response) {
+    const session = (req as any).session;
+    const { optionId } = req.body;
+    if (!optionId) return res.status(400).json({ error: 'Option ID required' });
+
+    const option = await prisma.forumPollOption.findUnique({
+      where: { id: optionId },
+      include: { poll: true },
+    });
+    if (!option) return res.status(404).json({ error: 'Option not found' });
+    if (option.pollId !== req.params.pollId) return res.status(400).json({ error: 'Option does not belong to this poll' });
+
+    // Check if poll expired
+    if (option.poll.expiresAt && option.poll.expiresAt < new Date()) {
+      return res.status(400).json({ error: 'This poll has ended' });
+    }
+
+    // Check if user already voted on any option in this poll
+    const existingVote = await prisma.forumPollVote.findFirst({
+      where: {
+        userId: session.userId,
+        option: { pollId: req.params.pollId },
+      },
+    });
+
+    if (existingVote) {
+      // Change vote
+      if (existingVote.optionId === optionId) {
+        return res.status(400).json({ error: 'Already voted for this option' });
+      }
+      await prisma.$transaction([
+        prisma.forumPollVote.delete({ where: { id: existingVote.id } }),
+        prisma.forumPollOption.update({ where: { id: existingVote.optionId }, data: { votes: { decrement: 1 } } }),
+        prisma.forumPollVote.create({ data: { optionId, userId: session.userId } }),
+        prisma.forumPollOption.update({ where: { id: optionId }, data: { votes: { increment: 1 } } }),
+      ]);
+    } else {
+      await prisma.$transaction([
+        prisma.forumPollVote.create({ data: { optionId, userId: session.userId } }),
+        prisma.forumPollOption.update({ where: { id: optionId }, data: { votes: { increment: 1 } } }),
+      ]);
+    }
+
+    // Return updated poll
+    const poll = await prisma.forumPoll.findUnique({
+      where: { id: req.params.pollId },
+      include: { options: { orderBy: { votes: 'desc' } } },
+    });
+    res.json(poll);
+  }
+
+  /** GET /api/v1/forum/polls/:pollId/my-vote */
+  static async getMyPollVote(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.json({ votedOptionId: null });
+
+    const vote = await prisma.forumPollVote.findFirst({
+      where: { userId: session.userId, option: { pollId: req.params.pollId } },
+    });
+    res.json({ votedOptionId: vote?.optionId ?? null });
   }
 }

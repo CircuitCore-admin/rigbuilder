@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
+import { BadgeService } from '../services/badge.service';
 import { prisma } from '../prisma';
 import { ZodError } from 'zod';
 
@@ -92,7 +93,10 @@ export class UserController {
   static async updateProfile(req: Request, res: Response) {
     try {
       const userId = (req as any).session.userId;
-      res.json(await UserService.updateProfile(userId, req.body));
+      const result = await UserService.updateProfile(userId, req.body);
+      // Check badges after profile update (fire-and-forget)
+      BadgeService.checkAndAward(userId).catch(() => {});
+      res.json(result);
     } catch (err) {
       if (err instanceof ZodError) return res.status(400).json({ error: 'Validation failed', issues: err.flatten().fieldErrors });
       res.status(400).json({ error: (err as Error).message });
@@ -146,5 +150,123 @@ export class UserController {
       });
       res.json({ blocked: !!existing });
     } catch { res.status(500).json({ error: 'Failed to check block status' }); }
+  }
+
+  /** POST /api/v1/users/:username/follow — toggle follow */
+  static async toggleFollow(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      const target = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!target) return res.status(404).json({ error: 'User not found' });
+      if (target.id === session.userId) return res.status(400).json({ error: 'Cannot follow yourself' });
+
+      const existing = await prisma.userFollow.findUnique({
+        where: { followerId_followedId: { followerId: session.userId, followedId: target.id } },
+      });
+
+      if (existing) {
+        await prisma.userFollow.delete({ where: { id: existing.id } });
+        res.json({ following: false });
+      } else {
+        await prisma.userFollow.create({ data: { followerId: session.userId, followedId: target.id } });
+
+        // Notify the followed user
+        await prisma.notification.create({
+          data: {
+            userId: target.id,
+            type: 'NEW_FOLLOWER',
+            actorId: session.userId,
+            message: `${session.username} started following you`,
+          },
+        }).catch(() => {});
+
+        // Check badges for the followed user (social badges, fire-and-forget)
+        BadgeService.checkAndAward(target.id).catch(() => {});
+
+        res.json({ following: true });
+      }
+    } catch { res.status(500).json({ error: 'Failed to toggle follow' }); }
+  }
+
+  /** GET /api/v1/users/:username/followers */
+  static async getFollowers(req: Request, res: Response) {
+    try {
+      const user = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const followers = await prisma.userFollow.findMany({
+        where: { followedId: user.id },
+        include: { follower: { select: { id: true, username: true, avatarUrl: true, pitCred: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+      res.json({ count: followers.length, users: followers.map(f => f.follower) });
+    } catch { res.status(500).json({ error: 'Failed to fetch followers' }); }
+  }
+
+  /** GET /api/v1/users/:username/following */
+  static async getFollowing(req: Request, res: Response) {
+    try {
+      const user = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const following = await prisma.userFollow.findMany({
+        where: { followerId: user.id },
+        include: { followed: { select: { id: true, username: true, avatarUrl: true, pitCred: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+      res.json({ count: following.length, users: following.map(f => f.followed) });
+    } catch { res.status(500).json({ error: 'Failed to fetch following' }); }
+  }
+
+  /** GET /api/v1/users/:username/is-following */
+  static async isFollowing(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      if (!session?.userId) return res.json({ following: false });
+      const target = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!target) return res.json({ following: false });
+
+      const existing = await prisma.userFollow.findUnique({
+        where: { followerId_followedId: { followerId: session.userId, followedId: target.id } },
+      });
+      res.json({ following: !!existing });
+    } catch { res.status(500).json({ error: 'Failed to check follow status' }); }
+  }
+
+  /** GET /api/v1/users/:username/badges */
+  static async getUserBadges(req: Request, res: Response) {
+    try {
+      const user = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      const badges = await prisma.userBadge.findMany({
+        where: { userId: user.id },
+        orderBy: { awardedAt: 'desc' },
+      });
+      res.json(badges);
+    } catch { res.status(500).json({ error: 'Failed to fetch badges' }); }
+  }
+
+  /** DELETE /api/v1/users/account — GDPR right to erasure */
+  static async deleteAccount(req: Request, res: Response) {
+    try {
+      const session = (req as any).session;
+      const { password } = req.body;
+      if (!password) return res.status(400).json({ error: 'Password required to confirm deletion' });
+
+      const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { passwordHash: true } });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const argon2 = await import('argon2');
+      const valid = await argon2.verify(user.passwordHash, password);
+      if (!valid) return res.status(400).json({ error: 'Incorrect password' });
+
+      await prisma.$transaction([
+        prisma.session.deleteMany({ where: { userId: session.userId } }),
+        prisma.user.delete({ where: { id: session.userId } }),
+      ]);
+
+      res.clearCookie('session_id');
+      res.json({ ok: true, message: 'Account deleted' });
+    } catch { res.status(500).json({ error: 'Failed to delete account' }); }
   }
 }

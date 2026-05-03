@@ -3,6 +3,7 @@ import { MarketplaceController } from '../controllers/marketplace.controller';
 import { authenticate, optionalAuth } from '../middleware/authenticate';
 import { searchLimiter, writeLimiter } from '../config/rate-limit';
 import { validate } from '../middleware/validate';
+import { sanitize } from '../middleware/sanitize';
 import {
   createListingSchema,
   updateListingSchema,
@@ -32,7 +33,7 @@ router.get('/conversations', authenticate, searchLimiter, MarketplaceController.
 router.get('/conversations/:conversationId', authenticate, searchLimiter, MarketplaceController.getConversationMessages);
 
 // Messages
-router.post('/messages', authenticate, writeLimiter, validate(sendMessageSchema), MarketplaceController.sendMessage);
+router.post('/messages', authenticate, writeLimiter, validate(sendMessageSchema), sanitize, MarketplaceController.sendMessage);
 
 // Offers management
 router.put('/offers/:offerId', authenticate, writeLimiter, validate(updateOfferSchema), MarketplaceController.updateOffer);
@@ -54,8 +55,8 @@ router.get('/:id/related', searchLimiter, MarketplaceController.getRelatedListin
 router.get('/:id/wishlist', optionalAuth, searchLimiter, MarketplaceController.isWishlisted);
 router.post('/:id/wishlist', authenticate, writeLimiter, MarketplaceController.toggleWishlist);
 router.get('/:id', optionalAuth, searchLimiter, MarketplaceController.getListingById);
-router.post('/', authenticate, writeLimiter, validate(createListingSchema), MarketplaceController.createListing);
-router.put('/:id', authenticate, writeLimiter, validate(updateListingSchema), MarketplaceController.updateListing);
+router.post('/', authenticate, writeLimiter, validate(createListingSchema), sanitize, MarketplaceController.createListing);
+router.put('/:id', authenticate, writeLimiter, validate(updateListingSchema), sanitize, MarketplaceController.updateListing);
 router.delete('/:id', authenticate, writeLimiter, MarketplaceController.deleteListing);
 router.post('/:id/extend', authenticate, writeLimiter, MarketplaceController.extendListing);
 router.post('/:id/status', authenticate, writeLimiter, validate(updateListingStatusSchema), MarketplaceController.updateListingStatus);

@@ -1,0 +1,40 @@
+.page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 24px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.text {
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 400px;
+}
+
+.cta {
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  margin-top: 8px;
+  &:hover { opacity: 0.9; color: var(--bg-void); }
+}
+
+.link {
+  font-size: 14px;
+  color: var(--accent-primary);
+}

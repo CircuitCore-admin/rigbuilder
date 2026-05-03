@@ -13,4 +13,6 @@ export const INDEXES = {
   PRODUCTS: 'products',
   BUILDS: 'builds',
   FORUM_THREADS: 'forum_threads',
+  MARKETPLACE: 'marketplace_listings',
+  USERS: 'users',
 } as const;

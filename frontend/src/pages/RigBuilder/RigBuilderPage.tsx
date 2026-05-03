@@ -10,6 +10,7 @@ import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import type { ProductCategory, Platform } from '../../types/productSpecs';
 import { api } from '../../utils/api';
+import type { BuildTemplate } from './buildTemplateTypes';
 
 // ---------------------------------------------------------------------------
 // API product → SelectionProduct mapper
@@ -145,6 +146,15 @@ export function RigBuilderPage() {
 
   const filledCount = Object.keys(selectedParts).length;
 
+  // ── Templates state ────────────────────────────────────────────────────
+  const [templates, setTemplates] = useState<BuildTemplate[]>([]);
+  const [showTemplates, setShowTemplates] = useState(true);
+  const [activeTemplate, setActiveTemplate] = useState<BuildTemplate | null>(null);
+
+  useEffect(() => {
+    api<BuildTemplate[]>('/builds/templates').then(setTemplates).catch(() => {});
+  }, []);
+
   // Derive current selection slot from URL query param
   const selectParam = searchParams.get('select')?.toUpperCase() ?? null;
   const pickerSlot: CategorySlot | null =
@@ -237,6 +247,48 @@ export function RigBuilderPage() {
 
       {/* Share / Save / Export bar */}
       <ShareBar />
+
+      {/* Templates section — shown when no parts selected */}
+      {showTemplates && templates.length > 0 && filledCount === 0 && (
+        <div className={styles.templatesSection}>
+          <div className={styles.templatesHeader}>
+            <h2 className={styles.templatesTitle}>Start from a template</h2>
+            <button className={styles.templatesSkip} onClick={() => setShowTemplates(false)}>
+              Or start from scratch
+            </button>
+          </div>
+          <div className={styles.templatesGrid}>
+            {templates.map(t => (
+              <button key={t.id} className={styles.templateCard} onClick={() => {
+                setShowTemplates(false);
+                setActiveTemplate(t);
+              }}>
+                <div className={`${styles.templateTier} ${styles[`tier${t.tier}`]}`}>{t.tier}</div>
+                <h3 className={styles.templateName}>{t.name}</h3>
+                <p className={styles.templateDesc}>{t.description}</p>
+                <div className={styles.templateCost}>
+                  £{t.estimatedCost.min.toLocaleString()}–£{t.estimatedCost.max.toLocaleString()}
+                </div>
+                <div className={styles.templatePartCount}>
+                  {t.parts.length} components
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active template suggestions banner */}
+      {activeTemplate && (
+        <div className={styles.templateBanner}>
+          <span className={styles.templateBannerText}>
+            Template: <strong>{activeTemplate.name}</strong> — browse suggested parts below
+          </span>
+          <button className={styles.templateBannerDismiss} onClick={() => setActiveTemplate(null)}>
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Main layout */}
       <div className={styles.layout}>

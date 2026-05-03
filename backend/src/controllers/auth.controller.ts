@@ -1,5 +1,7 @@
 import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { EmailService } from '../services/email.service';
+import { BadgeService } from '../services/badge.service';
 import { prisma } from '../prisma';
 import * as argon2 from 'argon2';
 
@@ -17,11 +19,12 @@ export class AuthController {
       const { sessionId, userId } = await AuthService.register(req.body);
       res.cookie('session_id', sessionId, COOKIE_OPTIONS);
       res.status(201).json({ userId });
-    } catch (err: any) {
-      if (err.code === 'P2002') {
-        return res.status(409).json({ error: 'Username or email already taken' });
+    } catch (err) {
+      const message = (err as Error).message;
+      if (message.includes('Unique constraint') || message.includes('unique') || message.includes('already exists') || (err as any).code === 'P2002') {
+        return res.status(409).json({ error: 'An account with this email or username may already exist.' });
       }
-      res.status(400).json({ error: err.message });
+      res.status(400).json({ error: message });
     }
   }
 
@@ -44,7 +47,12 @@ export class AuthController {
 
   static async me(req: Request, res: Response) {
     const session = (req as any).session;
-    res.json({ userId: session.userId, username: session.username, role: session.role });
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, username: true, role: true, emailVerified: true, onboardingCompleted: true },
+    });
+    if (!user) return res.status(401).json({ error: 'User not found' });
+    res.json({ userId: user.id, username: user.username, role: user.role, emailVerified: user.emailVerified, onboardingCompleted: user.onboardingCompleted });
   }
 
   static async changePassword(req: Request, res: Response) {
@@ -69,6 +77,63 @@ export class AuthController {
       res.json({ ok: true });
     } catch {
       res.status(500).json({ error: 'Failed to change password' });
+    }
+  }
+
+  /** GET /api/v1/auth/verify-email?token=xxx */
+  static async verifyEmail(req: Request, res: Response) {
+    const token = req.query.token as string;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    // Look up user before verifying so we can check badges after
+    const userForBadge = await prisma.user.findFirst({
+      where: { emailVerifyToken: token },
+      select: { id: true },
+    });
+
+    const result = await EmailService.verifyEmail(token);
+    if (result.success) {
+      // Check badges after email verification (fire-and-forget)
+      if (userForBadge) BadgeService.checkAndAward(userForBadge.id).catch(() => {});
+      res.json({ ok: true, message: 'Email verified successfully' });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  }
+
+  /** POST /api/v1/auth/resend-verification */
+  static async resendVerification(req: Request, res: Response) {
+    const session = (req as any).session;
+    if (!session?.userId) return res.status(401).json({ error: 'Not authenticated' });
+
+    try {
+      await EmailService.resendVerification(session.userId);
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  }
+
+  /** POST /api/v1/auth/forgot-password */
+  static async forgotPassword(req: Request, res: Response) {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    await AuthService.requestPasswordReset(email).catch(() => {});
+    res.json({ ok: true, message: 'If an account with that email exists, a reset link has been sent.' });
+  }
+
+  /** POST /api/v1/auth/reset-password */
+  static async resetPassword(req: Request, res: Response) {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
+    if (typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+    try {
+      await AuthService.resetPassword(token, password);
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
     }
   }
 }

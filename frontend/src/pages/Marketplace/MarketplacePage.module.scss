@@ -38,7 +38,6 @@ $bp-desktop: 1280px;
 }
 
 .sidebarTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
@@ -58,7 +57,6 @@ $bp-desktop: 1280px;
 }
 
 .filterTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   text-transform: none;
@@ -110,7 +108,6 @@ $bp-desktop: 1280px;
 
 .filterChip {
   padding: 6px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -145,7 +142,6 @@ $bp-desktop: 1280px;
   gap: 10px;
   padding: 6px 0;
   cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   transition: color 150ms ease;
@@ -200,7 +196,6 @@ $bp-desktop: 1280px;
 .priceInput {
   flex: 1;
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -223,7 +218,6 @@ $bp-desktop: 1280px;
 .currencySelect {
   margin-top: 8px;
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -239,7 +233,6 @@ $bp-desktop: 1280px;
 .filterInput {
   width: 100%;
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -256,7 +249,6 @@ $bp-desktop: 1280px;
 .clearFiltersBtn {
   width: 100%;
   padding: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
@@ -281,7 +273,6 @@ $bp-desktop: 1280px;
 
 .mobileFilterBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -331,7 +322,6 @@ $bp-desktop: 1280px;
 }
 
 .filterDrawerTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
@@ -373,7 +363,6 @@ $bp-desktop: 1280px;
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-muted);
 }
@@ -389,7 +378,6 @@ $bp-desktop: 1280px;
 }
 
 .emptyStateTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -397,7 +385,6 @@ $bp-desktop: 1280px;
 }
 
 .emptyStateText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-muted);
   max-width: 360px;
@@ -407,7 +394,6 @@ $bp-desktop: 1280px;
 .emptyStateCta {
   margin-top: 8px;
   padding: 10px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -430,7 +416,6 @@ $bp-desktop: 1280px;
   color: var(--text-secondary);
 
   h2 {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 20px;
     color: var(--text-primary);
     margin: 0 0 8px;
@@ -465,7 +450,6 @@ $bp-desktop: 1280px;
 .searchInput {
   flex: 1;
   padding: 10px 0;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   color: var(--text-body);
   background: transparent;
@@ -505,7 +489,6 @@ $bp-desktop: 1280px;
 
 .sortPill {
   padding: 7px 18px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
@@ -623,14 +606,12 @@ $bp-desktop: 1280px;
   justify-content: center;
   flex-direction: column;
   gap: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
   background: var(--bg-elevated);
 }
 
 .typeBadge {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -649,7 +630,6 @@ $bp-desktop: 1280px;
   position: absolute;
   top: 8px;
   right: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   color: #FFB020;
@@ -679,7 +659,6 @@ $bp-desktop: 1280px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
 }
@@ -689,7 +668,6 @@ $bp-desktop: 1280px;
 }
 
 .premiumComingSoon {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   padding: 2px 8px;
@@ -704,7 +682,6 @@ $bp-desktop: 1280px;
   align-items: center;
   justify-content: center;
   background: rgba(5, 5, 10, 0.6);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--color-error);
@@ -716,7 +693,6 @@ $bp-desktop: 1280px;
   position: absolute;
   bottom: 8px;
   right: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: #fff;
@@ -736,7 +712,6 @@ $bp-desktop: 1280px;
 }
 
 .gridCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -749,7 +724,6 @@ $bp-desktop: 1280px;
 }
 
 .gridCardPrice {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
@@ -765,7 +739,6 @@ $bp-desktop: 1280px;
 }
 
 .conditionTag {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -775,7 +748,6 @@ $bp-desktop: 1280px;
 }
 
 .categoryTag {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -787,7 +759,6 @@ $bp-desktop: 1280px;
 }
 
 .locationTag {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   display: flex;
@@ -796,7 +767,6 @@ $bp-desktop: 1280px;
 }
 
 .soldTag {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -818,13 +788,11 @@ $bp-desktop: 1280px;
 }
 
 .gridCardSeller {
-  font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .gridCardSellerLink {
-  font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
@@ -838,7 +806,6 @@ $bp-desktop: 1280px;
 
 .gridCardTime {
   margin-left: auto;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
 }
 
@@ -924,7 +891,6 @@ $bp-desktop: 1280px;
 }
 
 .listRowTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -938,13 +904,11 @@ $bp-desktop: 1280px;
   display: flex;
   align-items: center;
   gap: 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
 
 .listRowPrice {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
@@ -971,7 +935,6 @@ $bp-desktop: 1280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
   background: var(--bg-surface);
@@ -988,7 +951,6 @@ $bp-desktop: 1280px;
 }
 
 .pageEllipsis {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
   padding: 0 4px;
@@ -1014,7 +976,6 @@ $bp-desktop: 1280px;
   display: block;
   text-align: center;
   padding: 12px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--bg-void);
@@ -1035,7 +996,6 @@ $bp-desktop: 1280px;
   justify-content: center;
   gap: 8px;
   padding: 10px 24px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -1059,7 +1019,6 @@ $bp-desktop: 1280px;
 }
 
 .sidebarCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   text-transform: none;
@@ -1078,7 +1037,6 @@ $bp-desktop: 1280px;
 }
 
 .safetyItem {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   line-height: 1.5;
@@ -1103,7 +1061,6 @@ $bp-desktop: 1280px;
 }
 
 .ruleItem {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   line-height: 1.5;
@@ -1115,7 +1072,6 @@ $bp-desktop: 1280px;
     counter-increment: rule-counter;
     position: absolute;
     left: 0;
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 10px;
     font-weight: 600;
     color: var(--text-muted);
@@ -1132,14 +1088,12 @@ $bp-desktop: 1280px;
 }
 
 .statValue {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .statLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -1152,7 +1106,6 @@ $bp-desktop: 1280px;
 
 .popularCategoryBtn {
   padding: 5px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: none;
@@ -1182,7 +1135,6 @@ $bp-desktop: 1280px;
 }
 
 .backLink {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-secondary);
   text-decoration: none;
@@ -1197,7 +1149,6 @@ $bp-desktop: 1280px;
 }
 
 .formTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -1242,14 +1193,12 @@ $bp-desktop: 1280px;
 }
 
 .typeCardLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .typeCardDesc {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.4;
@@ -1275,7 +1224,6 @@ $bp-desktop: 1280px;
 
 .formError {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--color-error);
   background: rgba(255, 68, 85, 0.08);
@@ -1296,7 +1244,6 @@ $bp-desktop: 1280px;
 }
 
 .fieldLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   text-transform: none;
@@ -1327,7 +1274,6 @@ $bp-desktop: 1280px;
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
   background: var(--bg-elevated);
@@ -1353,7 +1299,6 @@ $bp-desktop: 1280px;
 .fieldSelect {
   width: 100%;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -1372,7 +1317,6 @@ $bp-desktop: 1280px;
 }
 
 .fieldHint {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--color-error);
 }
@@ -1432,7 +1376,6 @@ $bp-desktop: 1280px;
 }
 
 .dropZoneText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
 }
@@ -1446,7 +1389,6 @@ $bp-desktop: 1280px;
 .addBtn {
   align-self: flex-start;
   padding: 4px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--accent-primary);
   background: none;
@@ -1467,7 +1409,6 @@ $bp-desktop: 1280px;
 }
 
 .uploadError {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--color-error);
   padding: 4px 10px;
@@ -1557,7 +1498,6 @@ $bp-desktop: 1280px;
 }
 
 .termsText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   line-height: 1.5;
@@ -1568,7 +1508,6 @@ $bp-desktop: 1280px;
 }
 
 .termsSummary {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--accent-primary);
   cursor: pointer;
@@ -1577,7 +1516,6 @@ $bp-desktop: 1280px;
 }
 
 .termsBody {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-secondary);
   line-height: 1.6;
@@ -1594,7 +1532,6 @@ $bp-desktop: 1280px;
 
 .submitBtn {
   padding: 10px 28px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -1610,7 +1547,6 @@ $bp-desktop: 1280px;
 
 .cancelBtn {
   padding: 10px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-secondary);
   background: none;
@@ -1638,7 +1574,6 @@ $bp-desktop: 1280px;
 .loginLink {
   display: inline-block;
   padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -1656,7 +1591,6 @@ $bp-desktop: 1280px;
   gap: 12px;
   padding: 10px 14px;
   margin-bottom: 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: var(--accent-primary-subtle);
@@ -1666,7 +1600,6 @@ $bp-desktop: 1280px;
 
 .draftRestore {
   padding: 4px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--bg-void);
@@ -1680,7 +1613,6 @@ $bp-desktop: 1280px;
 
 .draftDiscard {
   padding: 4px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-secondary);
   background: none;
@@ -1763,7 +1695,6 @@ $bp-desktop: 1280px;
   position: absolute;
   bottom: 12px;
   right: 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.8);
@@ -1780,7 +1711,6 @@ $bp-desktop: 1280px;
   align-items: center;
   justify-content: center;
   background: rgba(5, 5, 10, 0.6);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 36px;
   font-weight: 700;
   color: var(--color-error);
@@ -1841,7 +1771,6 @@ $bp-desktop: 1280px;
   color: var(--text-muted);
 
   span:last-child {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
   }
 }
@@ -1869,7 +1798,6 @@ $bp-desktop: 1280px;
 }
 
 .detailTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 26px;
   font-weight: 700;
   color: var(--text-primary);
@@ -1878,21 +1806,18 @@ $bp-desktop: 1280px;
 }
 
 .detailPrice {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 32px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .detailPriceOpen {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--accent-primary);
 }
 
 .minimumOfferHint {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -1901,7 +1826,6 @@ $bp-desktop: 1280px;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -1927,7 +1851,6 @@ $bp-desktop: 1280px;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -1946,7 +1869,6 @@ $bp-desktop: 1280px;
 }
 
 .sellerNameLink {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -1955,7 +1877,6 @@ $bp-desktop: 1280px;
 }
 
 .sellerRating {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -1974,7 +1895,6 @@ $bp-desktop: 1280px;
 .messageSellerBtnPrimary {
   width: 100%;
   padding: 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--bg-void);
@@ -1989,7 +1909,6 @@ $bp-desktop: 1280px;
 .makeOfferBtnPrimary {
   width: 100%;
   padding: 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2021,7 +1940,6 @@ $bp-desktop: 1280px;
 }
 
 .offerCurrencyLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--text-secondary);
@@ -2031,7 +1949,6 @@ $bp-desktop: 1280px;
 .offerInput {
   flex: 1;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   color: var(--text-body);
   background: transparent;
@@ -2043,7 +1960,6 @@ $bp-desktop: 1280px;
 
 .offerMessageInput {
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: transparent;
@@ -2063,7 +1979,6 @@ $bp-desktop: 1280px;
 
 .submitOfferBtn {
   padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--bg-void);
@@ -2082,7 +1997,6 @@ $bp-desktop: 1280px;
 }
 
 .sidebarBidsTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2090,7 +2004,6 @@ $bp-desktop: 1280px;
 }
 
 .sidebarBidsEmpty {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
   margin: 0;
@@ -2119,7 +2032,6 @@ $bp-desktop: 1280px;
 }
 
 .sidebarBidMessage {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   margin: 0;
@@ -2134,7 +2046,6 @@ $bp-desktop: 1280px;
 }
 
 .shippingPill {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-body);
   background: var(--bg-surface);
@@ -2154,7 +2065,6 @@ $bp-desktop: 1280px;
 
 .statusBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--bg-void);
@@ -2168,7 +2078,6 @@ $bp-desktop: 1280px;
 
 .extendBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -2181,7 +2090,6 @@ $bp-desktop: 1280px;
 
 .deleteBtnSmall {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--color-error);
@@ -2193,7 +2101,6 @@ $bp-desktop: 1280px;
 }
 
 .reportLink {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   background: none;
@@ -2215,7 +2122,6 @@ $bp-desktop: 1280px;
 }
 
 .sectionTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2231,7 +2137,6 @@ $bp-desktop: 1280px;
 }
 
 .markdownContent {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   line-height: 1.7;
   color: var(--text-body);
@@ -2287,7 +2192,6 @@ $bp-desktop: 1280px;
 }
 
 .bidUser {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2296,14 +2200,12 @@ $bp-desktop: 1280px;
 }
 
 .bidAmount {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--accent-primary);
 }
 
 .bidStatus {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
@@ -2327,7 +2229,6 @@ $bp-desktop: 1280px;
 }
 
 .bidTime {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   margin-left: auto;
@@ -2341,7 +2242,6 @@ $bp-desktop: 1280px;
 
 .acceptBtn {
   padding: 6px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--bg-void);
@@ -2354,7 +2254,6 @@ $bp-desktop: 1280px;
 
 .rejectBtn {
   padding: 6px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--color-error);
@@ -2367,7 +2266,6 @@ $bp-desktop: 1280px;
 
 .counterBtn {
   padding: 6px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: #FFB020;
@@ -2395,7 +2293,6 @@ $bp-desktop: 1280px;
 }
 
 .counterCurrency {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-secondary);
@@ -2404,7 +2301,6 @@ $bp-desktop: 1280px;
 .counterInput {
   flex: 1;
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: transparent;
@@ -2416,7 +2312,6 @@ $bp-desktop: 1280px;
 
 .counterMessageInput {
   padding: 8px 12px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: transparent;
@@ -2435,7 +2330,6 @@ $bp-desktop: 1280px;
 
 .counterCancelBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
   background: none;
@@ -2447,7 +2341,6 @@ $bp-desktop: 1280px;
 
 .submitCounterBtn {
   padding: 8px 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--bg-void);
@@ -2480,7 +2373,6 @@ $bp-desktop: 1280px;
 }
 
 .reviewUser {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2492,14 +2384,12 @@ $bp-desktop: 1280px;
 }
 
 .reviewTime {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   margin-left: auto;
 }
 
 .reviewComment {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   line-height: 1.5;
@@ -2540,7 +2430,6 @@ $bp-desktop: 1280px;
 }
 
 .modalTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
@@ -2570,7 +2459,6 @@ $bp-desktop: 1280px;
 }
 
 .reportDisclaimer {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.5;
@@ -2595,7 +2483,6 @@ $bp-desktop: 1280px;
 }
 
 .messagesTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
@@ -2627,7 +2514,6 @@ $bp-desktop: 1280px;
   align-items: center;
   justify-content: center;
   height: 200px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -2671,7 +2557,6 @@ $bp-desktop: 1280px;
   }
 
   span {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
     font-weight: 700;
     color: var(--text-primary);
@@ -2692,7 +2577,6 @@ $bp-desktop: 1280px;
 }
 
 .convoUsername {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2702,14 +2586,12 @@ $bp-desktop: 1280px;
 }
 
 .convoTime {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .convoListing {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--accent-primary);
   white-space: nowrap;
@@ -2719,7 +2601,6 @@ $bp-desktop: 1280px;
 }
 
 .convoPreview {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
@@ -2730,7 +2611,6 @@ $bp-desktop: 1280px;
 .unreadBadge {
   background: var(--accent-primary);
   color: var(--bg-void);
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   font-weight: 700;
   min-width: 18px;
@@ -2766,7 +2646,6 @@ $bp-desktop: 1280px;
   }
 
   p {
-    font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
     margin: 0;
   }
@@ -2803,13 +2682,11 @@ $bp-desktop: 1280px;
 }
 
 .messageBody {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   line-height: 1.5;
 }
 
 .messageTime {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   opacity: 0.6;
   margin-top: 4px;
@@ -2826,7 +2703,6 @@ $bp-desktop: 1280px;
 .messageInput {
   flex: 1;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: var(--bg-elevated);
@@ -2896,7 +2772,6 @@ $bp-desktop: 1280px;
 }
 
 .relatedTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2967,7 +2842,6 @@ $bp-desktop: 1280px;
 }
 
 .relatedCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
@@ -2977,14 +2851,12 @@ $bp-desktop: 1280px;
 }
 
 .relatedCardPrice {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 700;
   color: var(--accent-primary);
 }
 
 .relatedCardSeller {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -3281,7 +3153,6 @@ $bp-desktop: 1280px;
   gap: 8px;
   width: 100%;
   padding: 10px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -3311,7 +3182,6 @@ $bp-desktop: 1280px;
 .shareBtn {
   flex: 1;
   padding: 8px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
@@ -3332,7 +3202,6 @@ $bp-desktop: 1280px;
 .quickMessageBtn {
   width: 100%;
   padding: 10px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -3355,7 +3224,6 @@ $bp-desktop: 1280px;
 }
 
 .recentlyViewedTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
@@ -3410,7 +3278,6 @@ $bp-desktop: 1280px;
 }
 
 .recentCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
@@ -3420,7 +3287,6 @@ $bp-desktop: 1280px;
 }
 
 .recentCardPrice {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--accent-primary);
@@ -3432,7 +3298,6 @@ $bp-desktop: 1280px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: var(--accent-primary);
@@ -3450,7 +3315,6 @@ $bp-desktop: 1280px;
 // ---------- Response Time ----------
 
 .responseTime {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--accent-primary);
 }
@@ -3464,7 +3328,6 @@ $bp-desktop: 1280px;
 }
 
 .analyticsTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -3485,14 +3348,12 @@ $bp-desktop: 1280px;
 }
 
 .analyticValue {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .analyticLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
 }

@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/Toast/Toast';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { VerifiedCreatorBadge } from '../../components/VerifiedCreatorBadge/VerifiedCreatorBadge';
+import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import styles from './ProfilePage.module.scss';
 
 // ---------------------------------------------------------------------------
@@ -70,7 +71,67 @@ interface MarketplaceReview {
   listing: { id: string; title: string };
 }
 
-type TabKey = 'overview' | 'posts' | 'marketplace' | 'saved' | 'reviews';
+type TabKey = 'overview' | 'posts' | 'marketplace' | 'saved' | 'reviews' | 'guides';
+
+interface UserBadge {
+  id: string;
+  badge: string;
+  awardedAt: string;
+}
+
+const BADGE_LABELS: Record<string, string> = {
+  FIRST_POST: 'First Post',
+  TEN_POSTS: 'Regular',
+  FIFTY_POSTS: 'Prolific',
+  FIRST_REPLY: 'First Reply',
+  HELPFUL: 'Helpful',
+  SUPER_HELPFUL: 'Super Helpful',
+  TOP_CONTRIBUTOR: 'Top Contributor',
+  EXPERT: 'Expert',
+  FIRST_SALE: 'First Sale',
+  FIVE_SALES: 'Experienced Seller',
+  TRUSTED_SELLER: 'Trusted Seller',
+  FIRST_PURCHASE: 'First Purchase',
+  BIG_SPENDER: 'Big Spender',
+  POPULAR: 'Popular',
+  INFLUENCER: 'Influencer',
+  EARLY_ADOPTER: 'Early Adopter',
+  VERIFIED_EMAIL: 'Verified',
+  PROFILE_COMPLETE: 'Profile Complete',
+  VERIFIED_OWNER: 'Verified Owner',
+};
+
+const BADGE_DESCRIPTIONS: Record<string, string> = {
+  FIRST_POST: 'Created your first forum thread',
+  TEN_POSTS: 'Created 10 forum threads',
+  FIFTY_POSTS: 'Created 50 forum threads',
+  FIRST_REPLY: 'Posted your first reply',
+  HELPFUL: 'Received 10 upvotes on replies',
+  SUPER_HELPFUL: 'Received 50 upvotes on replies',
+  TOP_CONTRIBUTOR: 'Earned 100+ Pit Cred',
+  EXPERT: 'Earned 500+ Pit Cred',
+  FIRST_SALE: 'Completed your first sale',
+  FIVE_SALES: 'Completed 5 sales',
+  TRUSTED_SELLER: '10+ sales with 4.5+ rating',
+  FIRST_PURCHASE: 'Made your first purchase',
+  BIG_SPENDER: 'Made 5+ purchases',
+  POPULAR: 'Gained 10 followers',
+  INFLUENCER: 'Gained 50 followers',
+  EARLY_ADOPTER: 'Joined during early access',
+  VERIFIED_EMAIL: 'Email verified',
+  PROFILE_COMPLETE: 'Bio, avatar, and location set',
+  VERIFIED_OWNER: 'Verified product owner',
+};
+
+const BADGE_ICONS: Record<string, string> = {
+  FIRST_POST: '📝', TEN_POSTS: '✍️', FIFTY_POSTS: '🏆',
+  FIRST_REPLY: '💬', HELPFUL: '👍', SUPER_HELPFUL: '⭐',
+  TOP_CONTRIBUTOR: '🔥', EXPERT: '🧠', VERIFIED_OWNER: '✅',
+  FIRST_SALE: '🏷️', FIVE_SALES: '📦', TRUSTED_SELLER: '🛡️',
+  FIRST_PURCHASE: '🛒', BIG_SPENDER: '💰',
+  POPULAR: '👥', INFLUENCER: '🌟',
+  EARLY_ADOPTER: '🚀', VERIFIED_EMAIL: '📧', PROFILE_COMPLETE: '🎯',
+};
 
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: '\u00A3', EUR: '\u20AC', USD: '$', SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', CHF: 'CHF ' };
 
@@ -118,9 +179,20 @@ export function ProfilePage() {
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [reviews, setReviews] = useState<MarketplaceReview[]>([]);
   const [savedListings, setSavedListings] = useState<MarketplaceListing[]>([]);
+  const [guides, setGuides] = useState<any[]>([]);
+
+  // Badge state
+  const [badges, setBadges] = useState<UserBadge[]>([]);
 
   // Block state
   const [isBlocked, setIsBlocked] = useState(false);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followHovered, setFollowHovered] = useState(false);
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -151,6 +223,30 @@ export function ProfilePage() {
       .catch(() => {});
   }, [authUser, username, isOwnProfile]);
 
+  // Fetch follow data
+  useEffect(() => {
+    if (!username) return;
+    api<{ count: number }>(`/users/${encodeURIComponent(username)}/followers`)
+      .then(d => setFollowerCount(d.count))
+      .catch(() => {});
+    api<{ count: number }>(`/users/${encodeURIComponent(username)}/following`)
+      .then(d => setFollowingCount(d.count))
+      .catch(() => {});
+    if (authUser && !isOwnProfile) {
+      api<{ following: boolean }>(`/users/${encodeURIComponent(username)}/is-following`)
+        .then(d => setIsFollowing(d.following))
+        .catch(() => {});
+    }
+  }, [username, authUser, isOwnProfile]);
+
+  // Fetch badges
+  useEffect(() => {
+    if (!username) return;
+    api<UserBadge[]>(`/users/${encodeURIComponent(username)}/badges`)
+      .then(setBadges)
+      .catch(() => {});
+  }, [username]);
+
   const handleToggleBlock = async () => {
     if (!username) return;
     try {
@@ -158,6 +254,15 @@ export function ProfilePage() {
       setIsBlocked(result.blocked);
       showToast(result.blocked ? 'User blocked' : 'User unblocked', 'success');
     } catch { showToast('Failed', 'error'); }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!username) return;
+    try {
+      const result = await api<{ following: boolean }>(`/users/${encodeURIComponent(username)}/follow`, { method: 'POST' });
+      setIsFollowing(result.following);
+      setFollowerCount(prev => result.following ? prev + 1 : prev - 1);
+    } catch { showToast('Failed to follow', 'error'); }
   };
 
   // Fetch tab data
@@ -183,6 +288,17 @@ export function ProfilePage() {
       api<{ items: MarketplaceListing[] }>('/marketplace/wishlisted')
         .then(d => setSavedListings(d.items))
         .catch(() => {});
+    }
+    if (activeTab === 'guides') {
+      if (isOwnProfile) {
+        api<any[]>('/guides/mine')
+          .then(setGuides)
+          .catch(() => {});
+      } else {
+        api<{ items: any[] }>(`/guides?authorId=${profile.id}`)
+          .then(d => setGuides(d.items ?? []))
+          .catch(() => {});
+      }
     }
   }, [username, profile, activeTab]);
 
@@ -262,7 +378,7 @@ export function ProfilePage() {
         <div className={styles.profileHeaderContent}>
           <div className={styles.avatarWrapper}>
             {profile.avatarUrl ? (
-              <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} />
+              <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} loading="eager" fetchPriority="high" />
             ) : (
               <div className={styles.avatarPlaceholder}>{profile.username[0].toUpperCase()}</div>
             )}
@@ -277,6 +393,7 @@ export function ProfilePage() {
   }
 
   return (
+    <>
     <div className={styles.profilePage}>
       {/* Banner */}
       <div
@@ -304,7 +421,7 @@ export function ProfilePage() {
       <div className={styles.profileHeaderContent}>
         <div className={styles.avatarWrapper}>
           {profile.avatarUrl ? (
-            <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} />
+            <img src={resolveImageUrl(profile.avatarUrl)} alt="" className={styles.avatarLarge} loading="eager" fetchPriority="high" />
           ) : (
             <div className={styles.avatarPlaceholder}>{profile.username[0].toUpperCase()}</div>
           )}
@@ -392,7 +509,40 @@ export function ProfilePage() {
               <span className={styles.statValue}>{profile.completedSales ?? 0}</span>
               <span className={styles.statLabel}>Sales</span>
             </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{followerCount}</span>
+              <span className={styles.statLabel}>Followers</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{followingCount}</span>
+              <span className={styles.statLabel}>Following</span>
+            </div>
           </div>
+
+          {badges.length > 0 && (
+            <div className={styles.badgeSection}>
+              <h3 className={styles.badgeSectionTitle}>Achievements</h3>
+              <div className={styles.badgeGrid}>
+                {badges.map(b => (
+                  <div key={b.id} className={styles.badgeItem} title={BADGE_DESCRIPTIONS[b.badge] ?? b.badge}>
+                    <span className={styles.badgeIcon}>{BADGE_ICONS[b.badge] ?? '🏅'}</span>
+                    <span className={styles.badgeName}>{BADGE_LABELS[b.badge] ?? b.badge}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!isOwnProfile && authUser && (
+            <button
+              className={`${styles.followBtn} ${isFollowing ? styles.followBtnActive : ''} ${isFollowing && followHovered ? styles.followBtnUnfollow : ''}`}
+              onClick={handleToggleFollow}
+              onMouseEnter={() => setFollowHovered(true)}
+              onMouseLeave={() => setFollowHovered(false)}
+            >
+              {isFollowing && followHovered ? 'Unfollow' : isFollowing ? 'Following' : 'Follow'}
+            </button>
+          )}
 
           {isOwnProfile && !isEditing && (
             <button className={styles.editProfileBtn} onClick={() => {
@@ -406,7 +556,10 @@ export function ProfilePage() {
             </button>
           )}
           {!isOwnProfile && authUser && (
-            <button className={styles.blockBtn} onClick={handleToggleBlock}>
+            <button className={styles.blockBtn} onClick={() => {
+              if (isBlocked) handleToggleBlock(); // Unblock doesn't need confirmation
+              else setShowBlockConfirm(true);
+            }}>
               {isBlocked ? 'Unblock User' : 'Block User'}
             </button>
           )}
@@ -414,23 +567,32 @@ export function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className={styles.tabBar}>
+      <div className={styles.tabBar} role="tablist" aria-label="Profile sections">
         {(isOwnProfile
-          ? ['overview', 'posts', 'marketplace', 'saved', 'reviews'] as const
-          : ['overview', 'posts', 'marketplace', 'reviews'] as const
+          ? ['overview', 'posts', 'marketplace', 'saved', 'reviews', 'guides'] as const
+          : ['overview', 'posts', 'marketplace', 'reviews', 'guides'] as const
         ).map(tab => (
           <button
             key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
+            aria-controls={`profile-panel-${tab}`}
+            id={`profile-tab-${tab}`}
             className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'overview' ? 'Overview' : tab === 'posts' ? 'Forum Posts' : tab === 'marketplace' ? 'Marketplace' : tab === 'saved' ? 'Saved' : 'Reviews'}
+            {tab === 'overview' ? 'Overview' : tab === 'posts' ? 'Forum Posts' : tab === 'marketplace' ? 'Marketplace' : tab === 'saved' ? 'Saved' : tab === 'guides' ? 'Guides' : 'Reviews'}
           </button>
         ))}
       </div>
 
       {/* Tab content */}
-      <div className={styles.tabContent}>
+      <div
+        id={`profile-panel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`profile-tab-${activeTab}`}
+        className={styles.tabContent}
+      >
         {/* Overview tab */}
         {activeTab === 'overview' && (
           <>
@@ -526,11 +688,60 @@ export function ProfilePage() {
             <div className={styles.emptyState}>No reviews yet</div>
           )
         )}
+
+        {/* Guides tab */}
+        {activeTab === 'guides' && (
+          guides.length > 0 ? (
+            <div className={styles.guidesList}>
+              {guides.map((g: any) => (
+                <a key={g.id} href={g.isPublished ? `/guides/${g.slug}` : `/guides/edit/${g.id}`} className={styles.guideCard}>
+                  <div className={styles.guideCardBody}>
+                    <div className={styles.guideCardTop}>
+                      <span className={`${styles.guideStatusBadge} ${
+                        g.status === 'PUBLISHED' ? styles.statusPublished :
+                        g.status === 'PENDING_REVIEW' ? styles.statusPending :
+                        g.status === 'REJECTED' ? styles.statusRejected :
+                        styles.statusDraft
+                      }`}>
+                        {g.status === 'PUBLISHED' ? 'Published' :
+                         g.status === 'PENDING_REVIEW' ? 'Pending Review' :
+                         g.status === 'REJECTED' ? 'Needs Revision' : 'Draft'}
+                      </span>
+                      <span className={styles.guideMeta}>
+                        {g.publishedAt
+                          ? new Date(g.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : relativeTime(g.createdAt)}
+                      </span>
+                    </div>
+                    <h3 className={styles.guideCardTitle}>{g.title}</h3>
+                    {g.excerpt && <p className={styles.guideCardExcerpt}>{g.excerpt}</p>}
+                    {g.rejectionReason && (
+                      <p className={styles.guideRejectionNote}>Feedback: {g.rejectionReason}</p>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              {isOwnProfile ? 'No guides yet — write your first guide!' : 'No published guides'}
+            </div>
+          )
+        )}
       </div>
     </div>
+    <ConfirmDialog
+      open={showBlockConfirm}
+      title="Block User"
+      message={`Block @${username}? They won't be able to message you or see your content.`}
+      confirmLabel="Block"
+      variant="danger"
+      onConfirm={() => { setShowBlockConfirm(false); handleToggleBlock(); }}
+      onCancel={() => setShowBlockConfirm(false)}
+    />
+    </>
   );
 }
-
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -556,7 +767,7 @@ function ThreadCard({ thread: t, onClick }: { thread: ForumThread; onClick: () =
       </div>
       {t.imageUrls?.[0] && (
         <div className={styles.threadCardImages}>
-          <img src={resolveImageUrl(t.imageUrls[0])} alt="" className={styles.threadCardImageMain} />
+          <img src={resolveImageUrl(t.imageUrls[0])} alt="" className={styles.threadCardImageMain} loading="lazy" decoding="async" />
         </div>
       )}
     </a>
@@ -568,7 +779,7 @@ function ListingCard({ listing: l, onClick }: { listing: MarketplaceListing; onC
     <a href={`/marketplace/${l.id}`} className={styles.gridCard} onClick={e => { e.preventDefault(); onClick(); }}>
       <div className={styles.gridCardImageWrap}>
         {l.imageUrls?.[0] ? (
-          <img src={resolveImageUrl(l.imageUrls[0])} alt="" className={styles.gridCardImage} />
+          <img src={resolveImageUrl(l.imageUrls[0])} alt="" className={styles.gridCardImage} loading="lazy" decoding="async" />
         ) : (
           <div className={styles.gridCardNoImage}>No image</div>
         )}
@@ -594,7 +805,7 @@ function ReviewCard({ review: r }: { review: MarketplaceReview }) {
       <div className={styles.reviewHeader}>
         <a href={`/profile/${r.reviewer.username}`} className={styles.reviewAuthor}>
           {r.reviewer.avatarUrl && (
-            <img src={resolveImageUrl(r.reviewer.avatarUrl)} alt="" className={styles.reviewAvatar} />
+            <img src={resolveImageUrl(r.reviewer.avatarUrl)} alt="" className={styles.reviewAvatar} loading="lazy" decoding="async" />
           )}
           <span>{r.reviewer.username}</span>
         </a>

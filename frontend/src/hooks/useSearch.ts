@@ -31,10 +31,29 @@ export interface SearchThread {
   replyCount: number;
 }
 
+export interface SearchListing {
+  id: string;
+  title: string;
+  category: string;
+  price: number | null;
+  currency: string;
+  sellerUsername: string;
+  imageUrl: string | null;
+}
+
+export interface SearchUser {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  pitCred: number;
+}
+
 export interface SearchResults {
   products: SearchProduct[];
   builds: SearchBuild[];
   threads: SearchThread[];
+  listings: SearchListing[];
+  users: SearchUser[];
 }
 
 /**
@@ -43,13 +62,13 @@ export interface SearchResults {
  * Returns empty results until the user has typed at least 2 characters.
  */
 export function useSearch(query: string) {
-  const [results, setResults] = useState<SearchResults>({ products: [], builds: [], threads: [] });
+  const [results, setResults] = useState<SearchResults>({ products: [], builds: [], threads: [], listings: [], users: [] });
   const [loading, setLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (query.trim().length < 2) {
-      setResults({ products: [], builds: [], threads: [] });
+      setResults({ products: [], builds: [], threads: [], listings: [], users: [] });
       setLoading(false);
       return;
     }
@@ -69,7 +88,7 @@ export function useSearch(query: string) {
         setResults(data);
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          setResults({ products: [], builds: [], threads: [] });
+          setResults({ products: [], builds: [], threads: [], listings: [], users: [] });
         }
       } finally {
         setLoading(false);

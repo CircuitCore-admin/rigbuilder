@@ -1,0 +1,229 @@
+@use '../../styles/variables';
+.onboardingPage {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.onboardingCard {
+  max-width: 640px;
+  width: 100%;
+  text-align: center;
+}
+
+.stepIndicator {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.stepDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-default);
+  transition: all 200ms ease;
+}
+
+.stepDotActive {
+  background: var(--accent-primary);
+  width: 24px;
+  border-radius: 4px;
+}
+
+.onboardingTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.onboardingSubtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+.interestGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.interestCard {
+  padding: 20px 16px;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.interestCardActive {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-subtle, rgba(0, 255, 163, 0.06));
+}
+
+.interestIcon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.interestLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+  margin-top: 4px;
+}
+
+.profileFields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+  max-width: 400px;
+  margin: 0 auto 24px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.fieldInput {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+
+  &:focus {
+    border-color: var(--accent-primary);
+  }
+}
+
+.fieldTextarea {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  resize: vertical;
+
+  &:focus {
+    border-color: var(--accent-primary);
+  }
+}
+
+.ctaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ctaCard {
+  padding: 24px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  color: inherit;
+  transition: all 150ms ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+  }
+}
+
+.ctaCardIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.ctaCardTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ctaCardDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.continueBtn {
+  padding: 12px 40px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.skipLink {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+
+  &:hover {
+    color: var(--text-secondary);
+  }
+}
+
+@media (max-width: variables.$bp-mobile) {
+  .ctaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .interestGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

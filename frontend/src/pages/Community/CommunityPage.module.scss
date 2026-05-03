@@ -1,3 +1,4 @@
+@use '../../styles/variables';
 // ============================================================================
 // Community Hub — Engineering Console Aesthetic
 // ============================================================================
@@ -32,7 +33,6 @@
 }
 
 .sidebarTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
@@ -91,7 +91,6 @@
 }
 
 .categoryLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
 }
@@ -109,9 +108,15 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-muted);
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
 }
 
 // ---------- Thread list rows (high density) ----------
@@ -156,7 +161,6 @@
 }
 
 .threadTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
@@ -211,7 +215,6 @@
 }
 
 .showroomTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -273,7 +276,6 @@
 .formHeader { margin-bottom: 28px; }
 
 .backLink {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-secondary);
   text-decoration: none;
@@ -287,7 +289,6 @@
 }
 
 .formTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -327,14 +328,12 @@
 .categoryCardIcon { font-size: 28px; }
 
 .categoryCardLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .categoryCardDesc {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   line-height: 1.4;
@@ -350,7 +349,6 @@
 
 .formError {
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--color-error);
   background: rgba(255, 68, 85, 0.08);
@@ -378,7 +376,6 @@
 .fieldTextarea {
   width: 100%;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   color: var(--text-body);
   background: var(--bg-elevated);
@@ -397,7 +394,6 @@
 }
 
 .fieldHint {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   color: var(--color-error);
 }
@@ -515,7 +511,6 @@
 }
 
 .anonymousToggleLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -523,7 +518,6 @@
 }
 
 .anonymousToggleHint {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   display: block;
@@ -532,7 +526,6 @@
 
 .submitBtn {
   padding: 10px 28px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -562,7 +555,6 @@
 .loginLink {
   display: inline-block;
   padding: 8px 20px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--bg-void);
@@ -594,7 +586,6 @@
 }
 
 .sidebarCardTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -613,7 +604,6 @@
 }
 
 .ruleItem {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-body);
   line-height: 1.4;
@@ -668,6 +658,15 @@
   text-align: center;
 }
 
+.sidebarLink {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
 // ============================================================================
 // Search & Sort Controls
 // ============================================================================
@@ -697,7 +696,6 @@
 .searchInput {
   flex: 1;
   padding: 10px 14px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: transparent;
@@ -755,7 +753,6 @@
 }
 
 .threadSnippet {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -818,7 +815,6 @@
 }
 
 .threadVoteScore {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--text-primary);
@@ -840,7 +836,6 @@
 }
 
 .threadCardMeta {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -848,6 +843,32 @@
 .pitCredSmall {
   color: var(--accent-primary);
   font-size: 11px;
+}
+
+.pinnedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.lockedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
 // ---------- Thread card image section ----------
@@ -891,7 +912,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
@@ -903,7 +923,6 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   transition: color 150ms;
@@ -913,7 +932,6 @@
 }
 
 .aboutText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.6;
@@ -970,7 +988,6 @@
 }
 
 .dropZoneText {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-secondary);
 }
@@ -1075,7 +1092,6 @@
   gap: 12px;
   padding: 10px 14px;
   margin-bottom: 16px;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   color: var(--text-body);
   background: var(--accent-primary-subtle);
@@ -1175,7 +1191,7 @@
 
 // ---------- Tablet: <= 1024px – hide right sidebar ----------
 
-@media (max-width: 1024px) {
+@media (max-width: variables.$bp-tablet) {
   .dashboard {
     grid-template-columns: 220px 1fr;
   }
@@ -1196,7 +1212,7 @@
 
 // ---------- Mobile: <= 768px – hide left sidebar, show category bar ----------
 
-@media (max-width: 768px) {
+@media (max-width: variables.$bp-mobile) {
   .dashboard {
     display: grid;
     grid-template-columns: 1fr;
@@ -1294,4 +1310,206 @@
   .threadCardImageStack {
     display: none;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Flair styles
+// ---------------------------------------------------------------------------
+
+.flairBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.flairSOLVED {
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+.flairQUESTION {
+  color: #6E56FF;
+  background: rgba(110, 86, 255, 0.1);
+}
+
+.flairWIP {
+  color: #FFB020;
+  background: rgba(255, 176, 32, 0.1);
+}
+
+.flairREVIEW {
+  color: #FF6B8A;
+  background: rgba(255, 107, 138, 0.1);
+}
+
+.flairPSA {
+  color: #FF4455;
+  background: rgba(255, 68, 85, 0.1);
+}
+
+.flairGUIDE {
+  color: #3B9EFF;
+  background: rgba(59, 158, 255, 0.1);
+}
+
+.flairSelector {
+  margin-bottom: 16px;
+}
+
+.flairOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.flairPill {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.flairPillActive {
+  border-color: currentColor;
+}
+
+.flairFilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+.flairFilterPill {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  cursor: pointer;
+  &:hover { color: var(--text-secondary); border-color: var(--border-strong); }
+}
+
+.flairFilterPillActive {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+
+// ---------------------------------------------------------------------------
+// Poll Creator (New Thread Form)
+// ---------------------------------------------------------------------------
+
+.pollToggle {
+  margin-bottom: 16px;
+}
+
+.pollToggleBtn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  &:hover { border-color: var(--border-strong); }
+}
+
+.pollToggleBtnActive {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.pollCreator {
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pollQuestionInput {
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.pollOptionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pollOptionRow {
+  display: flex;
+  gap: 6px;
+}
+
+.pollOptionInput {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  &:focus { border-color: var(--accent-primary); }
+}
+
+.pollRemoveBtn {
+  width: 32px;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  &:hover { color: var(--accent-hot); border-color: var(--accent-hot); }
+}
+
+.pollAddBtn {
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--accent-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  &:hover { text-decoration: underline; }
+}
+
+// ---------------------------------------------------------------------------
+// Poll Indicator on Thread Cards
+// ---------------------------------------------------------------------------
+
+.pollIndicator {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6E56FF;
+  background: rgba(110, 86, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
 }

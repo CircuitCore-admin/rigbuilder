@@ -6,6 +6,7 @@ import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
 import { MarkdownEditor } from '../../components/MarkdownEditor/MarkdownEditor';
 import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
+import { ThreadCardSkeleton } from '../../components/Skeleton/Skeleton';
 import {
   FolderIcon, SearchIcon, UploadIcon, ImageIcon, ChatIcon, EyeIcon, UpArrowIcon, DownArrowIcon,
 } from '../../components/Icons/ForumIcons';
@@ -31,8 +32,12 @@ interface ThreadListItem {
   viewCount: number;
   replyCount: number;
   score?: number;
+  flair?: string | null;
+  poll?: { id: string; question: string } | null;
   createdAt: string;
   imageUrls?: string[];
+  isPinned?: boolean;
+  isLocked?: boolean;
   user: {
     id: string;
     username: string;
@@ -70,6 +75,24 @@ const CATEGORY_COLORS: Record<string, string> = {
   DEALS: '#FF3366',
   GENERAL: '#7878A0',
 };
+
+const FLAIR_LABELS: Record<string, string> = {
+  SOLVED: 'Solved',
+  QUESTION: 'Question',
+  WIP: 'WIP',
+  REVIEW: 'Review',
+  PSA: 'PSA',
+  GUIDE: 'Guide',
+};
+
+const FLAIR_OPTIONS = [
+  { value: null, label: 'No Flair' },
+  { value: 'QUESTION', label: 'Question' },
+  { value: 'WIP', label: 'Work in Progress' },
+  { value: 'REVIEW', label: 'Review' },
+  { value: 'PSA', label: 'PSA' },
+  { value: 'GUIDE', label: 'Guide' },
+];
 
 const SNIPPET_MAX_LENGTH = 120;
 
@@ -121,6 +144,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [totalPosts, setTotalPosts] = useState<number | null>(null);
+  const [selectedFlair, setSelectedFlair] = useState<string | null>(null);
 
   // Thread list voting state
   const [listVotes, setListVotes] = useState<Record<string, { score: number; userVote: 0 | 1 | -1 }>>({});
@@ -137,7 +161,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
   }, [location.pathname, threadSlug]);
 
   useEffect(() => {
-    const cacheKey = `${activeCategory}-${page}-${sortBy}`;
+    const cacheKey = `${activeCategory}-${page}-${sortBy}-${selectedFlair ?? ''}`;
     const cached = threadListCache[cacheKey];
 
     const initVoteState = (items: ThreadListItem[]) => {
@@ -166,6 +190,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: '20', sortBy, sortDir: 'desc' });
     if (activeCategory) params.set('category', activeCategory);
+    if (selectedFlair) params.set('flair', selectedFlair);
 
     api<PaginatedThreads>(`/forum?${params}`)
       .then((data) => {
@@ -182,7 +207,7 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
       })
       .catch(() => setThreads([]))
       .finally(() => setLoading(false));
-  }, [activeCategory, page, sortBy, debouncedSearch, refreshKey]);
+  }, [activeCategory, page, sortBy, debouncedSearch, selectedFlair, refreshKey]);
 
   const setCategory = useCallback(
     (cat: string) => {
@@ -291,6 +316,18 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             );
           })}
         </nav>
+
+        <div className={styles.flairFilter}>
+          {Object.entries(FLAIR_LABELS).map(([key, label]) => (
+            <button
+              key={key}
+              className={`${styles.flairFilterPill} ${selectedFlair === key ? styles.flairFilterPillActive : ''}`}
+              onClick={() => setSelectedFlair(selectedFlair === key ? null : key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </aside>
 
       {/* ---------- Mobile category bar ---------- */}
@@ -351,7 +388,9 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             </div>
 
             {loading ? (
-              <div className={styles.loadingState}>Loading discussions…</div>
+              <div className={styles.skeletonList}>
+                {Array.from({ length: 5 }).map((_, i) => <ThreadCardSkeleton key={i} />)}
+              </div>
             ) : threads.length === 0 ? (
               <div className={styles.emptyState}>No discussions found</div>
             ) : isShowroom ? (
@@ -364,6 +403,8 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                           src={resolveImageUrl(t.imageUrls[0])}
                           alt={`Showroom photo for ${t.title}`}
                           className={styles.showroomImage}
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                       {t.imageUrls && t.imageUrls.length > 1 && (
@@ -422,6 +463,29 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
                           >
                             {catLabel}
                           </span>
+                          {t.isPinned && (
+                            <span className={styles.pinnedBadge}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
+                              </svg>
+                              Pinned
+                            </span>
+                          )}
+                          {t.isLocked && (
+                            <span className={styles.lockedBadge}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                              </svg>
+                              Locked
+                            </span>
+                          )}
+                          {t.flair && (
+                            <span className={`${styles.flairBadge} ${styles[`flair${t.flair}`]}`}>
+                              {FLAIR_LABELS[t.flair]}
+                            </span>
+                          )}
+                          {t.poll && <span className={styles.pollIndicator}>Poll</span>}
                           <span className={styles.threadCardMeta}>
                             Posted by {t.user.id === 'anonymous' ? <em>Anonymous</em> : (
                               <a href={`/profile/${t.user.username}`} className={styles.threadCardAuthorLink} onClick={e => e.stopPropagation()}>
@@ -550,6 +614,13 @@ function CommunityDashboard({ threadSlug }: { threadSlug?: string }) {
             <span className={styles.statLabel}>Active</span>
           </div>
         </div>
+
+        <div className={styles.sidebarCard}>
+          <h3 className={styles.sidebarCardTitle}>Leaderboards</h3>
+          <a href="/leaderboards" className={styles.sidebarLink} onClick={e => { e.preventDefault(); navigate('/leaderboards'); }}>
+            View Leaderboards →
+          </a>
+        </div>
       </aside>
 
       {/* ---------- Mobile FAB ---------- */}
@@ -581,6 +652,10 @@ function NewThreadForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [flair, setFlair] = useState<string | null>(null);
+  const [showPoll, setShowPoll] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Image upload states
@@ -815,6 +890,13 @@ function NewThreadForm() {
           metadata: Object.keys(meta).length > 0 ? meta : undefined,
           imageUrls: filteredImages.length > 0 ? filteredImages : undefined,
           isAnonymous: isAnonymous || undefined,
+          flair: flair || undefined,
+          ...(showPoll && pollQuestion.trim() && pollOptions.filter(o => o.trim()).length >= 2 && {
+            poll: {
+              question: pollQuestion.trim(),
+              options: pollOptions.filter(o => o.trim()),
+            },
+          }),
         },
       });
       showToast('Thread created');
@@ -892,6 +974,65 @@ function NewThreadForm() {
             required
           />
         </div>
+
+        {/* Flair selector */}
+        <div className={styles.flairSelector}>
+          <label className={styles.fieldLabel}>Flair (optional)</label>
+          <div className={styles.flairOptions}>
+            {FLAIR_OPTIONS.map(opt => (
+              <button
+                key={opt.value ?? 'none'}
+                type="button"
+                className={`${styles.flairPill} ${flair === opt.value ? styles.flairPillActive : ''} ${opt.value ? styles[`flair${opt.value}`] : ''}`}
+                onClick={() => setFlair(flair === opt.value ? null : opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Poll creator */}
+        <div className={styles.pollToggle}>
+          <button
+            type="button"
+            className={`${styles.pollToggleBtn} ${showPoll ? styles.pollToggleBtnActive : ''}`}
+            onClick={() => setShowPoll(!showPoll)}
+          >
+            {showPoll ? 'Remove Poll' : 'Add Poll'}
+          </button>
+        </div>
+
+        {showPoll && (
+          <div className={styles.pollCreator}>
+            <input
+              className={styles.pollQuestionInput}
+              placeholder="Poll question..."
+              value={pollQuestion}
+              onChange={e => setPollQuestion(e.target.value)}
+              maxLength={200}
+            />
+            <div className={styles.pollOptionsList}>
+              {pollOptions.map((opt, i) => (
+                <div key={i} className={styles.pollOptionRow}>
+                  <input
+                    className={styles.pollOptionInput}
+                    placeholder={`Option ${i + 1}`}
+                    value={opt}
+                    onChange={e => setPollOptions(pollOptions.map((o, j) => j === i ? e.target.value : o))}
+                    maxLength={100}
+                  />
+                  {pollOptions.length > 2 && (
+                    <button type="button" className={styles.pollRemoveBtn} onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}>×</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {pollOptions.length < 6 && (
+              <button type="button" className={styles.pollAddBtn} onClick={() => setPollOptions([...pollOptions, ''])}>+ Add Option</button>
+            )}
+          </div>
+        )}
 
         {/* --- Category-specific fields --- */}
 
@@ -1146,7 +1287,7 @@ function NewThreadForm() {
                     onDragOver={(e) => handleThumbDragOver(e, i)}
                     onDragEnd={handleThumbDragEnd}
                   >
-                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} />
+                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} loading="lazy" decoding="async" />
                     <button
                       type="button"
                       className={styles.thumbRemove}

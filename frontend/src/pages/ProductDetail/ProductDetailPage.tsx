@@ -9,7 +9,10 @@ import { useBuildStore } from '../../stores/buildStore';
 import type { CategorySlot, SelectedPart } from '../../stores/buildStore';
 import { PriceHistoryChart } from '../../components/PriceHistoryChart/PriceHistoryChart';
 import type { ProductInput } from '../../types/productSpecs';
-import { api } from '../../utils/api';
+import { api, resolveImageUrl } from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../components/Toast/Toast';
+import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -196,6 +199,8 @@ export function ProductDetailPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const addPart = useBuildStore((s) => s.addPart);
+  const { user } = useAuth();
+  const { showToast } = useToast();
 
   const slotParam = searchParams.get('slot')?.toUpperCase() ?? null;
   const slot: CategorySlot | null =
@@ -293,6 +298,164 @@ export function ProductDetailPage() {
     navigate('/build');
   };
 
+  // ── Reviews ────────────────────────────────────────────────────────────
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [userReview, setUserReview] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewRating, setReviewRating] = useState(7);
+  const [reviewPros, setReviewPros] = useState('');
+  const [reviewCons, setReviewCons] = useState('');
+  const [reviewWouldBuy, setReviewWouldBuy] = useState(true);
+  const [reviewOwnership, setReviewOwnership] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!product) return;
+    api<{ items: any[] }>(`/reviews?productId=${product.id}`)
+      .then((d) => setReviews(d.items ?? []))
+      .catch(() => {});
+  }, [product]);
+
+  useEffect(() => {
+    if (!user || !product) return;
+    api<{ items: any[] }>(`/reviews?productId=${product.id}&userId=${user.userId}`)
+      .then((d) => {
+        const items = d.items ?? [];
+        if (items.length > 0) setUserReview(items[0]);
+      })
+      .catch(() => {});
+  }, [user, product]);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reviewSubmitting || !product) return;
+    setReviewSubmitting(true);
+    try {
+      const review = await api<any>('/reviews', {
+        method: 'POST',
+        body: {
+          productId: product.id,
+          ratingOverall: reviewRating,
+          pros: reviewPros,
+          cons: reviewCons,
+          wouldBuyAgain: reviewWouldBuy,
+          ownershipDuration: reviewOwnership || null,
+        },
+      });
+      setUserReview(review);
+      setShowReviewForm(false);
+      setReviews((prev) => [review, ...prev]);
+      showToast('Review submitted!', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to submit review', 'error');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  // ── Q&A ────────────────────────────────────────────────────────────────
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [newQuestion, setNewQuestion] = useState('');
+  const [askingQuestion, setAskingQuestion] = useState(false);
+  const [answeringId, setAnsweringId] = useState<string | null>(null);
+  const [answerText, setAnswerText] = useState('');
+
+  useEffect(() => {
+    if (!product) return;
+    api<any[]>(`/qa/products/${product.id}/questions`)
+      .then(setQuestions)
+      .catch(() => {});
+  }, [product]);
+
+  const handleAskQuestion = async () => {
+    if (!newQuestion.trim() || askingQuestion || !product) return;
+    setAskingQuestion(true);
+    try {
+      const q = await api<any>(`/qa/products/${product.id}/questions`, {
+        method: 'POST',
+        body: { question: newQuestion.trim() },
+      });
+      setQuestions((prev) => [q, ...prev]);
+      setNewQuestion('');
+      showToast('Question posted!', 'success');
+    } catch {
+      showToast('Failed to post question', 'error');
+    } finally {
+      setAskingQuestion(false);
+    }
+  };
+
+  const handlePostAnswer = async (questionId: string) => {
+    if (!answerText.trim()) return;
+    try {
+      const answer = await api<any>(`/qa/questions/${questionId}/answers`, {
+        method: 'POST',
+        body: { body: answerText.trim() },
+      });
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === questionId
+            ? { ...q, answers: [...q.answers, answer], _count: { answers: q._count.answers + 1 } }
+            : q,
+        ),
+      );
+      setAnsweringId(null);
+      setAnswerText('');
+      showToast('Answer posted!', 'success');
+    } catch {
+      showToast('Failed to post answer', 'error');
+    }
+  };
+
+  const handleAcceptAnswer = async (questionId: string, answerId: string) => {
+    try {
+      await api(`/qa/answers/${answerId}/accept`, { method: 'PUT' });
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === questionId
+            ? { ...q, answers: q.answers.map((a: any) => ({ ...a, isAccepted: a.id === answerId })) }
+            : q,
+        ),
+      );
+    } catch {
+      showToast('Failed to accept answer', 'error');
+    }
+  };
+
+  // ── Price Alerts ──────────────────────────────────────────────────────
+  const [priceAlert, setPriceAlert] = useState<any>(null);
+  const [alertPrice, setAlertPrice] = useState('');
+  const [showAlertForm, setShowAlertForm] = useState(false);
+
+  useEffect(() => {
+    if (!user || !product) return;
+    api<{ alert: any }>(`/products/${product.slug}/price-alert`)
+      .then((d) => setPriceAlert(d.alert))
+      .catch(() => {});
+  }, [user, product]);
+
+  const handleSetAlert = async () => {
+    if (!alertPrice || !product) return;
+    try {
+      const alert = await api<any>(`/products/${product.slug}/price-alert`, {
+        method: 'POST',
+        body: { targetPrice: parseFloat(alertPrice), currency: 'GBP' },
+      });
+      setPriceAlert(alert);
+      setShowAlertForm(false);
+      showToast('Price alert set!', 'success');
+    } catch {
+      showToast('Failed to set price alert', 'error');
+    }
+  };
+
+  const handleRemoveAlert = async () => {
+    if (!product) return;
+    await api(`/products/${product.slug}/price-alert`, { method: 'DELETE' });
+    setPriceAlert(null);
+    showToast('Alert removed', 'success');
+  };
+
   // --- Not found ---
   if (loading) {
     return (
@@ -323,7 +486,12 @@ export function ProductDetailPage() {
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd)
+              .replace(/</g, '\\u003c')
+              .replace(/>/g, '\\u003e')
+              .replace(/&/g, '\\u0026'),
+          }}
         />
       )}
 
@@ -411,6 +579,45 @@ export function ProductDetailPage() {
           </button>
           {!slot && (
             <span className={styles.tooltip}>Open from Build page to add to your rig</span>
+          )}
+
+          <button
+            type="button"
+            className={styles.compareProductBtn}
+            onClick={() => {
+              navigate(`/products/compare?slugs=${product.slug}`);
+            }}
+          >
+            Compare
+          </button>
+
+          {user && (
+            <div className={styles.priceAlertSection}>
+              {priceAlert ? (
+                <div className={styles.alertActive}>
+                  <span>Alert set: £{priceAlert.targetPrice}</span>
+                  <button className={styles.removeAlertBtn} onClick={handleRemoveAlert}>Remove</button>
+                </div>
+              ) : showAlertForm ? (
+                <div className={styles.alertForm}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className={styles.alertInput}
+                    placeholder="Alert me when below..."
+                    value={alertPrice}
+                    onChange={(e) => setAlertPrice(e.target.value)}
+                  />
+                  <button className={styles.setAlertBtn} onClick={handleSetAlert}>Set Alert</button>
+                  <button className={styles.cancelAlertBtn} onClick={() => setShowAlertForm(false)}>Cancel</button>
+                </div>
+              ) : (
+                <button className={styles.createAlertBtn} onClick={() => setShowAlertForm(true)}>
+                  Set Price Alert
+                </button>
+              )}
+            </div>
           )}
         </div>
       </section>
@@ -508,6 +715,209 @@ export function ProductDetailPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Write a Review */}
+      <section className={styles.communitySection}>
+        <h2 className={styles.sectionTitle}>Reviews</h2>
+
+        {user && !userReview && (
+          <button className={styles.writeReviewBtn} onClick={() => setShowReviewForm(!showReviewForm)}>
+            Write a Review
+          </button>
+        )}
+
+        {showReviewForm && (
+          <form className={styles.reviewForm} onSubmit={handleSubmitReview}>
+            <h3 className={styles.reviewFormTitle}>Your Review</h3>
+
+            <div className={styles.ratingField}>
+              <label className={styles.fieldLabel}>Overall Rating: {reviewRating}/10</label>
+              <input
+                type="range" min="1" max="10" step="1"
+                value={reviewRating}
+                onChange={(e) => setReviewRating(parseInt(e.target.value))}
+                className={styles.ratingSlider}
+              />
+              <div className={styles.ratingScale}>
+                <span>Poor</span><span>Average</span><span>Excellent</span>
+              </div>
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>How long have you owned this?</label>
+              <CustomSelect
+                value={reviewOwnership}
+                onChange={setReviewOwnership}
+                placeholder="Select..."
+                options={[
+                  { value: 'less_than_month', label: 'Less than a month' },
+                  { value: '1_3_months', label: '1-3 months' },
+                  { value: '3_6_months', label: '3-6 months' },
+                  { value: '6_12_months', label: '6-12 months' },
+                  { value: '1_2_years', label: '1-2 years' },
+                  { value: '2_plus_years', label: '2+ years' },
+                ]}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Pros</label>
+              <textarea
+                className={styles.reviewTextarea}
+                placeholder="What do you like about this product?"
+                value={reviewPros}
+                onChange={(e) => setReviewPros(e.target.value)}
+                rows={3}
+                required
+                maxLength={2000}
+              />
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Cons</label>
+              <textarea
+                className={styles.reviewTextarea}
+                placeholder="What could be improved?"
+                value={reviewCons}
+                onChange={(e) => setReviewCons(e.target.value)}
+                rows={3}
+                required
+                maxLength={2000}
+              />
+            </div>
+
+            <label className={styles.checkboxField}>
+              <input type="checkbox" checked={reviewWouldBuy} onChange={(e) => setReviewWouldBuy(e.target.checked)} />
+              <span>I would buy this product again</span>
+            </label>
+
+            <div className={styles.reviewFormActions}>
+              <button type="button" className={styles.cancelBtn} onClick={() => setShowReviewForm(false)}>Cancel</button>
+              <button type="submit" className={styles.submitBtn} disabled={reviewSubmitting}>
+                {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {reviews.length > 0 && (
+          <div className={styles.reviewList}>
+            {reviews.map((r) => (
+              <div key={r.id} className={styles.reviewCard}>
+                <div className={styles.reviewCardHeader}>
+                  <a href={`/profile/${r.user?.username}`} className={styles.reviewAuthor}>{r.user?.username}</a>
+                  <span className={styles.reviewRatingBadge}>{r.ratingOverall}/10</span>
+                  {r.ownershipDuration && (
+                    <span className={styles.reviewOwnership}>Owned: {r.ownershipDuration.replace(/_/g, ' ')}</span>
+                  )}
+                  <span className={styles.reviewDate}>{new Date(r.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className={styles.reviewProsCons}>
+                  <div className={styles.reviewPros}>
+                    <h5>Pros</h5>
+                    <p>{r.pros}</p>
+                  </div>
+                  <div className={styles.reviewCons}>
+                    <h5>Cons</h5>
+                    <p>{r.cons}</p>
+                  </div>
+                </div>
+                <div className={styles.reviewCardFooter}>
+                  {r.wouldBuyAgain ? (
+                    <span className={styles.wouldBuyYes}>Would buy again</span>
+                  ) : (
+                    <span className={styles.wouldBuyNo}>Would not buy again</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Questions & Answers */}
+      <section className={styles.qaSection}>
+        <h2 className={styles.sectionTitle}>Questions &amp; Answers ({questions.length})</h2>
+
+        {user && (
+          <div className={styles.askQuestionRow}>
+            <input
+              className={styles.questionInput}
+              placeholder="Have a question about this product?"
+              value={newQuestion}
+              onChange={(e) => setNewQuestion(e.target.value)}
+              maxLength={500}
+            />
+            <button
+              className={styles.askBtn}
+              onClick={handleAskQuestion}
+              disabled={!newQuestion.trim() || askingQuestion}
+            >
+              Ask
+            </button>
+          </div>
+        )}
+
+        <div className={styles.questionList}>
+          {questions.map((q) => (
+            <div key={q.id} className={styles.questionCard}>
+              <div className={styles.questionHeader}>
+                <span className={styles.questionLabel}>Q</span>
+                <p className={styles.questionText}>{q.question}</p>
+              </div>
+              <div className={styles.questionMeta}>
+                <a href={`/profile/${q.user.username}`}>{q.user.username}</a>
+                <span>{new Date(q.createdAt).toLocaleDateString()}</span>
+                <span>{q._count.answers} answer{q._count.answers !== 1 ? 's' : ''}</span>
+              </div>
+
+              {q.answers.map((a: any) => (
+                <div key={a.id} className={`${styles.answerCard} ${a.isAccepted ? styles.answerAccepted : ''}`}>
+                  <div className={styles.answerHeader}>
+                    <span className={styles.answerLabel}>A</span>
+                    {a.isAccepted && <span className={styles.acceptedBadge}>Accepted</span>}
+                  </div>
+                  <p className={styles.answerText}>{a.body}</p>
+                  <div className={styles.answerMeta}>
+                    <a href={`/profile/${a.user.username}`}>{a.user.username}</a>
+                    <span>{new Date(a.createdAt).toLocaleDateString()}</span>
+                    {user && q.userId === user.userId && !a.isAccepted && (
+                      <button
+                        className={styles.acceptAnswerBtn}
+                        onClick={() => handleAcceptAnswer(q.id, a.id)}
+                      >
+                        Accept Answer
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {user && answeringId !== q.id && (
+                <button className={styles.answerBtn} onClick={() => { setAnsweringId(q.id); setAnswerText(''); }}>
+                  Answer this question
+                </button>
+              )}
+              {answeringId === q.id && (
+                <div className={styles.answerForm}>
+                  <textarea
+                    className={styles.answerTextarea}
+                    placeholder="Write your answer..."
+                    value={answerText}
+                    onChange={(e) => setAnswerText(e.target.value)}
+                    rows={3}
+                    maxLength={2000}
+                  />
+                  <div className={styles.answerFormActions}>
+                    <button className={styles.cancelBtn} onClick={() => setAnsweringId(null)}>Cancel</button>
+                    <button className={styles.submitBtn} onClick={() => handlePostAnswer(q.id)}>Post Answer</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
     </div>

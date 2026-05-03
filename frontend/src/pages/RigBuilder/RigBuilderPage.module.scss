@@ -25,7 +25,6 @@
 }
 
 .title {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -87,7 +86,6 @@
 }
 
 .summaryTitle {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
@@ -162,7 +160,6 @@
 }
 
 .totalLabel {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -191,7 +188,6 @@
   color: var(--text-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
@@ -199,6 +195,144 @@
 
   &:hover {
     border-color: var(--accent-secondary);
+    color: var(--text-primary);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Templates section
+// ---------------------------------------------------------------------------
+
+.templatesSection {
+  margin-bottom: 32px;
+}
+
+.templatesHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.templatesTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.templatesSkip {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    color: var(--accent-primary);
+  }
+}
+
+.templatesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.templateCard {
+  padding: 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  transition: all 150ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  &:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+  }
+}
+
+.templateTier {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  align-self: flex-start;
+}
+
+.tierbudget {
+  color: var(--accent-primary);
+  background: var(--accent-primary-subtle);
+}
+.tiermidrange {
+  color: #6e56ff;
+  background: rgba(110, 86, 255, 0.1);
+}
+.tierhighend {
+  color: #ffb020;
+  background: rgba(255, 176, 32, 0.1);
+}
+.tierpro {
+  color: #ff6b8a;
+  background: rgba(255, 107, 138, 0.1);
+}
+
+.templateName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.templateDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.templateCost {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.templatePartCount {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+// Template active banner
+.templateBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+
+.templateBannerText {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.templateBannerDismiss {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover {
     color: var(--text-primary);
   }
 }

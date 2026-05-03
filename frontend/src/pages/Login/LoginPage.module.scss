@@ -24,7 +24,6 @@
 }
 
 .logo {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
@@ -83,7 +82,6 @@
   color: var(--bg-void);
   border: none;
   border-radius: var(--radius-sm);
-  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
@@ -115,6 +113,41 @@
     text-decoration: none;
     font-weight: 500;
 
+    &:hover { color: var(--accent-primary); }
+  }
+}
+
+.forgotPasswordLink {
+  display: block;
+  text-align: center;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+
+  &:hover { color: var(--accent-primary); }
+}
+
+.termsLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: 'General Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1.4;
+
+  input[type='checkbox'] {
+    margin-top: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  a {
+    color: var(--accent-secondary);
+    text-decoration: none;
+    font-weight: 500;
     &:hover { color: var(--accent-primary); }
   }
 }

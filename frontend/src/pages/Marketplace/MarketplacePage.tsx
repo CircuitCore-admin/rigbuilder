@@ -8,6 +8,8 @@ import { EmbedBuildCard } from '../../components/EmbedBuildCard/EmbedBuildCard';
 import { CustomSelect } from '../../components/CustomSelect/CustomSelect';
 import { useToast } from '../../components/Toast/Toast';
 import { useAuth } from '../../hooks/useAuth';
+import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
+import { ListingCardSkeleton } from '../../components/Skeleton/Skeleton';
 import {
   MARKETPLACE_DISCLAIMERS,
   MARKETPLACE_CATEGORIES,
@@ -608,7 +610,9 @@ function MarketplaceDashboard() {
 
         {/* Listings */}
         {loading ? (
-          <div className={styles.loadingState}>Loading listings…</div>
+          <div className={styles.listingGrid}>
+            {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
+          </div>
         ) : listings.length === 0 ? (
           <div className={styles.emptyState}>
             <h3 className={styles.emptyStateTitle}>No listings found</h3>
@@ -672,7 +676,7 @@ function MarketplaceDashboard() {
                 <a key={item.id} href={`/marketplace/${item.id}`} className={styles.recentCard}>
                   <div className={styles.recentCardImage}>
                     {item.imageUrl ? (
-                      <img src={resolveImageUrl(item.imageUrl)} alt="" />
+                      <img src={resolveImageUrl(item.imageUrl)} alt="" loading="lazy" decoding="async" />
                     ) : (
                       <div className={styles.recentCardNoImage}>No image</div>
                     )}
@@ -784,7 +788,7 @@ function ListingCard({ listing, mode, isWishlisted, onToggleWishlist, onShare }:
       <a href={`/marketplace/${listing.id}`} className={`${styles.gridCard} ${listing.isPremium ? styles.gridCardPremium : ''} ${isSold ? styles.gridCardSold : ''}`}>
         <div className={styles.gridCardImageWrap}>
           {listing.imageUrls.length > 0 ? (
-            <img src={resolveImageUrl(listing.imageUrls[0])} alt={listing.title} className={styles.gridCardImage} />
+            <img src={resolveImageUrl(listing.imageUrls[0])} alt={listing.title} className={styles.gridCardImage} loading="lazy" decoding="async" />
           ) : (
             <div className={styles.gridCardNoImage}>📷<span>No image</span></div>
           )}
@@ -854,7 +858,7 @@ function ListingCard({ listing, mode, isWishlisted, onToggleWishlist, onShare }:
     <a href={`/marketplace/${listing.id}`} className={`${styles.listRow} ${listing.isPremium ? styles.listRowPremium : ''} ${isSold ? styles.listRowSold : ''}`}>
       <div className={styles.listRowImageWrap}>
         {listing.imageUrls.length > 0 ? (
-          <img src={resolveImageUrl(listing.imageUrls[0])} alt={listing.title} className={styles.listRowImage} />
+          <img src={resolveImageUrl(listing.imageUrls[0])} alt={listing.title} className={styles.listRowImage} loading="lazy" decoding="async" />
         ) : (
           <div className={styles.listRowNoImage}>📷</div>
         )}
@@ -1166,7 +1170,7 @@ function CreateListingPage() {
       </header>
 
       <form className={styles.listingForm} onSubmit={handleSubmit}>
-        {error && <div className={styles.formError}>{error}</div>}
+        {error && <div id="listing-form-error" className={styles.formError} role="alert">{error}</div>}
 
         <div className={styles.formGrid}>
           {/* Title — full width */}
@@ -1181,6 +1185,7 @@ function CreateListingPage() {
               onChange={e => setTitle(e.target.value)}
               maxLength={200}
               required
+              aria-describedby={error ? 'listing-form-error' : undefined}
             />
           </div>
 
@@ -1430,7 +1435,7 @@ function CreateListingPage() {
                     onDragOver={e => handleThumbDragOver(e, i)}
                     onDragEnd={handleThumbDragEnd}
                   >
-                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} />
+                    <img src={resolveImageUrl(url)} alt={`Image ${i + 1}`} className={styles.thumbImg} loading="lazy" decoding="async" />
                     <button
                       type="button"
                       className={styles.thumbRemove}
@@ -1534,6 +1539,9 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   // Owner controls
   const [statusUpdating, setStatusUpdating] = useState(false);
 
+  // Confirm dialog
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; action: 'delete' | 'sold' }>({ open: false, action: 'delete' });
+
   // Related listings
   const [sellerListings, setSellerListings] = useState<ListingItem[]>([]);
   const [similarListings, setSimilarListings] = useState<ListingItem[]>([]);
@@ -1621,7 +1629,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
   };
 
   const handleDelete = async () => {
-    if (!listing || !window.confirm('Are you sure you want to delete this listing?')) return;
+    if (!listing) return;
     try {
       await api(`/marketplace/${listing.id}`, { method: 'DELETE' });
       showToast('Listing deleted', 'success');
@@ -1739,6 +1747,8 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                   src={resolveImageUrl(listing.imageUrls[activeImageIdx])}
                   alt={listing.title}
                   className={styles.galleryMainImage}
+                  loading="eager"
+                  fetchPriority="high"
                 />
                 {listing.imageUrls.length > 1 && (
                   <>
@@ -1769,7 +1779,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
                       className={`${styles.galleryThumb} ${i === activeImageIdx ? styles.galleryThumbActive : ''}`}
                       onClick={() => setActiveImageIdx(i)}
                     >
-                      <img src={resolveImageUrl(url)} alt="" />
+                      <img src={resolveImageUrl(url)} alt="" loading="lazy" decoding="async" />
                     </button>
                   ))}
                 </div>
@@ -1823,7 +1833,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
           <div className={styles.sellerCardCompact}>
             <div className={styles.sellerAvatar}>
               {listing.user.avatarUrl ? (
-                <img src={resolveImageUrl(listing.user.avatarUrl)} alt="" />
+                <img src={resolveImageUrl(listing.user.avatarUrl)} alt="" loading="lazy" decoding="async" />
               ) : (
                 <span>{listing.user.username[0].toUpperCase()}</span>
               )}
@@ -2059,7 +2069,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
             <div className={styles.ownerControlsCompact}>
               {!isSold && (
                 <>
-                  <button className={styles.statusBtn} onClick={() => handleStatusUpdate('SOLD')} disabled={statusUpdating}>Mark as Sold</button>
+                  <button className={styles.statusBtn} onClick={() => setConfirmDialog({ open: true, action: 'sold' })} disabled={statusUpdating}>Mark as Sold</button>
                   <button className={styles.extendBtn} onClick={async () => {
                     try { await api(`/marketplace/${listing.id}/extend`, { method: 'POST' }); showToast('Listing extended!', 'success'); } catch { showToast('Failed to extend listing', 'error'); }
                   }}>Extend</button>
@@ -2068,7 +2078,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               {isSold && (
                 <button className={styles.statusBtn} onClick={() => handleStatusUpdate('ACTIVE')} disabled={statusUpdating}>Reactivate</button>
               )}
-              <button className={styles.deleteBtnSmall} onClick={handleDelete}>Delete</button>
+              <button className={styles.deleteBtnSmall} onClick={() => setConfirmDialog({ open: true, action: 'delete' })}>Delete</button>
             </div>
           )}
 
@@ -2131,7 +2141,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               <a key={item.id} href={`/marketplace/${item.id}`} className={styles.relatedCard}>
                 <div className={styles.relatedCardImage}>
                   {item.imageUrls?.[0] ? (
-                    <img src={resolveImageUrl(item.imageUrls[0])} alt="" />
+                    <img src={resolveImageUrl(item.imageUrls[0])} alt="" loading="lazy" decoding="async" />
                   ) : (
                     <div className={styles.relatedCardNoImage}>No image</div>
                   )}
@@ -2156,7 +2166,7 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
               <a key={item.id} href={`/marketplace/${item.id}`} className={styles.relatedCard}>
                 <div className={styles.relatedCardImage}>
                   {item.imageUrls?.[0] ? (
-                    <img src={resolveImageUrl(item.imageUrls[0])} alt="" />
+                    <img src={resolveImageUrl(item.imageUrls[0])} alt="" loading="lazy" decoding="async" />
                   ) : (
                     <div className={styles.relatedCardNoImage}>No image</div>
                   )}
@@ -2225,6 +2235,23 @@ function ListingDetailPage({ listingId }: { listingId: string }) {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.action === 'delete' ? 'Delete Listing' : 'Mark as Sold'}
+        message={
+          confirmDialog.action === 'delete'
+            ? 'Are you sure you want to permanently delete this listing? This cannot be undone.'
+            : 'Mark this listing as sold? It will no longer be visible to buyers.'
+        }
+        confirmLabel={confirmDialog.action === 'delete' ? 'Delete' : 'Mark as Sold'}
+        variant={confirmDialog.action === 'delete' ? 'danger' : 'default'}
+        onConfirm={() => {
+          setConfirmDialog(d => ({ ...d, open: false }));
+          if (confirmDialog.action === 'delete') handleDelete();
+          else handleStatusUpdate('SOLD');
+        }}
+        onCancel={() => setConfirmDialog(d => ({ ...d, open: false }))}
+      />
     </div>
   );
 }

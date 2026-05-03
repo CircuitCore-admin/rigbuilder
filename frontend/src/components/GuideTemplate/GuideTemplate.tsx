@@ -119,7 +119,7 @@ export function GuideTemplate({ slug }: GuideTemplateProps) {
 
       {guide.coverImage && (
         <div className={styles.cover}>
-          <img src={guide.coverImage} alt={guide.title} className={styles.coverImg} />
+          <img src={guide.coverImage} alt={guide.title} className={styles.coverImg} loading="eager" fetchPriority="high" />
         </div>
       )}
 
@@ -136,7 +136,7 @@ export function GuideTemplate({ slug }: GuideTemplateProps) {
         <div className={styles.meta}>
           <div className={styles.authorBlock}>
             {guide.author.avatarUrl && (
-              <img src={guide.author.avatarUrl} alt="" className={styles.avatar} />
+              <img src={guide.author.avatarUrl} alt="" className={styles.avatar} loading="lazy" decoding="async" />
             )}
             <span className={styles.authorName}>{guide.author.username}</span>
           </div>
@@ -185,7 +185,7 @@ function LiveSpecCard({ product }: { product: MentionedProduct }) {
   return (
     <div className={styles.specCard}>
       {product.images[0] && (
-        <img src={product.images[0]} alt={product.name} className={styles.specCardImg} />
+        <img src={product.images[0]} alt={product.name} className={styles.specCardImg} loading="lazy" decoding="async" />
       )}
       <div className={styles.specCardBody}>
         <div className={styles.specCardMfr}>{product.manufacturer}</div>

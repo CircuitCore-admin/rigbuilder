@@ -1,0 +1,241 @@
+@use '../../styles/variables';
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+
+.pageDesc {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+}
+
+.selector {
+  margin-bottom: 32px;
+}
+
+.searchWrapper {
+  position: relative;
+  max-width: 400px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: var(--text-body);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  &:focus {
+    border-color: var(--accent-primary);
+  }
+}
+
+.searchDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.searchResult {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  &:hover {
+    background: var(--surface-hover);
+  }
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.searchResultName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.searchResultMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+// Comparison grid
+.compareGrid {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.compareRow {
+  display: contents;
+}
+
+.compareLabel {
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+}
+
+.compareHeader {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.productImage {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.compareProductName {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-decoration: none;
+  &:hover {
+    color: var(--accent-primary);
+  }
+}
+
+.compareProductMfr {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.removeBtn {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    color: var(--accent-hot);
+  }
+}
+
+.compareCell {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-body);
+  text-align: center;
+}
+
+.compareCellHighlight {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.viewProductBtn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-void);
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.addToBuildBtn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+.priceAlertBtn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  &:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 24px;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+@media (max-width: variables.$bp-mobile) {
+  .compareGrid {
+    overflow-x: auto;
+  }
+}

@@ -9,10 +9,22 @@ if (!MASTER_KEY) {
   );
 }
 
-const effectiveKey = MASTER_KEY || crypto.randomBytes(32).toString('hex');
+let masterKeyBuf: Buffer;
+
+if (MASTER_KEY) {
+  masterKeyBuf = Buffer.from(MASTER_KEY, 'hex');
+  if (masterKeyBuf.length !== 32) {
+    console.error(
+      `[marketplace-encryption] MARKETPLACE_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes). ` +
+      `Got ${masterKeyBuf.length} bytes. Using random key as fallback.`
+    );
+    masterKeyBuf = crypto.randomBytes(32);
+  }
+} else {
+  masterKeyBuf = crypto.randomBytes(32);
+}
 
 function deriveKey(conversationId: string): Buffer {
-  const masterKeyBuf = Buffer.from(effectiveKey, 'hex');
   return Buffer.from(crypto.hkdfSync('sha256', masterKeyBuf, conversationId, 'marketplace-msg', 32));
 }
 
