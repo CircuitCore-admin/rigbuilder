@@ -36,8 +36,9 @@ export class GuideRepository {
   }
 
   static async findBySlug(slug: string) {
-    return prisma.guide.findUnique({
-      where: { slug },
+    // Supports both slug and ID lookups (edit page uses guide ID)
+    return prisma.guide.findFirst({
+      where: { OR: [{ slug }, { id: slug }] },
       include: {
         author: { select: { id: true, username: true, avatarUrl: true, bio: true } },
       },
